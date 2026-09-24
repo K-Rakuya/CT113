@@ -42,5 +42,5 @@ Vì dự án sử dụng ES Modules và Firebase, bạn cần chạy trên một
 
 1. **Clone dự án về máy:**
    ```bash
-   git clone [https://github.com/K-Rakuya/CT113.git](https://github.com/K-Rakuya/CT113.git)
+   git clone https://github.com/K-Rakuya/CT113.git
    cd CT113

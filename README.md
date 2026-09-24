@@ -18,8 +18,6 @@ Hệ thống được thiết kế với tính năng phân quyền bảo mật, 
 
 ## 🛠️ Công Nghệ Sử Dụng
 
-Dự án sử dụng các công nghệ Web hiện đại, không cần setup môi trường build phức tạp:
-
 ### 🎨 Giao diện (Frontend)
 - **HTML5 & CSS3:** Xây dựng cấu trúc và định dạng giao diện.
 - **Bootstrap:** Sử dụng qua CDN để thiết kế giao diện responsive nhanh chóng.
@@ -37,8 +35,6 @@ Dự án sử dụng các công nghệ Web hiện đại, không cần setup mô
 ---
 
 ## 🚀 Hướng Dẫn Chạy Dự Án (Local Development)
-
-Vì dự án sử dụng ES Modules và Firebase, bạn cần chạy trên một Local Server thay vì mở trực tiếp file HTML.
 
 1. **Clone dự án về máy:**
    ```bash

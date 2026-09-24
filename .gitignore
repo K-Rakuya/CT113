@@ -1,0 +1,13 @@
+.env
+.env.*
+*-firebase-adminsdk-*.json
+serviceAccountKey*.json
+
+node_modules/
+.vercel/
+.firebase/
+firebase-debug.log
+*.log
+
+.DS_Store
+Thumbs.db

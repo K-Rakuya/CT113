@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function dangNhap() { return request.auth != null; }
+    function vaiTro() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.vaiTro; }
+    function laNV() { return dangNhap() && vaiTro() in ['nhan_vien','quan_tri','chu_cua_hang']; }
+    function laQT() { return dangNhap() && vaiTro() == 'quan_tri'; }
+    function laCH() { return dangNhap() && vaiTro() == 'chu_cua_hang'; }
+
+    match /users/{uid} {
+      allow read: if dangNhap();
+      allow create: if dangNhap() && (
+        (request.auth.uid == uid && request.resource.data.vaiTro == 'khach_hang') || laQT()
+      );
+      allow update: if dangNhap() && (
+        laQT() ||
+        (request.auth.uid == uid
+          && request.resource.data.vaiTro     == resource.data.vaiTro
+          && request.resource.data.trangThai  == resource.data.trangThai
+          && request.resource.data.chucVu     == resource.data.chucVu
+          && request.resource.data.luongCoBan == resource.data.luongCoBan)
+      );
+      allow delete: if laQT();
+    }
+    match /sanpham/{id} {
+      allow read: if true;
+      allow write: if laNV();
+      // Khách tự trừ tồn kho lúc checkout (transaction) — CHỈ được sửa đúng field này
+      allow update: if dangNhap()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['soLuongTon'])
+        && request.resource.data.soLuongTon >= 0
+        && request.resource.data.soLuongTon < resource.data.soLuongTon;
+    }
+    match /danhmuc/{id}    { allow read: if true; allow write: if laQT(); }
+    match /cauhinh/{id}    { allow read: if true; allow write: if laQT(); }
+    match /nhacungcap/{id} { allow read: if laNV(); allow write: if laCH(); }
+    match /donhang/{id} {
+      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laNV());
+      allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid
+                    && request.resource.data.trangThai == 'cho_duyet';
+      allow update: if laNV();
+    }
+    match /chitietdonhang/{id} {
+      allow read: if dangNhap() && (laNV() ||
+        get(/databases/$(database)/documents/donhang/$(resource.data.donHangId)).data.khachHangId == request.auth.uid);
+      allow create: if dangNhap() &&
+        get(/databases/$(database)/documents/donhang/$(request.resource.data.donHangId)).data.khachHangId == request.auth.uid;
+      allow update, delete: if laNV();
+    }
+    match /giohang/{id} {
+      allow read, update, delete: if dangNhap() && resource.data.khachHangId == request.auth.uid;
+      allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
+    }
+    match /danhgia/{id} {
+      allow read: if true;
+      allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
+    }
+    match /chamcong/{id} {
+      allow read: if dangNhap() && (resource.data.nhanVienId == request.auth.uid || laCH());
+      allow create: if dangNhap() && request.resource.data.nhanVienId == request.auth.uid;
+      allow update: if dangNhap() && (resource.data.nhanVienId == request.auth.uid || laCH());
+      allow delete: if laCH();
+    }
+    match /luongthuong/{id} {
+      allow read: if dangNhap() && (resource.data.nhanVienId == request.auth.uid || laCH());
+      allow write: if laCH();
+    }
+    match /yeucauhotro/{id} {
+      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laNV());
+      allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
+      allow update: if laNV();
+    }
+    match /nhatky/{id} {
+      allow read: if laQT();
+      allow create: if dangNhap();
+    }
+  }
+}

@@ -41,3 +41,55 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
     onDaXacThuc?.(vaiTro);
   });
 }
+
+// =============================================================================
+// CODE BỔ SUNG: Cập nhật tên hiển thị & Xử lý sự kiện Đăng xuất
+// =============================================================================
+
+import { signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+// Tự động thay thế chữ "Đang tải..." bằng tên người dùng
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  let displayName = user.email ? user.email.split("@")[0] : "Người dùng";
+
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists() && snap.data().hoTen) {
+      displayName = snap.data().hoTen;
+    }
+  } catch (err) {
+    console.error("Lỗi lấy thông tin tên người dùng:", err);
+  }
+
+  // Cập nhật tên vào các thẻ hiển thị tên user
+  const nameElements = document.querySelectorAll("#user-name, .topbar__user-name, .user-badge, span[class*='user']");
+  nameElements.forEach((el) => {
+    el.textContent = displayName;
+  });
+
+  // Tắt chữ "Đang tải..." trên giao diện
+  document.querySelectorAll("span, button, div").forEach((el) => {
+    if (el.children.length === 0 && el.textContent.trim() === "Đang tải...") {
+      el.textContent = displayName;
+    }
+  });
+});
+
+// Xử lý sự kiện click nút Đăng xuất (Logout)
+document.addEventListener("click", async (e) => {
+  const logoutBtn = e.target.closest("#logout-btn, .btn-logout, [id*='logout'], [class*='logout']");
+  if (logoutBtn) {
+    e.preventDefault();
+    try {
+      await signOut(auth);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/login.html";
+    } catch (err) {
+      console.error("Lỗi đăng xuất:", err);
+      alert("Đăng xuất thất bại. Vui lòng thử lại!");
+    }
+  }
+});

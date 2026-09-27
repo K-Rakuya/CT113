@@ -11,3 +11,5 @@ firebase-debug.log
 
 .DS_Store
 Thumbs.db
+js/env.js
+dev/

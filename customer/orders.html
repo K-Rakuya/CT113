@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đơn hàng của tôi — Website bán linh kiện máy tính</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/product.css" />
+</head>
+<body hidden>
+
+  <header class="site-header">
+    <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>
+    <nav class="site-header__nav">
+      <a href="/product-list.html">Sản phẩm</a>
+      <a href="/cart.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        Giỏ hàng
+      </a>
+      <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
+      <span data-auth="in" hidden>
+        <a href="/customer/profile.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>
+          Tài khoản
+        </a>
+        <button id="btn-dang-xuat" class="btn btn--secondary">Đăng xuất</button>
+      </span>
+    </nav>
+  </header>
+
+  <main class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
+    <h1>Tài khoản của tôi</h1>
+    <div class="kh-account-layout">
+      <nav class="kh-account-layout__nav" aria-label="Tài khoản">
+        <a href="/customer/profile.html">Thông tin cá nhân</a>
+        <a href="/customer/orders.html" aria-current="page">Đơn hàng của tôi</a>
+        <a href="/customer/support.html">Hỗ trợ kỹ thuật</a>
+      </nav>
+      <div>
+        <div class="form-group" style="max-width:240px;">
+          <label for="loc-trang-thai">Lọc theo trạng thái</label>
+          <select class="select" id="loc-trang-thai">
+            <option value="">Tất cả</option>
+            <option value="cho_duyet">Chờ duyệt</option>
+            <option value="dang_giao">Đang giao</option>
+            <option value="hoan_thanh">Hoàn thành</option>
+            <option value="huy">Đã huỷ</option>
+          </select>
+        </div>
+        <div id="danh-sach-don-hang" style="margin-top: var(--spacing-md);">
+          <p class="text-muted">Đang tải đơn hàng...</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">© 2026 — Đồ án CT113</footer>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { auth } from "/js/firebase-config.js";
+    import { dangXuat } from "/js/auth.js";
+    import { initDonHang } from "/js/customer/orders.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+    checkRole(["khach_hang"], () => {
+      document.body.hidden = false;
+      initDonHang();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      document.querySelector('[data-auth="in"]').hidden = !user;
+      document.querySelector('[data-auth="out"]').hidden = !!user;
+    });
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/index.html";
+    });
+  </script>
+</body>
+</html>

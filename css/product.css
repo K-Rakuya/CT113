@@ -1,0 +1,169 @@
+/* css/product.css
+ * -----------------------------------------------------------------------------
+ * CSS riêng module Khách hàng — mọi class mới có prefix "kh-"
+ * Nạp sau css/style.css. Giá tiền & mã sản phẩm dùng --font-family-mono
+ * ---------------------------------------------------------------------------*/
+
+/* ---- Bố cục trang danh sách sản phẩm: sidebar lọc + lưới kết quả ---- *
+ * ---------------------------------------------------------------------------*/
+.kh-catalog-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+.kh-catalog-layout__filters {
+  position: sticky;
+  top: calc(60px + var(--spacing-md));
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-md);
+}
+.kh-catalog-layout__filters .form-group { margin-bottom: var(--spacing-md); }
+.kh-catalog-layout__filters .form-group:last-of-type { margin-bottom: 0; }
+.kh-catalog-layout__filters h2 { font-size: var(--text-md); margin-bottom: var(--spacing-md); }
+.kh-catalog-layout__filters button[type="submit"] { width: 100%; margin-top: var(--spacing-md); }
+@media (max-width: 860px) {
+  .kh-catalog-layout { grid-template-columns: 1fr; }
+  .kh-catalog-layout__filters { position: static; }
+}
+
+/* ---- Bố cục khu vực "Tài khoản của tôi": sidebar điều hướng + nội dung ---- *
+ * Dùng chung cho customer/profile.html, orders.html, support.html 
+ * order-detail.html nên KHÔNG dùng layout này, dùng breadcrumb riêng (style.css).
+ * ---------------------------------------------------------------------------*/
+.kh-account-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--spacing-xl);
+  align-items: start;
+}
+.kh-account-layout__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: calc(60px + var(--spacing-md));
+}
+.kh-account-layout__nav a {
+  padding: 10px var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-weight: 500;
+  font-size: var(--text-sm);
+}
+.kh-account-layout__nav a:hover { background: var(--color-bg); text-decoration: none; }
+.kh-account-layout__nav a[aria-current="page"] {
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+@media (max-width: 720px) {
+  .kh-account-layout { grid-template-columns: 1fr; }
+  .kh-account-layout__nav { flex-direction: row; overflow-x: auto; position: static; gap: var(--spacing-xs); }
+}
+
+/* ---- Thẻ sản phẩm (dùng .grid ở style.css làm khung lưới) ---- */
+.kh-product-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+}
+.kh-product-card:hover {
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+}
+.kh-product-card__img {
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+.kh-product-card__name {
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+.kh-product-card__price {
+  font-family: var(--font-family-mono);
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: var(--text-md);
+}
+.kh-product-card__stock { font-size: var(--text-xs); color: var(--color-text-muted); }
+.kh-product-card__stock--out { color: var(--color-danger); }
+
+/* ---- Chi tiết sản phẩm (product-detail.html) ---- */
+.kh-detail { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: var(--spacing-xl); }
+@media (max-width: 720px) { .kh-detail { grid-template-columns: 1fr; } }
+.kh-detail__img { border-radius: var(--radius); width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: var(--color-bg); }
+.kh-detail__desc { max-width: 62ch; color: var(--color-text-muted); }
+.kh-detail__price {
+  font-family: var(--font-family-mono);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-primary);
+  margin: var(--spacing-sm) 0;
+}
+.kh-qty-stepper { display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
+.kh-qty-stepper button { width: 38px; height: 38px; border: none; background: var(--color-bg); cursor: pointer; font-size: 1.1em; color: var(--color-text); }
+.kh-qty-stepper button:hover { background: var(--color-border); }
+.kh-qty-stepper input {
+  width: 48px; text-align: center; border: none;
+  border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border);
+  font-family: var(--font-family-mono);
+}
+
+/* ---- Đánh giá ---- */
+.kh-review { padding: var(--spacing-md) 0; border-bottom: 1px solid var(--color-border); }
+.kh-review:last-child { border-bottom: none; }
+.kh-review__stars { color: var(--color-warning); letter-spacing: 2px; font-size: var(--text-sm); }
+.kh-review-form { margin-top: var(--spacing-lg); }
+
+/* ---- Giỏ hàng (cart.html) ---- */
+.kh-cart-layout { display: grid; grid-template-columns: 1fr 320px; gap: var(--spacing-lg); align-items: start; }
+@media (max-width: 860px) { .kh-cart-layout { grid-template-columns: 1fr; } }
+.kh-cart-item { display: flex; gap: var(--spacing-md); align-items: center; padding: var(--spacing-md) 0; border-bottom: 1px solid var(--color-border); }
+.kh-cart-item:last-child { border-bottom: none; }
+.kh-cart-item__img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); background: var(--color-bg); flex-shrink: 0; }
+.kh-cart-item__info { flex: 1; min-width: 0; }
+.kh-cart-item__name { font-weight: 600; font-size: var(--text-sm); }
+.kh-cart-item__remove { background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: var(--text-xs); padding: 4px 0; }
+
+/* ---- Tóm tắt đơn hàng (dùng chung cart & checkout) ---- */
+.kh-summary { position: sticky; top: calc(var(--spacing-lg) + 60px); }
+.kh-summary__row { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--text-sm); }
+.kh-summary__total {
+  font-family: var(--font-family-mono);
+  font-weight: 600;
+  font-size: var(--text-lg);
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+}
+
+/* ---- Trang tài khoản / đơn hàng (customer/*.html) ---- */
+.kh-order-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+  color: inherit;
+  transition: border-color .15s ease;
+}
+.kh-order-card:hover { border-color: var(--color-primary); text-decoration: none; }
+.kh-order-card__code { font-weight: 600; }
+.kh-order-card__meta { color: var(--color-text-muted); font-size: var(--text-xs); display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+
+/* ---- Hỗ trợ kỹ thuật (customer/support.html) ---- */
+.kh-ticket { border-left: 3px solid var(--color-border); padding-left: var(--spacing-md); margin-bottom: var(--spacing-md); }
+.kh-ticket--cho_xu_ly { border-left-color: var(--color-warning); }
+.kh-ticket--dang_xu_ly { border-left-color: var(--color-info); }
+.kh-ticket--da_xong { border-left-color: var(--color-success); }
+.kh-ticket__phanhoi { background: var(--color-bg); border-radius: var(--radius-sm); padding: var(--spacing-sm) var(--spacing-md); margin-top: 6px; font-size: var(--text-sm); }

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trang chủ — Website bán linh kiện máy tính</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/product.css" />
+</head>
+<body>
+
+  <!-- Header dùng chung — copy y hệt cấu trúc này sang MỌI trang khác -->
+  <header class="site-header">
+    <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>
+    <nav class="site-header__nav">
+      <a href="/product-list.html">Sản phẩm</a>
+      <a href="/cart.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        Giỏ hàng
+      </a>
+      <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
+      <span data-auth="in" hidden>
+        <a href="/customer/profile.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>
+          Tài khoản
+        </a>
+        <button id="btn-dang-xuat" class="btn btn--secondary">Đăng xuất</button>
+      </span>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="container hero__inner">
+      <div>
+        <h1 class="hero__title">Đúng linh kiện, đúng giá, có sẵn hàng</h1>
+        <p class="hero__lead">CPU, mainboard, RAM, SSD và card đồ hoạ chính hãng — chọn theo đúng cấu hình bạn cần, giao nhanh, đổi trả rõ ràng.</p>
+        <a href="/product-list.html" class="btn btn--primary">Xem sản phẩm</a>
+      </div>
+      <ul class="hero__categories" aria-label="Danh mục nổi bật">
+        <li>CPU</li>
+        <li>Mainboard</li>
+        <li>RAM</li>
+        <li>SSD</li>
+        <li>Card đồ hoạ</li>
+        <li>Phụ kiện</li>
+      </ul>
+    </div>
+  </section>
+
+  <main class="container" style="padding-bottom: var(--spacing-lg);">
+    <section style="margin-top: var(--spacing-2xl);">
+      <div class="flex-between" style="margin-bottom: var(--spacing-md);">
+        <h2 style="margin:0;">Sản phẩm nổi bật</h2>
+        <a href="/product-list.html">Xem tất cả sản phẩm</a>
+      </div>
+      <div id="san-pham-noi-bat" class="grid">
+        <p class="text-muted">Đang tải sản phẩm...</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">© 2026 — Đồ án CT113</footer>
+
+  <script type="module">
+    import { auth } from "/js/firebase-config.js";
+    import { dangXuat } from "/js/auth.js";
+    import { formatCurrency } from "/js/utils.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import { collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+    import { db } from "/js/firebase-config.js";
+
+    // Header: hiện/ẩn theo trạng thái đăng nhập (mẫu chung — copy y hệt sang mọi trang).
+    onAuthStateChanged(auth, (user) => {
+      document.querySelector('[data-auth="in"]').hidden = !user;
+      document.querySelector('[data-auth="out"]').hidden = !!user;
+    });
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/index.html";
+    });
+
+    // Sản phẩm nổi bật: 8 sản phẩm đang bán mới nhất.
+    const khungHienThi = document.getElementById("san-pham-noi-bat");
+    try {
+      const q = query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"), limit(8));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        khungHienThi.innerHTML = '<p class="text-muted">Chưa có sản phẩm nào.</p>';
+      } else {
+        khungHienThi.innerHTML = "";
+        snap.forEach((docSnap) => {
+          const sp = docSnap.data();
+          const a = document.createElement("a");
+          a.href = `/product-detail.html?id=${docSnap.id}`;
+          a.className = "card kh-product-card";
+          a.innerHTML = `
+            <img class="kh-product-card__img" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" onerror="this.style.visibility='hidden'">
+            <div class="kh-product-card__name">${sp.tenSanPham}</div>
+            <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
+          `;
+          khungHienThi.appendChild(a);
+        });
+      }
+    } catch (err) {
+      khungHienThi.innerHTML = '<p class="text-muted">Không tải được sản phẩm nổi bật.</p>';
+      console.error(err);
+    }
+  </script>
+</body>
+</html>

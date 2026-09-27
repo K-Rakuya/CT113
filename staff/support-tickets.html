@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hỗ Trợ Khách Hàng - Nhân Viên</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2>Nhân Viên</h2>
+      <nav>
+        <a href="/staff/dashboard.html">Tổng quan</a>
+        <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/support-tickets.html" class="active">Hỗ trợ khách hàng</a>
+        <a href="/staff/consult.html">Tư vấn trực tuyến</a>
+        <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
+      </nav>
+    </aside>
+
+    <main class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Yêu Cầu Hỗ Trợ Khách Hàng</h1>
+        <div>
+          <span id="user-info">Đang tải...</span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div id="tickets-list" class="nv-tickets-grid">
+          <!-- Render danh sách ticket bởi JS -->
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { dangXuat } from "/js/auth.js";
+
+    checkRole(["nhan_vien"]);
+
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/login.html";
+    });
+  </script>
+  <script type="module" src="/js/staff/support-tickets.js"></script>
+</body>
+</html>

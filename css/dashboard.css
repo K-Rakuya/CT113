@@ -82,3 +82,219 @@
   }
   .dashboard-layout__sidebar { flex-direction: row; overflow-x: auto; }
 }
+
+/* ==========================================================================
+   STAFF DASHBOARD LAYOUT & COMPONENT STYLES
+   ========================================================================== */
+
+/* Layout Tổng thể */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg, #f8fafc);
+  font-family: var(--font-family, 'Segoe UI', system-ui, -apple-system, sans-serif);
+  color: var(--color-text, #1e293b);
+}
+
+/* Sidebar Bên Trái */
+.dashboard-layout__sidebar {
+  width: 260px;
+  background-color: var(--color-surface, #ffffff);
+  border-right: 1px solid var(--color-border, #e2e8f0);
+  display: flex;
+  flex-direction: column;
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+.dashboard-layout__sidebar h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary, #2563eb);
+  margin-bottom: 24px;
+  padding-left: 8px;
+}
+
+.dashboard-layout__sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dashboard-layout__sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  color: var(--color-text-muted, #64748b);
+  text-decoration: none;
+  font-weight: 500;
+  border-radius: var(--radius, 8px);
+  transition: all 0.2s ease;
+}
+
+.dashboard-layout__sidebar nav a:hover {
+  background-color: var(--color-fill, #f1f5f9);
+  color: var(--color-primary, #2563eb);
+}
+
+.dashboard-layout__sidebar nav a.active {
+  background-color: var(--color-primary, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+/* Main Area & Topbar */
+.dashboard-layout__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.dashboard-layout__topbar {
+  height: 70px;
+  background-color: var(--color-surface, #ffffff);
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+}
+
+.dashboard-layout__topbar h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text, #1e293b);
+  margin: 0;
+}
+
+.dashboard-layout__topbar > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+#user-info {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--color-text-muted, #64748b);
+  background: var(--color-bg, #f8fafc);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border, #e2e8f0);
+}
+
+.dashboard-layout__content {
+  padding: 24px;
+  flex: 1;
+}
+
+/* Thẻ Container */
+.card {
+  background: var(--color-surface, #ffffff);
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 12px);
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Stats Cards */
+.nv-grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+.nv-stat-card h3 {
+  font-size: 0.88rem;
+  color: var(--color-text-muted, #64748b);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.nv-stat-num {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-primary, #2563eb);
+  margin-top: 12px;
+  line-height: 1;
+}
+
+/* Bảng Đơn Hàng */
+.nv-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9rem;
+}
+
+.nv-table th {
+  background-color: var(--color-bg, #f8fafc);
+  color: var(--color-text-muted, #64748b);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--color-border, #e2e8f0);
+  text-align: left;
+}
+
+.nv-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  color: var(--color-text, #1e293b);
+  vertical-align: middle;
+}
+
+/* Ticket Grid */
+.nv-tickets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.nv-reply-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #e2e8f0);
+}
+
+.nv-reply-box input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: var(--radius, 6px);
+  outline: none;
+}
+
+/* Chấm Công Card */
+.nv-attendance-card {
+  max-width: 480px;
+  margin: 40px auto;
+  text-align: center;
+  padding: 32px 24px;
+}
+
+#attendance-status {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-primary, #2563eb);
+  background: rgba(37, 99, 235, 0.08);
+  padding: 8px 16px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 16px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-layout { flex-direction: column; }
+  .dashboard-layout__sidebar { width: 100%; height: auto; position: relative; }
+}

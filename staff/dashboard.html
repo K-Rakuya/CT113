@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng Quan - Bảng Điều Khiển Nhân Viên</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2>Nhân Viên</h2>
+      <nav>
+        <a href="/staff/dashboard.html" class="active">Tổng quan</a>
+        <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/support-tickets.html">Hỗ trợ khách hàng</a>
+        <a href="/staff/consult.html">Tư vấn trực tuyến</a>
+        <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
+      </nav>
+    </aside>
+
+    <main class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Tổng Quan Công Việc</h1>
+        <div>
+          <span id="user-info">Đang tải...</span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="nv-grid-stats">
+          <div class="card nv-stat-card">
+            <h3>Đơn hàng chờ duyệt</h3>
+            <p id="stat-pending-orders" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Ticket hỗ trợ chờ xử lý</h3>
+            <p id="stat-pending-tickets" class="nv-stat-num">0</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { dangXuat } from "/js/auth.js";
+    import { db } from "/js/firebase-config.js";
+    import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+    checkRole(["nhan_vien"]);
+
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/login.html";
+    });
+
+    /**
+     * Tải và hiển thị thống kê tổng quan các mục cần xử lý
+     */
+    async function loadDashboardStats() {
+      try {
+        const ordersQ = query(collection(db, "donhang"), where("trangThai", "==", "cho_duyet"));
+        const ordersSnap = await getDocs(ordersQ);
+        const pendingOrdersEl = document.getElementById("stat-pending-orders");
+        if (pendingOrdersEl) pendingOrdersEl.textContent = ordersSnap.size;
+
+        const ticketsQ = query(collection(db, "yeucauhotro"), where("trangThai", "==", "cho_xu_ly"));
+        const ticketsSnap = await getDocs(ticketsQ);
+        const pendingTicketsEl = document.getElementById("stat-pending-tickets");
+        if (pendingTicketsEl) pendingTicketsEl.textContent = ticketsSnap.size;
+      } catch (err) {
+        console.error("Lỗi loadDashboardStats:", err);
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDashboardStats);
+  </script>
+</body>
+</html>

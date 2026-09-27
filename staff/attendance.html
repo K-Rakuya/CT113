@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Điểm Danh Ca Làm - Nhân Viên</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2>Nhân Viên</h2>
+      <nav>
+        <a href="/staff/dashboard.html">Tổng quan</a>
+        <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/support-tickets.html">Hỗ trợ khách hàng</a>
+        <a href="/staff/consult.html">Tư vấn trực tuyến</a>
+        <a href="/staff/attendance.html" class="active">Điểm danh / Ca làm</a>
+      </nav>
+    </aside>
+
+    <main class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Quản Lý Ca Làm Việc</h1>
+        <div>
+          <span id="user-info">Đang tải...</span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="card nv-attendance-card">
+          <h3>Chấm Công Trong Ngày</h3>
+          <p id="attendance-status">Trạng thái: Chưa vào ca</p>
+          <div>
+            <button id="btn-checkin" class="btn btn--primary">Vào Ca</button>
+            <button id="btn-checkout" class="btn btn--secondary" disabled style="margin-left: 10px;">Ra Ca</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { dangXuat } from "/js/auth.js";
+
+    checkRole(["nhan_vien"]);
+
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/login.html";
+    });
+  </script>
+  <script type="module" src="/js/staff/attendance.js"></script>
+</body>
+</html>

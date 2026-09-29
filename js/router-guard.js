@@ -6,6 +6,9 @@
 import { auth, db } from "/js/firebase-config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { layCache, luuCache, xoaCache } from "/js/utils.js";
+
+const CACHE_KEY_VAI_TRO = "vaiTroHienTai";
 
 /**
  * @param {string[]} vaiTroChoPhep - vd. ["nhan_vien"], ["quan_tri"],
@@ -21,7 +24,14 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase
 export function checkRole(vaiTroChoPhep, onDaXacThuc) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
+      xoaCache(CACHE_KEY_VAI_TRO);
       window.location.href = "/login.html";
+      return;
+    }
+
+    const cache = layCache(CACHE_KEY_VAI_TRO);
+    if (cache && cache.uid === user.uid && vaiTroChoPhep.includes(cache.vaiTro)) {
+      onDaXacThuc?.(cache.vaiTro);
       return;
     }
 
@@ -34,10 +44,12 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
     }
 
     if (!vaiTroChoPhep.includes(vaiTro)) {
+      xoaCache(CACHE_KEY_VAI_TRO);
       window.location.href = "/index.html";
       return;
     }
 
+    luuCache(CACHE_KEY_VAI_TRO, { uid: user.uid, vaiTro }, 30 * 60 * 1000);
     onDaXacThuc?.(vaiTro);
   });
 }

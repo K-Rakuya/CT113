@@ -84,3 +84,68 @@ export async function ghiNhatKy(hanhDong) {
     console.error("ghiNhatKy thất bại (đã bỏ qua, không ảnh hưởng thao tác chính):", err);
   }
 }
+
+// -----------------------------------------------------------------------------
+// Cache tạm trong phiên làm việc (sessionStorage). KHÔNG dùng cache/persistence
+// riêng của Firestore SDK (enableIndexedDbPersistence / persistentLocalCache) —
+// đây là cache tự viết, chỉ tồn tại trong 1 tab, để tránh gọi lại Firestore cho
+// dữ liệu ít đổi mỗi khi người dùng chuyển qua lại giữa các trang (vd. vai trò
+// đăng nhập, danh mục sản phẩm). Tự xoá khi tab đóng, hoặc ngay khi đăng xuất
+// vì router-guard.js đã gọi sessionStorage.clear() trong hàm đăng xuất.
+// -----------------------------------------------------------------------------
+
+const TIEN_TO_CACHE = "cache:";
+
+/**
+ * Đọc dữ liệu đã cache.
+ * @param {string} key
+ * @returns {*} dữ liệu đã lưu (đã JSON.parse), hoặc null nếu chưa có / đã hết
+ *   hạn / đọc lỗi (vd. sessionStorage bị chặn ở chế độ ẩn danh khắt khe) —
+ *   mọi trường hợp lỗi đều coi là cache-miss, không ném lỗi ra ngoài.
+ */
+export function layCache(key) {
+  try {
+    const raw = sessionStorage.getItem(TIEN_TO_CACHE + key);
+    if (!raw) return null;
+    const { giaTri, hetHan } = JSON.parse(raw);
+    if (Date.now() > hetHan) {
+      sessionStorage.removeItem(TIEN_TO_CACHE + key);
+      return null;
+    }
+    return giaTri;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lưu dữ liệu vào cache kèm thời gian sống.
+ * @param {string} key
+ * @param {*} giaTri Dữ liệu cần lưu — phải serialize được bằng JSON.stringify.
+ * @param {number} [ttlMs=60000] Thời gian sống tính bằng mili-giây.
+ * @returns {void}
+ */
+export function luuCache(key, giaTri, ttlMs = 60000) {
+  try {
+    sessionStorage.setItem(
+      TIEN_TO_CACHE + key,
+      JSON.stringify({ giaTri, hetHan: Date.now() + ttlMs })
+    );
+  } catch {
+    /* sessionStorage đầy / bị chặn — bỏ qua, lần đọc sau tự coi là cache-miss */
+  }
+}
+
+/**
+ * Xoá 1 khoá cache cụ thể — dùng khi dữ liệu vừa bị sửa và cần buộc trang sau
+ * đó tải lại từ Firestore thay vì dùng bản cache cũ.
+ * @param {string} key
+ * @returns {void}
+ */
+export function xoaCache(key) {
+  try {
+    sessionStorage.removeItem(TIEN_TO_CACHE + key);
+  } catch {
+    /* bỏ qua */
+  }
+}

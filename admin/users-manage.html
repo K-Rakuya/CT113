@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Quản trị — Quản lý người dùng</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>
+  <nav class="site-header__nav">
+    <a href="/product-list.html">Sản phẩm</a>
+    <a href="/cart.html">Giỏ hàng</a>
+    <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
+    <span data-auth="in" hidden>
+      <a href="/customer/profile.html">Tài khoản</a>
+      <button id="btn-dang-xuat">Đăng xuất</button>
+    </span>
+  </nav>
+</header>
+
+<div class="dashboard-layout">
+  <aside class="dashboard-layout__sidebar">
+    <nav>
+      <a href="/admin/dashboard.html">Tổng quan</a>
+      <a href="/admin/users-manage.html"><strong>Quản lý người dùng</strong></a>
+      <a href="/admin/categories.html">Danh mục sản phẩm</a>
+      <a href="/admin/system-logs.html">Nhật ký hệ thống</a>
+      <a href="/admin/settings.html">Cấu hình cửa hàng</a>
+    </nav>
+  </aside>
+
+  <header class="dashboard-layout__topbar">
+    <h1>Quản lý người dùng</h1>
+  </header>
+
+  <main class="dashboard-layout__content">
+
+    <!-- Form tạo tài khoản nhân viên/quản trị/chủ cửa hàng -->
+    <div class="card">
+      <h3>Tạo tài khoản mới</h3>
+      <p style="font-size:13px;color:var(--color-text-muted)">
+        Dùng cho tài khoản Nhân viên / Quản trị / Chủ cửa hàng. Khách hàng tự đăng ký ở trang <code>/register.html</code>.
+      </p>
+      <form id="formTaoUser" class="qt-form">
+        <div>
+          <label>Họ tên</label>
+          <input type="text" id="taoHoTen" required>
+        </div>
+        <div>
+          <label>Email</label>
+          <input type="email" id="taoEmail" required>
+        </div>
+        <div>
+          <label>Mật khẩu tạm</label>
+          <input type="password" id="taoMatKhau" minlength="6" required>
+        </div>
+        <div>
+          <label>Vai trò</label>
+          <select id="taoVaiTro" required>
+            <option value="nhan_vien">Nhân viên</option>
+            <option value="quan_tri">Quản trị</option>
+            <option value="chu_cua_hang">Chủ cửa hàng</option>
+          </select>
+        </div>
+        <div class="qt-form-actions">
+          <button type="submit" class="btn btn--primary">Tạo tài khoản</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="qt-filter-bar" style="margin-top: var(--spacing-lg)">
+      <input type="text" id="filterKeyword" placeholder="Tìm theo tên hoặc email...">
+      <select id="filterVaiTro">
+        <option value="">-- Tất cả vai trò --</option>
+        <option value="khach_hang">Khách hàng</option>
+        <option value="nhan_vien">Nhân viên</option>
+        <option value="quan_tri">Quản trị</option>
+        <option value="chu_cua_hang">Chủ cửa hàng</option>
+      </select>
+    </div>
+
+    <table class="qt-table">
+      <thead>
+        <tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Trạng thái</th><th>Đổi vai trò</th><th>Hành động</th></tr>
+      </thead>
+      <tbody id="userBody"><tr><td colspan="6" class="qt-empty">Đang tải...</td></tr></tbody>
+    </table>
+  </main>
+</div>
+
+<footer class="site-footer">© 2026 — Đồ án CT113</footer>
+
+<script type="module">
+  import { auth } from "/js/firebase-config.js";
+  import { dangXuat } from "/js/auth.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  onAuthStateChanged(auth, (user) => {
+    document.querySelector('[data-auth="in"]').hidden = !user;
+    document.querySelector('[data-auth="out"]').hidden = !!user;
+  });
+  document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+    await dangXuat();
+    window.location.href = "/index.html";
+  });
+</script>
+
+<script type="module">
+  import { checkRole } from "/js/router-guard.js";
+  checkRole(["quan_tri"]);
+</script>
+
+<script type="module" src="/js/admin/users-manage.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+/* =====================================================================
+   css/admin.css — CSS riêng module Quản trị hệ thống
+   Quy ước: mọi class riêng của module này phải có prefix "qt-"
+   (mục 5, quy tắc #3 của tài liệu Giai đoạn 0). Không định nghĩa lại
+   .btn/.card/.badge/.modal/.toast — những class đó lấy từ css/style.css.
+   File này CHỈ dùng biến --color-*, --spacing-*, --radius... đã có sẵn
+   trong css/style.css (:root), không tự đặt màu/khoảng cách cứng.
+   ===================================================================== */
+
+/* ---------- Dashboard: lưới thẻ thống kê ---------- */
+.qt-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.qt-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.qt-stat-card__label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.qt-stat-card__value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ---------- Bảng dữ liệu (dùng tạm - đề nghị chuyển sang .table chung nếu Mừng bổ sung) ---------- */
+.qt-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.qt-table th, .qt-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  font-size: 14px;
+}
+
+.qt-table th {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ---------- Thanh lọc / tìm kiếm ---------- */
+.qt-filter-bar {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-md);
+  align-items: center;
+}
+
+.qt-filter-bar input,
+.qt-filter-bar select {
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-family: var(--font-family);
+  font-size: 14px;
+}
+
+/* ---------- Form thêm/sửa (danh mục, cấu hình...) ---------- */
+.qt-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  max-width: 420px;
+}
+
+.qt-form label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+  display: block;
+}
+
+.qt-form input,
+.qt-form textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-family: var(--font-family);
+  font-size: 14px;
+}
+
+.qt-form-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+/* ---------- Nút nhỏ trong bảng (sửa/xoá/khoá) ---------- */
+.qt-btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  cursor: pointer;
+}
+
+.qt-btn-sm--danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.qt-empty {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  padding: var(--spacing-md) 0;
+}
+
+.qt-logo-preview {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+}

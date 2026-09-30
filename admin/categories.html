@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8">
-<title>Quản trị — Danh mục sản phẩm</title>
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/dashboard.css">
-<link rel="stylesheet" href="/css/admin.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản trị — Danh mục sản phẩm</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/admin.css">
 </head>
 <body>
 
@@ -17,47 +18,195 @@
     <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
     <span data-auth="in" hidden>
       <a href="/customer/profile.html">Tài khoản</a>
-      <button id="btn-dang-xuat">Đăng xuất</button>
+      <button id="btn-dang-xuat-header" class="btn btn--danger btn--sm">Đăng xuất</button>
     </span>
   </nav>
 </header>
 
 <div class="dashboard-layout">
   <aside class="dashboard-layout__sidebar">
+    <h2>Quản Trị</h2>
     <nav>
       <a href="/admin/dashboard.html">Tổng quan</a>
       <a href="/admin/users-manage.html">Quản lý người dùng</a>
-      <a href="/admin/categories.html"><strong>Danh mục sản phẩm</strong></a>
+      <a href="/admin/categories.html" class="active"><strong>Danh mục sản phẩm</strong></a>
       <a href="/admin/system-logs.html">Nhật ký hệ thống</a>
       <a href="/admin/settings.html">Cấu hình cửa hàng</a>
     </nav>
   </aside>
 
-  <header class="dashboard-layout__topbar">
-    <h1>Danh mục sản phẩm</h1>
-  </header>
+  <main class="dashboard-layout__main">
+    <header class="dashboard-layout__topbar">
+      <h1>Quản lý danh mục sản phẩm</h1>
+      <div>
+        <span id="user-info">Quản trị viên</span>
+        <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+      </div>
+    </header>
 
-  <main class="dashboard-layout__content">
-    <div class="card">
-      <h3 id="formTitle">Thêm danh mục mới</h3>
-      <form id="formDanhMuc" class="qt-form">
-        <input type="hidden" id="danhMucId">
-        <div>
-          <label>Tên danh mục</label>
-          <input type="text" id="tenDanhMuc" required>
+    <section class="dashboard-layout__content">
+      <!-- Thẻ thống kê tổng quan danh mục -->
+      <div class="qt-stat-grid">
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Tổng số danh mục</span>
+          <span class="qt-stat-card__value" id="statTongDanhMuc">0</span>
         </div>
-        <div class="qt-form-actions">
-          <button type="submit" class="btn btn--primary">Lưu</button>
-          <button type="button" class="btn btn--secondary" id="btnHuy">Làm mới</button>
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Đang hiển thị</span>
+          <span class="qt-stat-card__value" id="statDanhMucHoatDong" style="color: var(--color-success);">0</span>
         </div>
-      </form>
-    </div>
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Đang tạm ẩn</span>
+          <span class="qt-stat-card__value" id="statDanhMucAn" style="color: var(--color-text-muted);">0</span>
+        </div>
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Tổng sản phẩm phân loại</span>
+          <span class="qt-stat-card__value" id="statTongSanPham">0</span>
+        </div>
+      </div>
 
-    <table class="qt-table" style="margin-top: var(--spacing-lg)">
-      <thead><tr><th>Tên danh mục</th><th>Số sản phẩm</th><th>Hành động</th></tr></thead>
-      <tbody id="danhMucBody"><tr><td colspan="3" class="qt-empty">Đang tải...</td></tr></tbody>
-    </table>
+      <!-- Card Form Thêm / Chỉnh sửa danh mục chi tiết -->
+      <div class="card" id="cardFormDanhMuc" style="margin-bottom: var(--spacing-lg);">
+        <div class="qt-card-header">
+          <div>
+            <h3 id="formTitle">Thêm danh mục mới</h3>
+            <p id="formSubtitle" style="font-size: var(--text-xs); color: var(--color-text-muted); margin: 4px 0 0;">
+              Điền thông tin chi tiết để tạo danh mục phân loại sản phẩm mới.
+            </p>
+          </div>
+          <span id="formBadge" class="badge badge--hoat_dong">Chế độ tạo mới</span>
+        </div>
+
+        <form id="formDanhMuc" class="qt-form" style="max-width: 100%;">
+          <input type="hidden" id="danhMucId">
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 2 1 280px;">
+              <label for="tenDanhMuc">Tên danh mục <span style="color: var(--color-danger);">*</span></label>
+              <input type="text" id="tenDanhMuc" class="input" placeholder="Ví dụ: Laptop Gaming, Bàn phím cơ..." required>
+              <span class="hint">Tên hiển thị chính thức trên website và bộ lọc sản phẩm.</span>
+            </div>
+
+            <div class="form-group" style="flex: 2 1 240px;">
+              <label for="slugDanhMuc">Đường dẫn thân thiện (Slug)</label>
+              <input type="text" id="slugDanhMuc" class="input" placeholder="tu-dong-tao-slug">
+              <span class="hint">Định danh URL thân thiện (tự sinh từ tên hoặc nhập tay).</span>
+            </div>
+
+            <div class="form-group" style="flex: 1 1 180px;">
+              <label for="iconDanhMuc">Biểu tượng (Icon)</label>
+              <input type="text" id="iconDanhMuc" class="input" placeholder="💻" maxlength="8">
+              <div class="qt-icon-picker" id="iconPicker">
+                <button type="button" class="qt-icon-opt" data-icon="💻" title="Laptop">💻</button>
+                <button type="button" class="qt-icon-opt" data-icon="🖥️" title="Màn hình">🖥️</button>
+                <button type="button" class="qt-icon-opt" data-icon="⌨️" title="Bàn phím">⌨️</button>
+                <button type="button" class="qt-icon-opt" data-icon="🖱️" title="Chuột">🖱️</button>
+                <button type="button" class="qt-icon-opt" data-icon="🎧" title="Tai nghe">🎧</button>
+                <button type="button" class="qt-icon-opt" data-icon="🎮" title="Gaming">🎮</button>
+                <button type="button" class="qt-icon-opt" data-icon="🔌" title="Phụ kiện">🔌</button>
+                <button type="button" class="qt-icon-opt" data-icon="💾" title="Lưu trữ">💾</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="flex: 1 1 160px;">
+              <label for="thuTuDanhMuc">Thứ tự hiển thị</label>
+              <input type="number" id="thuTuDanhMuc" class="input" value="1" min="0" step="1">
+              <span class="hint">Số nhỏ ưu tiên xếp trước trên menu.</span>
+            </div>
+
+            <div class="form-group" style="flex: 1 1 180px;">
+              <label for="trangThaiDanhMuc">Trạng thái hiển thị</label>
+              <select id="trangThaiDanhMuc" class="select">
+                <option value="hoat_dong">🟢 Hiển thị (Hoạt động)</option>
+                <option value="an">⚪ Tạm ẩn (Không hiển thị)</option>
+              </select>
+              <span class="hint">Danh mục tạm ẩn sẽ không hiện với khách hàng.</span>
+            </div>
+
+            <div class="form-group" style="flex: 3 1 300px;">
+              <label for="moTaDanhMuc">Mô tả danh mục</label>
+              <input type="text" id="moTaDanhMuc" class="input" placeholder="Mô tả tóm tắt về loại sản phẩm này (tuỳ chọn)...">
+            </div>
+          </div>
+
+          <div class="qt-form-actions" style="margin-top: var(--spacing-sm);">
+            <button type="submit" class="btn btn--primary" id="btnSubmitForm">
+              💾 Lưu danh mục
+            </button>
+            <button type="button" class="btn btn--secondary" id="btnHuy">
+              🔄 Làm mới / Huỷ
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Thanh tìm kiếm, bộ lọc & sắp xếp danh mục -->
+      <div class="card" style="margin-bottom: var(--spacing-md);">
+        <div class="qt-filter-bar" style="margin-bottom: 0;">
+          <input type="text" id="filterTuKhoa" placeholder="🔍 Tìm theo tên, slug, icon, mô tả..." style="flex: 2 1 220px;">
+          
+          <select id="filterTrangThai" style="flex: 1 1 160px;">
+            <option value="">-- Tất cả trạng thái --</option>
+            <option value="hoat_dong">🟢 Đang hiển thị</option>
+            <option value="an">⚪ Đang tạm ẩn</option>
+          </select>
+
+          <select id="filterSapXep" style="flex: 1 1 180px;">
+            <option value="thuTu_asc">Thứ tự hiển thị (tăng dần)</option>
+            <option value="ten_asc">Tên danh mục (A → Z)</option>
+            <option value="ten_desc">Tên danh mục (Z → A)</option>
+            <option value="sanpham_desc">Số sản phẩm (nhiều nhất)</option>
+            <option value="ngay_desc">Mới tạo gần nhất</option>
+          </select>
+
+          <button type="button" class="btn btn--secondary btn--sm" id="btnLamMoiBang" title="Tải lại bảng">
+            🔄 Tải lại
+          </button>
+        </div>
+      </div>
+
+      <!-- Bảng danh mục sản phẩm -->
+      <div class="card">
+        <div class="table-responsive">
+          <table class="qt-table">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Thứ tự</th>
+                <th>Danh mục</th>
+                <th>Mô tả</th>
+                <th style="width: 120px;">Sản phẩm</th>
+                <th style="width: 130px;">Trạng thái</th>
+                <th style="width: 140px;">Cập nhật</th>
+                <th style="width: 220px;">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="danhMucBody">
+              <tr><td colspan="7" class="qt-empty">Đang tải danh sách danh mục...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
+</div>
+
+<!-- Modal xem chi tiết danh mục & sản phẩm bên trong -->
+<div id="modalChiTiet" class="modal" hidden>
+  <div class="modal__backdrop" id="modalBackdrop"></div>
+  <div class="modal__dialog" style="max-width: 650px;">
+    <div class="modal__header">
+      <h3 id="modalChiTietTieuDe">Chi tiết danh mục</h3>
+      <button type="button" class="modal__close" id="btnDongModal">&times;</button>
+    </div>
+    <div class="modal__body" id="modalChiTietBody">
+      <!-- Render bởi JS -->
+    </div>
+    <div class="modal__footer">
+      <button type="button" class="btn btn--secondary" id="btnDongModalFooter">Đóng</button>
+    </div>
+  </div>
 </div>
 
 <footer class="site-footer">© 2026 — Đồ án CT113</footer>
@@ -66,13 +215,23 @@
   import { auth } from "/js/firebase-config.js";
   import { dangXuat } from "/js/auth.js";
   import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
   onAuthStateChanged(auth, (user) => {
     document.querySelector('[data-auth="in"]').hidden = !user;
     document.querySelector('[data-auth="out"]').hidden = !!user;
+    const elUserInfo = document.getElementById("user-info");
+    if (elUserInfo && user) {
+      elUserInfo.textContent = user.email || "Quản trị viên";
+    }
   });
-  document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+
+  const xuLyDangXuat = async () => {
     await dangXuat();
-    window.location.href = "/index.html";
+    window.location.href = "/login.html";
+  };
+
+  document.querySelectorAll("#btn-dang-xuat, #btn-dang-xuat-header").forEach(btn => {
+    btn.addEventListener("click", xuLyDangXuat);
   });
 </script>
 

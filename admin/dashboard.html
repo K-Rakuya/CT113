@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quản trị — Tổng quan</title>
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/dashboard.css">
@@ -17,15 +18,16 @@
     <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
     <span data-auth="in" hidden>
       <a href="/customer/profile.html">Tài khoản</a>
-      <button id="btn-dang-xuat">Đăng xuất</button>
+      <button id="btn-dang-xuat-header" class="btn btn--danger btn--sm">Đăng xuất</button>
     </span>
   </nav>
 </header>
 
 <div class="dashboard-layout">
   <aside class="dashboard-layout__sidebar">
+    <h2>Quản Trị</h2>
     <nav>
-      <a href="/admin/dashboard.html"><strong>Tổng quan</strong></a>
+      <a href="/admin/dashboard.html" class="active"><strong>Tổng quan</strong></a>
       <a href="/admin/users-manage.html">Quản lý người dùng</a>
       <a href="/admin/categories.html">Danh mục sản phẩm</a>
       <a href="/admin/system-logs.html">Nhật ký hệ thống</a>
@@ -33,47 +35,52 @@
     </nav>
   </aside>
 
-  <header class="dashboard-layout__topbar">
-    <h1>Tổng quan hệ thống</h1>
-  </header>
-
-  <main class="dashboard-layout__content">
-    <div class="qt-stat-grid" id="statGrid">
-      <div class="card qt-stat-card">
-        <span class="qt-stat-card__label">Tổng người dùng</span>
-        <span class="qt-stat-card__value" id="statUsers">…</span>
+  <main class="dashboard-layout__main">
+    <header class="dashboard-layout__topbar">
+      <h1>Tổng quan hệ thống</h1>
+      <div>
+        <span id="user-info">Quản trị viên</span>
+        <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
       </div>
-      <div class="card qt-stat-card">
-        <span class="qt-stat-card__label">Tổng đơn hàng</span>
-        <span class="qt-stat-card__value" id="statOrders">…</span>
-      </div>
-      <div class="card qt-stat-card">
-        <span class="qt-stat-card__label">Tổng sản phẩm</span>
-        <span class="qt-stat-card__value" id="statProducts">…</span>
-      </div>
-    </div>
+    </header>
 
-    <div class="card">
-      <h3>Người dùng theo vai trò</h3>
-      <table class="qt-table" id="roleTable">
-        <thead><tr><th>Vai trò</th><th>Số lượng</th></tr></thead>
-        <tbody><tr><td colspan="2" class="qt-empty">Đang tải...</td></tr></tbody>
-      </table>
-    </div>
+    <section class="dashboard-layout__content">
+      <div class="qt-stat-grid" id="statGrid">
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Tổng người dùng</span>
+          <span class="qt-stat-card__value" id="statUsers">…</span>
+        </div>
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Tổng đơn hàng</span>
+          <span class="qt-stat-card__value" id="statOrders">…</span>
+        </div>
+        <div class="card qt-stat-card">
+          <span class="qt-stat-card__label">Tổng sản phẩm</span>
+          <span class="qt-stat-card__value" id="statProducts">…</span>
+        </div>
+      </div>
 
-    <div class="card" style="margin-top: var(--spacing-md)">
-      <h3>Đơn hàng theo trạng thái</h3>
-      <table class="qt-table" id="orderStatusTable">
-        <thead><tr><th>Trạng thái</th><th>Số lượng</th></tr></thead>
-        <tbody><tr><td colspan="2" class="qt-empty">Đang tải...</td></tr></tbody>
-      </table>
-    </div>
+      <div class="card">
+        <h3>Người dùng theo vai trò</h3>
+        <table class="qt-table" id="roleTable">
+          <thead><tr><th>Vai trò</th><th>Số lượng</th></tr></thead>
+          <tbody><tr><td colspan="2" class="qt-empty">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top: var(--spacing-md)">
+        <h3>Đơn hàng theo trạng thái</h3>
+        <table class="qt-table" id="orderStatusTable">
+          <thead><tr><th>Trạng thái</th><th>Số lượng</th></tr></thead>
+          <tbody><tr><td colspan="2" class="qt-empty">Đang tải...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
   </main>
 </div>
 
 <footer class="site-footer">© 2026 — Đồ án CT113</footer>
 
-<!-- Bật/tắt menu tài khoản theo trạng thái đăng nhập - copy nguyên theo mục 2.7 Giai đoạn 0 -->
 <script type="module">
   import { auth } from "/js/firebase-config.js";
   import { dangXuat } from "/js/auth.js";
@@ -82,14 +89,22 @@
   onAuthStateChanged(auth, (user) => {
     document.querySelector('[data-auth="in"]').hidden = !user;
     document.querySelector('[data-auth="out"]').hidden = !!user;
+    const elUserInfo = document.getElementById("user-info");
+    if (elUserInfo && user) {
+      elUserInfo.textContent = user.email || "Quản trị viên";
+    }
   });
-  document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+
+  const xuLyDangXuat = async () => {
     await dangXuat();
-    window.location.href = "/index.html";
+    window.location.href = "/login.html";
+  };
+
+  document.querySelectorAll("#btn-dang-xuat, #btn-dang-xuat-header").forEach(btn => {
+    btn.addEventListener("click", xuLyDangXuat);
   });
 </script>
 
-<!-- Chặn trang: chỉ quan_tri được vào -->
 <script type="module">
   import { checkRole } from "/js/router-guard.js";
   checkRole(["quan_tri"]);

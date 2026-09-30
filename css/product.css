@@ -52,6 +52,7 @@
   color: var(--color-text);
   font-weight: 500;
   font-size: var(--text-sm);
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
 }
 .kh-account-layout__nav a:hover { background: var(--color-bg); text-decoration: none; }
 .kh-account-layout__nav a[aria-current="page"] {
@@ -66,17 +67,32 @@
 
 /* ---- Thẻ sản phẩm (dùng .grid ở style.css làm khung lưới) ---- */
 .kh-product-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
 }
-.kh-product-card:hover {
-  border-color: var(--color-primary);
-  transform: translateY(-2px);
+/* Bóng đổ đặt ở ::after và chỉ đổi opacity */
+.kh-product-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
   box-shadow: var(--shadow-md);
-  text-decoration: none;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--dur-fast) var(--ease-out);
 }
+.kh-product-card:hover { text-decoration: none; }
+/* Chỉ nâng thẻ khi thực sự có chuột — trên cảm ứng :hover bị "dính" sau khi chạm */
+@media (hover: hover) {
+  .kh-product-card:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+  .kh-product-card:hover::after { opacity: 1; }
+}
+.kh-product-card:focus-visible { border-color: var(--color-primary); }
+.kh-product-card:focus-visible::after { opacity: 1; }
+.kh-product-card:active { transform: translateY(0) scale(.99); }
 .kh-product-card__img {
   aspect-ratio: 4 / 3;
   object-fit: cover;
@@ -97,6 +113,31 @@
 .kh-product-card__stock { font-size: var(--text-xs); color: var(--color-text-muted); }
 .kh-product-card__stock--out { color: var(--color-danger); }
 
+/* ---- Skeleton (khung chờ) ----
+ * Dùng cùng lớp .skeleton/.sk ở style.css. Kích thước khớp thẻ thật
+ * để lúc dữ liệu về, bố cục không bị đẩy xuống (CLS ≈ 0). Đặt aria-hidden="true"
+ * cho khung chờ và aria-busy="true" cho vùng chứa; JS gỡ aria-busy sau khi render. */
+.kh-skeleton { display: flex; flex-direction: column; }
+.kh-skeleton__img { aspect-ratio: 4 / 3; margin-bottom: var(--spacing-sm); }
+.kh-skeleton__line { height: 17px; margin-bottom: 12px; }
+.kh-skeleton__line--short { width: 62%; margin-bottom: var(--spacing-sm); }
+.kh-skeleton__price { width: 46%; height: 18px; margin-block: 5px 13px; }
+.kh-skeleton__price:last-child { margin-bottom: 5px; }   /* thẻ ở trang chủ không có dòng tồn kho */
+.kh-skeleton__meta { width: 34%; height: 12px; margin-block: 4px; }
+.kh-skeleton-detail__img { aspect-ratio: 1 / 1; border-radius: var(--radius); }
+.kh-skeleton-detail__title { width: 78%; height: 38px; margin-bottom: 18px; }
+.kh-skeleton-detail__price { width: 34%; height: 26px; margin-bottom: 18px; }
+.kh-skeleton-detail__line { height: 14px; margin-bottom: 10px; }
+.kh-skeleton-detail__line--short { width: 55%; }
+.kh-skeleton-detail__btn { width: 220px; max-width: 100%; height: 42px; margin-top: var(--spacing-lg); border-radius: var(--radius-sm); }
+.kh-skeleton-cart__img { width: 72px; height: 72px; flex-shrink: 0; }
+.kh-skeleton-cart__line { height: 15px; margin-bottom: 10px; }
+.kh-skeleton-cart__line--short { width: 40%; margin-bottom: 0; }
+.kh-skeleton-cart__qty { width: 124px; height: 38px; flex-shrink: 0; }
+.kh-skeleton-cart__summary { height: 15px; margin-bottom: 14px; }
+.kh-skeleton-cart__summary--title { width: 62%; height: 20px; margin-bottom: 20px; }
+.kh-skeleton-cart__btn { height: 42px; margin-top: var(--spacing-lg); border-radius: var(--radius-sm); }
+
 /* ---- Chi tiết sản phẩm (product-detail.html) ---- */
 .kh-detail { display: grid; grid-template-columns: minmax(0, 420px) 1fr; gap: var(--spacing-xl); }
 @media (max-width: 720px) { .kh-detail { grid-template-columns: 1fr; } }
@@ -110,8 +151,12 @@
   margin: var(--spacing-sm) 0;
 }
 .kh-qty-stepper { display: inline-flex; align-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-sm); overflow: hidden; }
-.kh-qty-stepper button { width: 38px; height: 38px; border: none; background: var(--color-bg); cursor: pointer; font-size: 1.1em; color: var(--color-text); }
+.kh-qty-stepper button {
+  width: 38px; height: 38px; border: none; background: var(--color-bg); cursor: pointer; font-size: 1.1em; color: var(--color-text);
+  transition: background-color var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
+}
 .kh-qty-stepper button:hover { background: var(--color-border); }
+.kh-qty-stepper button:active { transform: scale(.88); }
 .kh-qty-stepper input {
   width: 48px; text-align: center; border: none;
   border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border);
@@ -132,12 +177,14 @@
 .kh-cart-item__img { width: 72px; height: 72px; object-fit: cover; border-radius: var(--radius-sm); background: var(--color-bg); flex-shrink: 0; }
 .kh-cart-item__info { flex: 1; min-width: 0; }
 .kh-cart-item__name { font-weight: 600; font-size: var(--text-sm); }
+.kh-cart-item__total { font-variant-numeric: tabular-nums; }
 .kh-cart-item__remove { background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: var(--text-xs); padding: 4px 0; }
 
 /* ---- Tóm tắt đơn hàng (dùng chung cart & checkout) ---- */
 .kh-summary { position: sticky; top: calc(var(--spacing-lg) + 60px); }
-.kh-summary__row { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--text-sm); }
+.kh-summary__row { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 .kh-summary__total {
+  font-variant-numeric: tabular-nums;
   font-family: var(--font-family-mono);
   font-weight: 600;
   font-size: var(--text-lg);
@@ -155,7 +202,7 @@
   flex-wrap: wrap;
   margin-bottom: var(--spacing-md);
   color: inherit;
-  transition: border-color .15s ease;
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 .kh-order-card:hover { border-color: var(--color-primary); text-decoration: none; }
 .kh-order-card__code { font-weight: 600; }

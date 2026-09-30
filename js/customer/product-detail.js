@@ -4,6 +4,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, ghiNhatKy } from "/js/utils.js";
+import { setBusy, confirmButton } from "/js/motion.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -29,6 +30,7 @@ let nguoiDungHienTai = null; // cập nhật bởi onAuthStateChanged
 
 if (!sanPhamId) {
   elChiTiet.innerHTML = '<p class="empty-state">Thiếu mã sản phẩm.</p>';
+  elChiTiet.removeAttribute("aria-busy");
 } else {
   taiSanPham();
   taiDanhSachDanhGia();
@@ -52,6 +54,8 @@ async function taiSanPham() {
   } catch (err) {
     elChiTiet.innerHTML = '<p class="empty-state">Lỗi tải sản phẩm.</p>';
     showToast(err.message, "error");
+  } finally {
+    elChiTiet.removeAttribute("aria-busy"); // khung chờ (skeleton) tĩnh trong product-detail.html đã được thay
   }
 }
 
@@ -87,8 +91,8 @@ function renderSanPham() {
   const conHang = (sp.soLuongTon ?? 0) > 0;
 
   elChiTiet.innerHTML = `
-    <div class="kh-detail">
-      <img class="kh-detail__img" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" onerror="this.style.visibility='hidden'">
+    <div class="kh-detail motion-fade">
+      <img class="kh-detail__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
       <div>
         <h1>${sp.tenSanPham}</h1>
         <div class="kh-detail__price">${formatCurrency(sp.gia)}</div>
@@ -126,6 +130,9 @@ async function themVaoGio(soLuong) {
     setTimeout(() => (window.location.href = "/login.html"), 1200);
     return;
   }
+  const nut = document.getElementById("btn-them-gio");
+  setBusy(nut, true); // vòng quay + chặn bấm đúp trong lúc ghi Firestore
+  let thanhCong = false;
   try {
     const q = query(
       collection(db, "giohang"),
@@ -148,9 +155,13 @@ async function themVaoGio(soLuong) {
       );
       await updateDoc(docHienCo.ref, { soLuong: soLuongMoi });
     }
+    thanhCong = true;
     showToast("Đã thêm vào giỏ hàng.", "success");
   } catch (err) {
     showToast("Không thêm được vào giỏ: " + err.message, "error");
+  } finally {
+    setBusy(nut, false);
+    if (thanhCong) confirmButton(nut, "Đã thêm"); // ✓ ngay trên nút, thấy kết quả tại chỗ bấm
   }
 }
 

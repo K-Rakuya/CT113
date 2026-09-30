@@ -19,6 +19,8 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase
  * @returns {void}
  */
 export function checkRole(vaiTroChoPhep, onDaXacThuc) {
+  // Trang dùng callback thường ẩn <body hidden> tới khi xác thực xong → CSS (.is-guarded body) cho hiện dần
+  if (onDaXacThuc) document.documentElement.classList.add("is-guarded");
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.href = "/login.html";

@@ -46,7 +46,8 @@ async function taiDanhMuc() {
 }
 
 async function taiSanPham() {
-  elDanhSach.innerHTML = '<p class="text-muted">Đang tải sản phẩm...</p>';
+  // Khung chờ (skeleton) nằm sẵn trong product-list.html → hiện ngay từ khung hình đầu tiên.
+  elDanhSach.setAttribute("aria-busy", "true");
   try {
     // Chỉ hiển thị sp đang bán.
     const q = query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"));
@@ -55,6 +56,7 @@ async function taiSanPham() {
     apDungBoLoc();
   } catch (err) {
     elDanhSach.innerHTML = '<p class="text-muted">Không tải được sản phẩm.</p>';
+    elDanhSach.removeAttribute("aria-busy");
     showToast("Lỗi tải sản phẩm: " + err.message, "error");
   }
 }
@@ -87,17 +89,20 @@ function render() {
   const batDau = (trangHienTai - 1) * SO_SP_MOI_TRANG;
   const trang = danhSachSauLoc.slice(batDau, batDau + SO_SP_MOI_TRANG);
 
+  elDanhSach.removeAttribute("aria-busy");
   if (trang.length === 0) {
     elDanhSach.innerHTML = '<p class="empty-state">Không tìm thấy sản phẩm nào phù hợp bộ lọc.</p>';
   } else {
     elDanhSach.innerHTML = "";
-    trang.forEach((sp) => {
+    trang.forEach((sp, i) => {
       const a = document.createElement("a");
       a.href = `/product-detail.html?id=${sp.id}`;
-      a.className = "card kh-product-card";
+      // motion-enter + --i: các thẻ hiện lần lượt (xếp lớp 32ms) mỗi khi kết quả đổi do người dùng lọc/chuyển trang
+      a.className = "card kh-product-card motion-enter";
+      a.style.setProperty("--i", i);
       const conHang = (sp.soLuongTon ?? 0) > 0;
       a.innerHTML = `
-        <img class="kh-product-card__img" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" onerror="this.style.visibility='hidden'">
+        <img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
         <div class="kh-product-card__name">${sp.tenSanPham}</div>
         <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
         <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
@@ -123,7 +128,7 @@ function renderPhanTrang(tongSoTrang) {
     btn.addEventListener("click", () => {
       trangHienTai = trang;
       render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0 }); // mượt hay tức thì do CSS (scroll-behavior) + prefers-reduced-motion quyết định
     });
     return btn;
   };

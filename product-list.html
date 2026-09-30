@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
   <title>Sản phẩm — Website bán linh kiện máy tính</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -61,9 +63,22 @@
       </aside>
 
       <div class="kh-catalog-layout__results">
-        <div id="ket-qua-dem" class="text-muted" style="margin-bottom: var(--spacing-md);"></div>
-        <div id="danh-sach-san-pham" class="grid">
-          <p class="text-muted">Đang tải sản phẩm...</p>
+        <div id="ket-qua-dem" class="text-muted" style="margin-bottom: var(--spacing-md); min-height: 1.55em;"></div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
+        <div id="danh-sach-san-pham" class="grid" aria-busy="true">
+          <!-- Khung chờ: hiện ngay khung hình đầu, kích thước khớp thẻ thật (không xô lệch bố cục).
+               product-list.js thay bằng thẻ thật và gỡ aria-busy. -->
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
+          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
         </div>
         <div id="phan-trang" class="pagination"></div>
       </div>

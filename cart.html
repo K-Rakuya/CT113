@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
   <title>Giỏ hàng — Website bán linh kiện máy tính</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,8 +40,21 @@
       <span aria-current="page">Giỏ hàng</span>
     </nav>
     <h1>Giỏ hàng</h1>
-    <div id="noi-dung-gio-hang">
-      <p class="text-muted">Đang tải giỏ hàng...</p>
+    <div id="noi-dung-gio-hang" aria-busy="true">
+      <!-- Khung chờ cùng lưới .kh-cart-layout; cart.js thay bằng giỏ hàng thật và gỡ aria-busy -->
+      <div class="kh-cart-layout skeleton" aria-hidden="true">
+        <div>
+          <div class="kh-cart-item"><span class="sk kh-skeleton-cart__img"></span><div class="kh-cart-item__info"><span class="sk kh-skeleton-cart__line"></span><span class="sk kh-skeleton-cart__line kh-skeleton-cart__line--short"></span></div><span class="sk kh-skeleton-cart__qty"></span></div>
+          <div class="kh-cart-item"><span class="sk kh-skeleton-cart__img"></span><div class="kh-cart-item__info"><span class="sk kh-skeleton-cart__line"></span><span class="sk kh-skeleton-cart__line kh-skeleton-cart__line--short"></span></div><span class="sk kh-skeleton-cart__qty"></span></div>
+          <div class="kh-cart-item"><span class="sk kh-skeleton-cart__img"></span><div class="kh-cart-item__info"><span class="sk kh-skeleton-cart__line"></span><span class="sk kh-skeleton-cart__line kh-skeleton-cart__line--short"></span></div><span class="sk kh-skeleton-cart__qty"></span></div>
+        </div>
+        <div class="card kh-summary">
+          <span class="sk kh-skeleton-cart__summary kh-skeleton-cart__summary--title"></span>
+          <span class="sk kh-skeleton-cart__summary"></span>
+          <span class="sk kh-skeleton-cart__summary"></span>
+          <span class="sk kh-skeleton-cart__btn"></span>
+        </div>
+      </div>
     </div>
   </main>
 

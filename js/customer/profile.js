@@ -5,6 +5,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { showToast } from "/js/utils.js";
+import { setBusy } from "/js/motion.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-ho-so");
@@ -51,7 +52,7 @@ function render(ho_so) {
   document.getElementById("form-ho-so").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = document.getElementById("btn-luu");
-    btn.disabled = true;
+    setBusy(btn, true);
     btn.textContent = "Đang lưu...";
     try {
       await updateDoc(doc(db, "users", auth.currentUser.uid), {
@@ -63,7 +64,7 @@ function render(ho_so) {
     } catch (err) {
       showToast("Lưu thất bại: " + err.message, "error");
     } finally {
-      btn.disabled = false;
+      setBusy(btn, false);
       btn.textContent = "Lưu thay đổi";
     }
   });

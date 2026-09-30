@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
   <title>Đăng ký — Website bán linh kiện máy tính</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -71,6 +73,7 @@
     import { auth } from "/js/firebase-config.js";
     import { dangKy, dangXuat, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
     import { showToast } from "/js/utils.js";
+    import { setBusy, shake } from "/js/motion.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
     onAuthStateChanged(auth, (user) => {
@@ -96,10 +99,11 @@
 
       if (matKhau !== xacNhan) {
         showToast("Mật khẩu xác nhận không khớp.", "error");
+        shake(form.closest(".card"));
         return;
       }
 
-      btnSubmit.disabled = true;
+      setBusy(btnSubmit, true);
       btnSubmit.textContent = "Đang tạo tài khoản...";
       try {
         await dangKy({ hoTen, email, matKhau, soDienThoai });
@@ -108,8 +112,9 @@
         window.location.href = duongDanTheoVaiTro(vaiTro);
       } catch (err) {
         showToast(err.message || "Đăng ký thất bại.", "error");
-        btnSubmit.disabled = false;
+        setBusy(btnSubmit, false);
         btnSubmit.textContent = "Đăng ký";
+        shake(form.closest(".card"));
       }
     });
   </script>

@@ -1,8 +1,12 @@
 // js/customer/cart.js
 // Trang cart.html: sửa số lượng / xoá sp, tính tổng tiền. Collection: giohang.
+//
+// Giao diện được cập nhật TẠI CHỖ (optimistic update): bấm là thấy đổi ngay, lệnh ghi Firestore
+// chạy nền. . Giờ chỉ tải giỏ lúc vào trang, và tải lại từ server khi một lệnh ghi thất bại để giao diện về đúng trạng thái thật.
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast } from "/js/utils.js";
+import { animateNumber, collapseAndRemove } from "/js/motion.js";
 import {
   collection,
   query,
@@ -15,6 +19,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-gio-hang");
+
+let dongHienTai = []; // các dòng đang hiển thị: { id, soLuong, sanPham, el }
+const ghiDangCho = new Set(); // các lệnh ghi Firestore chưa xong
+let loiGhi = false; // có lệnh ghi nào thất bại kể từ lần bấm "Tiến hành đặt hàng" gần nhất
+
+const dinhDangTien = (n) => formatCurrency(Math.round(n));
 
 /**
  * Gọi từ callback onDaXacThuc của checkRole() trong cart.html — đảm bảo
@@ -33,11 +43,7 @@ async function taiGioHang() {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      elNoiDung.innerHTML = `
-        <div class="empty-state">
-          Giỏ hàng của bạn đang trống.
-          <div style="margin-top: var(--spacing-md);"><a href="/product-list.html" class="btn btn--primary">Mua sắm ngay</a></div>
-        </div>`;
+      hienGioTrong();
       return;
     }
 
@@ -51,76 +57,135 @@ async function taiGioHang() {
       })
     );
 
-    renderGioHang(dongGioHang.filter((d) => d.sanPham)); // bỏ qua sp đã bị xoá khỏi hệ thống
+    dongHienTai = dongGioHang.filter((d) => d.sanPham); // bỏ qua sp đã bị xoá khỏi hệ thống
+    if (dongHienTai.length === 0) {
+      hienGioTrong();
+      return;
+    }
+    renderGioHang();
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được giỏ hàng.</p>';
     showToast(err.message, "error");
+  } finally {
+    elNoiDung.removeAttribute("aria-busy"); // khung chờ tĩnh trong cart.html đã được thay
   }
 }
 
-function renderGioHang(dongGioHang) {
-  const tongTien = dongGioHang.reduce((tong, d) => tong + d.sanPham.gia * d.soLuong, 0);
-
+function hienGioTrong() {
+  dongHienTai = [];
   elNoiDung.innerHTML = `
-    <div class="kh-cart-layout">
+    <div class="empty-state motion-fade">
+      Giỏ hàng của bạn đang trống.
+      <div style="margin-top: var(--spacing-md);"><a href="/product-list.html" class="btn btn--primary">Mua sắm ngay</a></div>
+    </div>`;
+}
+
+function renderGioHang() {
+  elNoiDung.innerHTML = `
+    <div class="kh-cart-layout motion-fade">
       <div>
         <div id="danh-sach-gio-hang"></div>
       </div>
       <div class="card kh-summary">
         <h3>Tóm tắt đơn hàng</h3>
-        <div class="kh-summary__row"><span>Tạm tính</span><span>${formatCurrency(tongTien)}</span></div>
-        <div class="kh-summary__row kh-summary__total"><span>Tổng cộng</span><span>${formatCurrency(tongTien)}</span></div>
-        <a href="/checkout.html" class="btn btn--primary" style="width:100%; margin-top: var(--spacing-md); text-align:center;">Tiến hành đặt hàng</a>
+        <div class="kh-summary__row"><span>Tạm tính</span><span id="tam-tinh"></span></div>
+        <div class="kh-summary__row kh-summary__total"><span>Tổng cộng</span><span id="tong-cong"></span></div>
+        <a href="/checkout.html" id="btn-dat-hang" class="btn btn--primary" style="width:100%; margin-top: var(--spacing-md); text-align:center;">Tiến hành đặt hàng</a>
       </div>
     </div>
   `;
 
   const elDanhSach = document.getElementById("danh-sach-gio-hang");
-  dongGioHang.forEach((d) => {
-    const dong = document.createElement("div");
-    dong.className = "kh-cart-item";
-    dong.innerHTML = `
-      <img class="kh-cart-item__img" src="${d.sanPham.hinhAnh || ''}" alt="${d.sanPham.tenSanPham}" onerror="this.style.visibility='hidden'">
-      <div class="kh-cart-item__info">
-        <div class="kh-cart-item__name">${d.sanPham.tenSanPham}</div>
-        <div class="text-muted">${formatCurrency(d.sanPham.gia)} / sản phẩm</div>
-        <div class="kh-qty-stepper" style="margin-top:6px;">
-          <button type="button" class="btn-giam">−</button>
-          <input type="number" class="input-so-luong" value="${d.soLuong}" min="1" max="${d.sanPham.soLuongTon}">
-          <button type="button" class="btn-tang">+</button>
-        </div>
-      </div>
-      <div class="text-center">
-        <div style="font-weight:700;">${formatCurrency(d.sanPham.gia * d.soLuong)}</div>
-        <button class="kh-cart-item__remove">Xoá</button>
-      </div>
-    `;
-
-    const elInput = dong.querySelector(".input-so-luong");
-    const capNhatSoLuong = async (soLuongMoi) => {
-      soLuongMoi = Math.max(1, Math.min(d.sanPham.soLuongTon, soLuongMoi));
-      elInput.value = soLuongMoi;
-      try {
-        await updateDoc(doc(db, "giohang", d.id), { soLuong: soLuongMoi });
-        taiGioHang(); // tải lại để cập nhật tổng tiền chính xác
-      } catch (err) {
-        showToast("Không cập nhật được số lượng: " + err.message, "error");
-      }
-    };
-
-    dong.querySelector(".btn-giam").addEventListener("click", () => capNhatSoLuong(Number(elInput.value) - 1));
-    dong.querySelector(".btn-tang").addEventListener("click", () => capNhatSoLuong(Number(elInput.value) + 1));
-    elInput.addEventListener("change", () => capNhatSoLuong(Number(elInput.value)));
-
-    dong.querySelector(".kh-cart-item__remove").addEventListener("click", async () => {
-      try {
-        await deleteDoc(doc(db, "giohang", d.id));
-        taiGioHang();
-      } catch (err) {
-        showToast("Không xoá được sản phẩm: " + err.message, "error");
-      }
-    });
-
-    elDanhSach.appendChild(dong);
+  dongHienTai.forEach((d) => {
+    d.el = taoDong(d);
+    elDanhSach.appendChild(d.el);
   });
+  capNhatTong();
+
+  // Nếu còn lệnh ghi đang chạy, đợi xong rồi mới sang trang đặt hàng (để checkout đọc đúng số lượng).
+  document.getElementById("btn-dat-hang").addEventListener("click", async (e) => {
+    if (ghiDangCho.size === 0) return;
+    e.preventDefault();
+    loiGhi = false;
+    await Promise.allSettled([...ghiDangCho]);
+    if (!loiGhi) window.location.href = "/checkout.html";
+  });
+}
+
+function taoDong(d) {
+  const dong = document.createElement("div");
+  dong.className = "kh-cart-item";
+  dong.innerHTML = `
+    <img class="kh-cart-item__img img-fade" src="${d.sanPham.hinhAnh || ''}" alt="${d.sanPham.tenSanPham}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
+    <div class="kh-cart-item__info">
+      <div class="kh-cart-item__name">${d.sanPham.tenSanPham}</div>
+      <div class="text-muted">${formatCurrency(d.sanPham.gia)} / sản phẩm</div>
+      <div class="kh-qty-stepper" style="margin-top:6px;">
+        <button type="button" class="btn-giam">−</button>
+        <input type="number" class="input-so-luong" value="${d.soLuong}" min="1" max="${d.sanPham.soLuongTon}">
+        <button type="button" class="btn-tang">+</button>
+      </div>
+    </div>
+    <div class="text-center">
+      <div class="kh-cart-item__total" style="font-weight:700;" data-gia-tri="${d.sanPham.gia * d.soLuong}">${formatCurrency(d.sanPham.gia * d.soLuong)}</div>
+      <button class="kh-cart-item__remove">Xoá</button>
+    </div>
+  `;
+
+  const elInput = dong.querySelector(".input-so-luong");
+  dong.querySelector(".btn-giam").addEventListener("click", () => datSoLuong(d, Number(elInput.value) - 1));
+  dong.querySelector(".btn-tang").addEventListener("click", () => datSoLuong(d, Number(elInput.value) + 1));
+  elInput.addEventListener("change", () => datSoLuong(d, Number(elInput.value)));
+  dong.querySelector(".kh-cart-item__remove").addEventListener("click", () => xoaDong(d));
+  return dong;
+}
+
+/** Đổi số lượng: cập nhật ô nhập, thành tiền dòng và tổng ngay; ghi Firestore chạy nền. */
+function datSoLuong(d, soLuongMoi) {
+  const toiDa = Number.isFinite(d.sanPham.soLuongTon) ? d.sanPham.soLuongTon : Infinity;
+  soLuongMoi = Math.max(1, Math.min(toiDa, soLuongMoi || 1));
+  d.el.querySelector(".input-so-luong").value = soLuongMoi;
+  if (soLuongMoi === d.soLuong) return;
+
+  d.soLuong = soLuongMoi;
+  animateNumber(d.el.querySelector(".kh-cart-item__total"), d.sanPham.gia * soLuongMoi, { format: dinhDangTien });
+  capNhatTong();
+  ghiNen(updateDoc(doc(db, "giohang", d.id), { soLuong: soLuongMoi }), "Không cập nhật được số lượng: ");
+}
+
+/** Xoá dòng: thu gọn mượt, các dòng bên dưới trượt lên; xoá trên Firestore chạy nền. */
+function xoaDong(d) {
+  if (d.dangXoa) return;
+  d.dangXoa = true;
+
+  // Giữ focus bàn phím trong trang thay vì rơi về <body> khi nút "Xoá" biến mất
+  if (d.el.contains(document.activeElement)) {
+    const ke = d.el.nextElementSibling || d.el.previousElementSibling;
+    (ke?.querySelector(".kh-cart-item__remove") ?? document.getElementById("btn-dat-hang"))?.focus({ preventScroll: true });
+  }
+
+  dongHienTai = dongHienTai.filter((x) => x !== d);
+  ghiNen(deleteDoc(doc(db, "giohang", d.id)), "Không xoá được sản phẩm: ");
+  capNhatTong();
+  collapseAndRemove(d.el).then(() => {
+    if (dongHienTai.length === 0) hienGioTrong();
+  });
+}
+
+function capNhatTong() {
+  const tong = dongHienTai.reduce((t, d) => t + d.sanPham.gia * d.soLuong, 0);
+  animateNumber(document.getElementById("tam-tinh"), tong, { format: dinhDangTien });
+  animateNumber(document.getElementById("tong-cong"), tong, { format: dinhDangTien });
+}
+
+/** Theo dõi một lệnh ghi chạy nền; thất bại thì báo lỗi và tải lại giỏ từ server. */
+function ghiNen(lenh, tienToLoi) {
+  const theoDoi = lenh
+    .catch((err) => {
+      loiGhi = true;
+      showToast(tienToLoi + err.message, "error");
+      return taiGioHang();
+    })
+    .finally(() => ghiDangCho.delete(theoDoi));
+  ghiDangCho.add(theoDoi);
 }

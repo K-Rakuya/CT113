@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
   <title>Trang chủ — Website bán linh kiện máy tính</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -56,8 +58,15 @@
         <h2 style="margin:0;">Sản phẩm nổi bật</h2>
         <a href="/product-list.html">Xem tất cả sản phẩm</a>
       </div>
-      <div id="san-pham-noi-bat" class="grid">
-        <p class="text-muted">Đang tải sản phẩm...</p>
+      <div id="san-pham-noi-bat" class="grid" aria-busy="true">
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
+        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
       </div>
     </section>
   </main>
@@ -91,13 +100,15 @@
         khungHienThi.innerHTML = '<p class="text-muted">Chưa có sản phẩm nào.</p>';
       } else {
         khungHienThi.innerHTML = "";
+        let i = 0;
         snap.forEach((docSnap) => {
           const sp = docSnap.data();
           const a = document.createElement("a");
           a.href = `/product-detail.html?id=${docSnap.id}`;
-          a.className = "card kh-product-card";
+          a.className = "card kh-product-card motion-enter"; // hiện lần lượt khi dữ liệu về
+          a.style.setProperty("--i", i++);
           a.innerHTML = `
-            <img class="kh-product-card__img" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" onerror="this.style.visibility='hidden'">
+            <img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
             <div class="kh-product-card__name">${sp.tenSanPham}</div>
             <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
           `;
@@ -107,6 +118,8 @@
     } catch (err) {
       khungHienThi.innerHTML = '<p class="text-muted">Không tải được sản phẩm nổi bật.</p>';
       console.error(err);
+    } finally {
+      khungHienThi.removeAttribute("aria-busy");
     }
   </script>
 </body>

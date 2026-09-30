@@ -3,6 +3,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, ghiNhatKy } from "/js/utils.js";
+import { setBusy } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -104,7 +105,7 @@ function render(dongGioHang, diaChiMacDinh) {
 
 async function xuLyDatHang(dongGioHang, diaChiGiao) {
   const btn = document.getElementById("btn-xac-nhan");
-  btn.disabled = true;
+  setBusy(btn, true);
   btn.textContent = "Đang xử lý...";
 
   const uid = auth.currentUser.uid;
@@ -179,7 +180,7 @@ async function xuLyDatHang(dongGioHang, diaChiGiao) {
   } catch (err) {
     // NL-1: quay lại bước xác nhận, báo lỗi rõ ràng.
     showToast(err.message || "Đặt hàng thất bại, vui lòng thử lại.", "error");
-    btn.disabled = false;
+    setBusy(btn, false);
     btn.textContent = "Xác nhận đặt hàng";
   }
 }

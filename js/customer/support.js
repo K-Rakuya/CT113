@@ -4,6 +4,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatDate, showToast } from "/js/utils.js";
+import { setBusy } from "/js/motion.js";
 import {
   collection,
   query,
@@ -82,7 +83,7 @@ elForm.addEventListener("submit", async (e) => {
   const noiDung = document.getElementById("noi-dung").value.trim();
   if (!tieuDe || !noiDung) return;
 
-  btn.disabled = true;
+  setBusy(btn, true);
   btn.textContent = "Đang gửi...";
   try {
     await addDoc(collection(db, "yeucauhotro"), {
@@ -99,7 +100,7 @@ elForm.addEventListener("submit", async (e) => {
   } catch (err) {
     showToast("Gửi yêu cầu thất bại: " + err.message, "error");
   } finally {
-    btn.disabled = false;
+    setBusy(btn, false);
     btn.textContent = "Gửi yêu cầu";
   }
 });

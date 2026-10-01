@@ -82,7 +82,7 @@
   <script type="module">
     import { auth } from "/js/firebase-config.js";
     import { dangXuat } from "/js/auth.js";
-    import { formatCurrency } from "/js/utils.js";
+    import { formatCurrency, escapeHtml } from "/js/utils.js";
     import { swapContent } from "/js/motion.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
     import { collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -111,13 +111,15 @@
         let i = 0;
         snap.forEach((docSnap) => {
           const sp = docSnap.data();
+          const stt = i++;
+          const uuTien = stt < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
           const a = document.createElement("a");
           a.href = `/product-detail.html?id=${docSnap.id}`;
           a.className = "card kh-product-card motion-enter"; // hiện lần lượt khi dữ liệu về
-          a.style.setProperty("--i", i++);
+          a.style.setProperty("--i", stt);
           a.innerHTML = `
-            <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
-            <div class="kh-product-card__name">${sp.tenSanPham}</div>
+            <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
+            <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
             <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
           `;
           khungHienThi.appendChild(a);

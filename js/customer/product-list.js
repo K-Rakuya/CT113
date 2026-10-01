@@ -3,7 +3,7 @@
 // giá, phân trang. Collection dùng: sanpham, danhmuc.
 
 import { db } from "/js/firebase-config.js";
-import { formatCurrency, showToast } from "/js/utils.js";
+import { formatCurrency, showToast, escapeHtml } from "/js/utils.js";
 import { swapContent, prefersReducedMotion } from "/js/motion.js";
 import {
   collection,
@@ -106,9 +106,10 @@ function renderNoiDung() {
       a.className = "card kh-product-card motion-enter";
       a.style.setProperty("--i", i);
       const conHang = (sp.soLuongTon ?? 0) > 0;
+      const uuTien = i < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
       a.innerHTML = `
-        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
-        <div class="kh-product-card__name">${sp.tenSanPham}</div>
+        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
+        <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
         <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
         <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
           ${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}

@@ -5,8 +5,8 @@
 // chạy nền. . Giờ chỉ tải giỏ lúc vào trang, và tải lại từ server khi một lệnh ghi thất bại để giao diện về đúng trạng thái thật.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, showToast } from "/js/utils.js";
-import { animateNumber, collapseAndRemove, swapContent } from "/js/motion.js";
+import { formatCurrency, showToast, escapeHtml } from "/js/utils.js";
+import { animateNumber, collapseAndRemove, swapContent, shake } from "/js/motion.js";
 import {
   collection,
   query,
@@ -118,9 +118,9 @@ function taoDong(d) {
   const dong = document.createElement("div");
   dong.className = "kh-cart-item";
   dong.innerHTML = `
-    <img class="kh-cart-item__img img-fade" src="${d.sanPham.hinhAnh || ''}" alt="${d.sanPham.tenSanPham}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
+    <img class="kh-cart-item__img img-fade" src="${escapeHtml(d.sanPham.hinhAnh)}" alt="${escapeHtml(d.sanPham.tenSanPham)}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
     <div class="kh-cart-item__info">
-      <div class="kh-cart-item__name">${d.sanPham.tenSanPham}</div>
+      <div class="kh-cart-item__name">${escapeHtml(d.sanPham.tenSanPham)}</div>
       <div class="text-muted">${formatCurrency(d.sanPham.gia)} / sản phẩm</div>
       <div class="kh-qty-stepper" style="margin-top:6px;">
         <button type="button" class="btn-giam">−</button>
@@ -139,17 +139,35 @@ function taoDong(d) {
   dong.querySelector(".btn-tang").addEventListener("click", () => datSoLuong(d, Number(elInput.value) + 1));
   elInput.addEventListener("change", () => datSoLuong(d, Number(elInput.value)));
   dong.querySelector(".kh-cart-item__remove").addEventListener("click", () => xoaDong(d));
+  capNhatBoTang(dong, d);
   return dong;
 }
 
+function gioiHanTon(d) {
+  return Number.isFinite(d.sanPham.soLuongTon) ? d.sanPham.soLuongTon : Infinity;
+}
+
+function capNhatBoTang(el, d) {
+  el.querySelector(".btn-giam").disabled = d.soLuong <= 1;
+  el.querySelector(".btn-tang").disabled = d.soLuong >= gioiHanTon(d);
+}
+
 /** Đổi số lượng: cập nhật ô nhập, thành tiền dòng và tổng ngay; ghi Firestore chạy nền. */
-function datSoLuong(d, soLuongMoi) {
-  const toiDa = Number.isFinite(d.sanPham.soLuongTon) ? d.sanPham.soLuongTon : Infinity;
-  soLuongMoi = Math.max(1, Math.min(toiDa, soLuongMoi || 1));
+function datSoLuong(d, yeuCau) {
+  const toiDa = gioiHanTon(d);
+  const soLuongMoi = Math.max(1, Math.min(toiDa, Math.trunc(yeuCau) || 1));
   d.el.querySelector(".input-so-luong").value = soLuongMoi;
-  if (soLuongMoi === d.soLuong) return;
+  if (yeuCau > toiDa) {
+    shake(d.el.querySelector(".kh-qty-stepper"));
+    showToast(`Chỉ còn ${toiDa} sản phẩm trong kho.`, "info");
+  }
+  if (soLuongMoi === d.soLuong) {
+    capNhatBoTang(d.el, d);
+    return;
+  }
 
   d.soLuong = soLuongMoi;
+  capNhatBoTang(d.el, d);
   animateNumber(d.el.querySelector(".kh-cart-item__total"), d.sanPham.gia * soLuongMoi, { format: dinhDangTien });
   capNhatTong();
   ghiNen(updateDoc(doc(db, "giohang", d.id), { soLuong: soLuongMoi }), "Không cập nhật được số lượng: ");

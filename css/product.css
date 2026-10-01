@@ -169,6 +169,7 @@
 }
 .kh-qty-stepper button:hover { background: var(--color-border); }
 .kh-qty-stepper button:active { transform: scale(.88); }
+.kh-qty-stepper button:disabled { opacity: .4; cursor: not-allowed; background: var(--color-bg); }
 .kh-qty-stepper input {
   width: 48px; text-align: center; border: none;
   border-left: 1px solid var(--color-border); border-right: 1px solid var(--color-border);
@@ -235,6 +236,22 @@
 .kh-order-card:active { transform: translateY(0) scale(.99); }
 .kh-order-card__code { font-weight: 600; }
 .kh-order-card__meta { color: var(--color-text-muted); font-size: var(--text-xs); display: flex; flex-direction: column; gap: 2px; margin-top: 2px; }
+
+.kh-order-success {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--color-success);
+  border-radius: var(--radius);
+  background: #DEEEE2;
+  color: #1F5C3A;
+  font-size: var(--text-sm);
+}
+.kh-order-success__tick { width: 32px; height: 32px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kh-order-success__tick path { stroke-dasharray: 15; animation: draw-tick var(--dur-slow) var(--ease-out) 120ms backwards; }
+@keyframes draw-tick { from { stroke-dashoffset: 15; } }
 
 /* ---- Hỗ trợ kỹ thuật (customer/support.html) ---- */
 .kh-ticket { border-left: 3px solid var(--color-border); padding-left: var(--spacing-md); margin-bottom: var(--spacing-md); }

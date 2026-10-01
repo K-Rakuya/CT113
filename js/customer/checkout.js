@@ -2,8 +2,8 @@
 // Trang checkout.html — cài đặt UC-03 "Đặt hàng"
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, showToast, ghiNhatKy } from "/js/utils.js";
-import { setBusy, swapContent } from "/js/motion.js";
+import { formatCurrency, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
+import { setBusy, swapContent, confirmButton, prefersReducedMotion } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -17,6 +17,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-checkout");
+let daGuiDon = false;
 
 export async function initCheckout() {
   const uid = auth.currentUser.uid;
@@ -63,9 +64,9 @@ function render(dongGioHang, diaChiMacDinh) {
         .map(
           (d) => `
         <div class="kh-cart-item">
-          <img class="kh-cart-item__img" src="${d.sanPham.hinhAnh || ''}" alt="${d.sanPham.tenSanPham}" onerror="this.style.visibility='hidden'">
+          <img class="kh-cart-item__img" src="${escapeHtml(d.sanPham.hinhAnh)}" alt="${escapeHtml(d.sanPham.tenSanPham)}" onerror="this.style.visibility='hidden'">
           <div class="kh-cart-item__info">
-            <div class="kh-cart-item__name">${d.sanPham.tenSanPham}</div>
+            <div class="kh-cart-item__name">${escapeHtml(d.sanPham.tenSanPham)}</div>
             <div class="text-muted">${formatCurrency(d.sanPham.gia)} × ${d.soLuong}</div>
           </div>
           <div style="font-weight:700;">${formatCurrency(d.sanPham.gia * d.soLuong)}</div>
@@ -77,7 +78,7 @@ function render(dongGioHang, diaChiMacDinh) {
     <form id="form-checkout" class="card motion-enter" style="--i:1">
       <div class="form-group">
         <label for="dia-chi-giao">Địa chỉ giao hàng</label>
-        <textarea class="textarea" id="dia-chi-giao" required>${diaChiMacDinh}</textarea>
+        <textarea class="textarea" id="dia-chi-giao" required>${escapeHtml(diaChiMacDinh)}</textarea>
         <span class="hint">Bạn có thể sửa lại địa chỉ trước khi đặt hàng.</span>
       </div>
       <div class="form-group">
@@ -97,6 +98,7 @@ function render(dongGioHang, diaChiMacDinh) {
 
   document.getElementById("form-checkout").addEventListener("submit", (e) => {
     e.preventDefault();
+    if (daGuiDon) return;
     const diaChiGiao = document.getElementById("dia-chi-giao").value.trim();
     if (!diaChiGiao) return;
     xuLyDatHang(dongGioHang, diaChiGiao);
@@ -105,6 +107,7 @@ function render(dongGioHang, diaChiMacDinh) {
 
 async function xuLyDatHang(dongGioHang, diaChiGiao) {
   const btn = document.getElementById("btn-xac-nhan");
+  daGuiDon = true;
   setBusy(btn, true);
   btn.textContent = "Đang xử lý...";
 
@@ -175,10 +178,13 @@ async function xuLyDatHang(dongGioHang, diaChiGiao) {
     }
 
     await ghiNhatKy(`dat_hang: donhang/${donHangRef.id}`);
-    showToast("Đặt hàng thành công! Mã đơn: " + donHangRef.id.slice(0, 8).toUpperCase(), "success");
-    window.location.href = `/customer/order-detail.html?id=${donHangRef.id}`;
+    setBusy(btn, false);
+    confirmButton(btn, "Đã đặt hàng", 5000);
+    await new Promise((xong) => setTimeout(xong, prefersReducedMotion() ? 0 : 600));
+    window.location.href = `/customer/order-detail.html?id=${donHangRef.id}&moi=1`;
   } catch (err) {
     // NL-1: quay lại bước xác nhận, báo lỗi rõ ràng.
+    daGuiDon = false;
     showToast(err.message || "Đặt hàng thất bại, vui lòng thử lại.", "error");
     setBusy(btn, false);
     btn.textContent = "Xác nhận đặt hàng";

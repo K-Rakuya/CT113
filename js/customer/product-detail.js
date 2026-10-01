@@ -3,8 +3,8 @@
 // Collection: sanpham, danhgia, donhang.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, formatDate, showToast, ghiNhatKy } from "/js/utils.js";
-import { setBusy, confirmButton, swapContent, flyToCart } from "/js/motion.js";
+import { formatCurrency, formatDate, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
+import { setBusy, confirmButton, swapContent, flyToCart, shake } from "/js/motion.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -80,9 +80,9 @@ async function capNhatBreadcrumb() {
   const sep = '<span class="breadcrumb__sep motion-fade">/</span>';
   let them = "";
   if (tenDanhMuc) {
-    them += `${sep}<a class="motion-fade" href="/product-list.html?danhmuc=${sanPhamHienTai.danhMucId}">${tenDanhMuc}</a>`;
+    them += `${sep}<a class="motion-fade" href="/product-list.html?danhmuc=${encodeURIComponent(sanPhamHienTai.danhMucId)}">${escapeHtml(tenDanhMuc)}</a>`;
   }
-  them += `${sep}<span class="motion-fade" aria-current="page">${sanPhamHienTai.tenSanPham}</span>`;
+  them += `${sep}<span class="motion-fade" aria-current="page">${escapeHtml(sanPhamHienTai.tenSanPham)}</span>`;
   elBreadcrumb.insertAdjacentHTML("beforeend", them);
 }
 
@@ -92,12 +92,12 @@ function renderSanPham() {
 
   elChiTiet.innerHTML = `
     <div class="kh-detail">
-      <img class="kh-detail__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
+      <img class="kh-detail__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" fetchpriority="high" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
       <div>
-        <h1>${sp.tenSanPham}</h1>
+        <h1>${escapeHtml(sp.tenSanPham)}</h1>
         <div class="kh-detail__price">${formatCurrency(sp.gia)}</div>
         <p class="${conHang ? '' : 'kh-product-card__stock--out'}">${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}</p>
-        <p class="kh-detail__desc">${sp.moTa || ''}</p>
+        <p class="kh-detail__desc">${escapeHtml(sp.moTa)}</p>
         ${conHang ? `
           <div class="flex" style="margin-top: var(--spacing-md);">
             <div class="kh-qty-stepper">
@@ -114,12 +114,23 @@ function renderSanPham() {
 
   if (conHang) {
     const elSoLuong = document.getElementById("so-luong");
-    document.getElementById("btn-giam").addEventListener("click", () => {
-      elSoLuong.value = Math.max(1, Number(elSoLuong.value) - 1);
-    });
-    document.getElementById("btn-tang").addEventListener("click", () => {
-      elSoLuong.value = Math.min(sp.soLuongTon, Number(elSoLuong.value) + 1);
-    });
+    const btnGiam = document.getElementById("btn-giam");
+    const btnTang = document.getElementById("btn-tang");
+    const elBoTang = elSoLuong.closest(".kh-qty-stepper");
+    const datSoLuong = (yeuCau) => {
+      const soLuong = Math.max(1, Math.min(sp.soLuongTon, Math.trunc(yeuCau) || 1));
+      if (yeuCau > sp.soLuongTon) {
+        shake(elBoTang);
+        showToast(`Chỉ còn ${sp.soLuongTon} sản phẩm trong kho.`, "info");
+      }
+      elSoLuong.value = soLuong;
+      btnGiam.disabled = soLuong <= 1;
+      btnTang.disabled = soLuong >= sp.soLuongTon;
+    };
+    btnGiam.addEventListener("click", () => datSoLuong(Number(elSoLuong.value) - 1));
+    btnTang.addEventListener("click", () => datSoLuong(Number(elSoLuong.value) + 1));
+    elSoLuong.addEventListener("change", () => datSoLuong(Number(elSoLuong.value)));
+    datSoLuong(1);
     document.getElementById("btn-them-gio").addEventListener("click", () => themVaoGio(Number(elSoLuong.value)));
   }
 }
@@ -190,7 +201,7 @@ async function taiDanhSachDanhGia() {
         (dg, i) => `
         <div class="kh-review motion-enter" style="--i:${i}">
           <div class="kh-review__stars">${"★".repeat(dg.soSao)}${"☆".repeat(5 - dg.soSao)}</div>
-          <p>${dg.noiDung}</p>
+          <p>${escapeHtml(dg.noiDung)}</p>
           <div class="text-muted" style="font-size:.8em;">${formatDate(dg.ngayDanhGia)}</div>
         </div>`
       )

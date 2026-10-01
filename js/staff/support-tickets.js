@@ -1,5 +1,5 @@
 import { db, auth } from "/js/firebase-config.js";
-import { showToast, ghiNhatKy } from "/js/utils.js";
+import { showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const ticketsListEl = document.getElementById("tickets-list");
@@ -22,8 +22,8 @@ const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
     div.className = "card nv-ticket-card" + (lanDau ? " motion-enter" : "");
     if (lanDau) div.style.setProperty("--i", i++);
     div.innerHTML = `
-      <h3>${ticket.tieuDe || "Yêu cầu hỗ trợ"}</h3>
-      <p>${ticket.noiDung || ""}</p>
+      <h3>${escapeHtml(ticket.tieuDe || "Yêu cầu hỗ trợ")}</h3>
+      <p>${escapeHtml(ticket.noiDung)}</p>
       <p>Trạng thái: <span class="badge badge--${ticket.trangThai}">${ticket.trangThai}</span></p>
       ${
         ticket.trangThai !== "da_xong"
@@ -31,7 +31,7 @@ const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
               <input type="text" id="reply-${id}" placeholder="Nhập câu trả lời...">
               <button class="btn btn--primary btn--sm btn-reply" data-id="${id}">Gửi phản hồi</button>
              </div>`
-          : `<p style="margin-top: 10px; color: var(--color-primary);"><strong>Đã trả lời:</strong> ${ticket.phanHoi || ""}</p>`
+          : `<p style="margin-top: 10px; color: var(--color-primary);"><strong>Đã trả lời:</strong> ${escapeHtml(ticket.phanHoi)}</p>`
       }
     `;
     ticketsListEl.appendChild(div);

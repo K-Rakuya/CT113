@@ -38,6 +38,15 @@ export function formatDate(timestamp) {
 }
 
 /**
+ * Thoát ký tự HTML trước khi chèn chuỗi người dùng/dữ liệu vào innerHTML.
+ * @param {*} giaTri
+ * @returns {string}
+ */
+export function escapeHtml(giaTri) {
+  return String(giaTri ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+/**
  * Hiện thông báo nổi rồi tự đóng: 3 giây, tạm dừng khi rê chuột/focus vào.
  * Tối đa 4 toast cùng lúc. Vào/ra bằng animation, các toast bên dưới trượt lên mượt.
  * Cần .toast / .toast-item trong style.css.

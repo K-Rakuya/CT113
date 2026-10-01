@@ -2,7 +2,7 @@
 // Trang customer/order-detail.html: chi tiết 1 đơn. Collection: donhang, chitietdonhang.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, formatDate, showToast } from "/js/utils.js";
+import { formatCurrency, formatDate, showToast, escapeHtml } from "/js/utils.js";
 import { swapContent } from "/js/motion.js";
 import {
   doc,
@@ -23,7 +23,9 @@ const NHAN_TRANG_THAI = {
 };
 
 export async function initChiTietDonHang() {
-  const donHangId = new URLSearchParams(window.location.search).get("id");
+  const thamSo = new URLSearchParams(window.location.search);
+  const donHangId = thamSo.get("id");
+  const laDonMoi = thamSo.get("moi") === "1";
   if (!donHangId) {
     elNoiDung.innerHTML = '<p class="empty-state">Thiếu mã đơn hàng.</p>';
     return;
@@ -51,26 +53,35 @@ export async function initChiTietDonHang() {
       })
     );
 
-    swapContent(elNoiDung, () => render(don, chiTietDayDu));
+    swapContent(elNoiDung, () => render(don, chiTietDayDu, laDonMoi));
+    if (laDonMoi) history.replaceState(null, "", `${window.location.pathname}?id=${encodeURIComponent(donHangId)}`);
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
     showToast(err.message, "error");
   }
 }
 
-function render(don, chiTiet) {
+function render(don, chiTiet, laDonMoi) {
   const maDon = "Đơn #" + don.id.slice(0, 8).toUpperCase();
   const elBreadcrumb = document.getElementById("breadcrumb-ma-don");
   if (elBreadcrumb) elBreadcrumb.textContent = maDon;
 
+  const bannerThanhCong = laDonMoi
+    ? `<div class="kh-order-success" role="status">
+        <svg class="kh-order-success__tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+        <div><strong>Đặt hàng thành công</strong><div>Đơn hàng đang chờ cửa hàng duyệt.</div></div>
+      </div>`
+    : "";
+
   elNoiDung.innerHTML = `
+    ${bannerThanhCong}
     <div class="card">
       <div class="flex-between">
         <h2 style="margin:0;">${maDon}</h2>
         <span class="badge badge--${don.trangThai}">${NHAN_TRANG_THAI[don.trangThai] || don.trangThai}</span>
       </div>
       <p class="text-muted">Ngày đặt: ${formatDate(don.ngayDat)}</p>
-      <p><strong>Địa chỉ giao hàng:</strong> ${don.diaChiGiao}</p>
+      <p><strong>Địa chỉ giao hàng:</strong> ${escapeHtml(don.diaChiGiao)}</p>
 
       <div class="table-responsive" style="margin-top: var(--spacing-md);">
         <table class="table">
@@ -80,7 +91,7 @@ function render(don, chiTiet) {
               .map(
                 (ct) => `
               <tr>
-                <td>${ct.tenSanPham}</td>
+                <td>${escapeHtml(ct.tenSanPham)}</td>
                 <td>${ct.soLuong}</td>
                 <td>${formatCurrency(ct.donGia)}</td>
                 <td>${formatCurrency(ct.thanhTien)}</td>

@@ -3,6 +3,7 @@ import { showToast, ghiNhatKy } from "/js/utils.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const ticketsListEl = document.getElementById("tickets-list");
+let lanDau = true; // realtime: chỉ lần đầu có hiệu ứng vào
 
 /**
  * Lắng nghe dữ liệu Realtime (onSnapshot) từ collection 'yeucauhotro'
@@ -12,12 +13,14 @@ const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
   if (!ticketsListEl) return;
   ticketsListEl.innerHTML = "";
 
+  let i = 0;
   snapshot.forEach((docSnap) => {
     const ticket = docSnap.data();
     const id = docSnap.id;
 
     const div = document.createElement("div");
-    div.className = "card nv-ticket-card";
+    div.className = "card nv-ticket-card" + (lanDau ? " motion-enter" : "");
+    if (lanDau) div.style.setProperty("--i", i++);
     div.innerHTML = `
       <h3>${ticket.tieuDe || "Yêu cầu hỗ trợ"}</h3>
       <p>${ticket.noiDung || ""}</p>
@@ -33,6 +36,7 @@ const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
     `;
     ticketsListEl.appendChild(div);
   });
+  lanDau = false;
 }, (err) => {
   console.error("Lỗi realtime support-tickets:", err);
 });

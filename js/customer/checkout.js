@@ -3,7 +3,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, ghiNhatKy } from "/js/utils.js";
-import { setBusy } from "/js/motion.js";
+import { setBusy, swapContent } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -28,11 +28,11 @@ export async function initCheckout() {
     ]);
 
     if (gioHangSnap.empty) {
-      elNoiDung.innerHTML = `
+      swapContent(elNoiDung, () => { elNoiDung.innerHTML = `
         <div class="empty-state">
           Giỏ hàng đang trống, không có gì để đặt hàng.
           <div style="margin-top: var(--spacing-md);"><a href="/product-list.html" class="btn btn--primary">Tiếp tục mua sắm</a></div>
-        </div>`;
+        </div>`; });
       return;
     }
 
@@ -46,7 +46,7 @@ export async function initCheckout() {
     );
 
     const diaChiMacDinh = userSnap.exists() ? userSnap.data().diaChi || "" : "";
-    render(dongGioHang.filter((d) => d.sanPham), diaChiMacDinh);
+    swapContent(elNoiDung, () => render(dongGioHang.filter((d) => d.sanPham), diaChiMacDinh));
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được thông tin đặt hàng.</p>';
     showToast(err.message, "error");
@@ -57,7 +57,7 @@ function render(dongGioHang, diaChiMacDinh) {
   const tongTien = dongGioHang.reduce((tong, d) => tong + d.sanPham.gia * d.soLuong, 0);
 
   elNoiDung.innerHTML = `
-    <div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card motion-enter" style="margin-bottom: var(--spacing-lg);">
       <h3>Sản phẩm (${dongGioHang.length})</h3>
       ${dongGioHang
         .map(
@@ -74,7 +74,7 @@ function render(dongGioHang, diaChiMacDinh) {
         .join("")}
     </div>
 
-    <form id="form-checkout" class="card">
+    <form id="form-checkout" class="card motion-enter" style="--i:1">
       <div class="form-group">
         <label for="dia-chi-giao">Địa chỉ giao hàng</label>
         <textarea class="textarea" id="dia-chi-giao" required>${diaChiMacDinh}</textarea>

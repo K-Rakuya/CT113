@@ -302,3 +302,13 @@
   .dashboard-layout { flex-direction: column; }
   .dashboard-layout__sidebar { width: 100%; height: auto; position: relative; }
 }
+
+/* ---- Dàn cảnh thẻ thống kê / thẻ ticket ---- */
+@media (prefers-reduced-motion: no-preference) {
+  .nv-grid-stats > * { animation: rise-in var(--dur-slow) var(--ease-out) backwards; animation-delay: 120ms; }
+  .nv-grid-stats > :nth-child(2) { animation-delay: calc(120ms + var(--stagger)); }
+  .nv-grid-stats > :nth-child(n+3) { animation-delay: calc(120ms + var(--stagger) * 2); }
+}
+
+.nv-table tbody tr { transition: background-color var(--dur-fast) var(--ease-out); }
+.nv-table tbody tr:hover { background: var(--color-bg); }

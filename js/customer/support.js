@@ -4,7 +4,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatDate, showToast } from "/js/utils.js";
-import { setBusy } from "/js/motion.js";
+import { setBusy, swapContent } from "/js/motion.js";
 import {
   collection,
   query,
@@ -54,7 +54,17 @@ function huyKhiRoiTrang() {
   huyDangKy = null;
 }
 
+let daCoDuLieu = false; // onSnapshot render lại liên tục: chỉ lần đầu mới có hiệu ứng
 function render(danhSach) {
+  if (!daCoDuLieu) {
+    daCoDuLieu = true;
+    swapContent(elDanhSach, () => renderNoiDung(danhSach, true));
+  } else {
+    renderNoiDung(danhSach, false);
+  }
+}
+
+function renderNoiDung(danhSach, hieuUng) {
   if (danhSach.length === 0) {
     elDanhSach.innerHTML = '<p class="empty-state">Bạn chưa gửi yêu cầu hỗ trợ nào.</p>';
     return;
@@ -62,8 +72,8 @@ function render(danhSach) {
 
   elDanhSach.innerHTML = danhSach
     .map(
-      (yc) => `
-    <div class="kh-ticket kh-ticket--${yc.trangThai}">
+      (yc, i) => `
+    <div class="kh-ticket kh-ticket--${yc.trangThai}${hieuUng ? " motion-enter" : ""}" style="--i:${i}">
       <div class="flex-between">
         <strong>${yc.tieuDe}</strong>
         <span class="badge badge--${yc.trangThai}">${NHAN_TRANG_THAI[yc.trangThai] || yc.trangThai}</span>

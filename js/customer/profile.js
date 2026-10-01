@@ -5,7 +5,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { showToast } from "/js/utils.js";
-import { setBusy } from "/js/motion.js";
+import { setBusy, swapContent } from "/js/motion.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-ho-so");
@@ -18,7 +18,7 @@ export async function initHoSo() {
       elNoiDung.innerHTML = '<p class="empty-state">Không tìm thấy hồ sơ.</p>';
       return;
     }
-    render(snap.data());
+    swapContent(elNoiDung, () => render(snap.data()));
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được hồ sơ.</p>';
     showToast(err.message, "error");

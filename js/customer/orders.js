@@ -3,6 +3,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast } from "/js/utils.js";
+import { swapContent } from "/js/motion.js";
 import {
   collection,
   query,
@@ -39,6 +40,10 @@ export async function initDonHang() {
 elLoc.addEventListener("change", render);
 
 function render() {
+  swapContent(elDanhSach, renderNoiDung);
+}
+
+function renderNoiDung() {
   const locTheo = elLoc.value;
   const danhSach = locTheo ? tatCaDonHang.filter((d) => d.trangThai === locTheo) : tatCaDonHang;
 
@@ -49,8 +54,8 @@ function render() {
 
   elDanhSach.innerHTML = danhSach
     .map(
-      (d) => `
-    <a href="/customer/order-detail.html?id=${d.id}" class="card kh-order-card">
+      (d, i) => `
+    <a href="/customer/order-detail.html?id=${d.id}" class="card kh-order-card motion-enter" style="--i:${i}">
       <div>
         <div class="kh-order-card__code">Đơn #${d.id.slice(0, 8).toUpperCase()}</div>
         <div class="kh-order-card__meta">

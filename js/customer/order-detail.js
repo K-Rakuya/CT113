@@ -3,6 +3,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast } from "/js/utils.js";
+import { swapContent } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -50,7 +51,7 @@ export async function initChiTietDonHang() {
       })
     );
 
-    render(don, chiTietDayDu);
+    swapContent(elNoiDung, () => render(don, chiTietDayDu));
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
     showToast(err.message, "error");

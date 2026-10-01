@@ -6,6 +6,7 @@
   <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
   <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
   <title>Đăng nhập — Website bán linh kiện máy tính</title>
+  <link rel="expect" href="#main" blocking="render" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -32,7 +33,7 @@
     </nav>
   </header>
 
-  <main class="container" style="max-width: 420px; padding-top: var(--spacing-lg);">
+  <main id="main" class="container" style="max-width: 420px; padding-top: var(--spacing-lg);">
     <div class="card">
       <h1>Đăng nhập</h1>
       <form id="form-dang-nhap" novalidate>

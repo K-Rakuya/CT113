@@ -22,7 +22,7 @@ const dangChay = new WeakMap(); // phần tử → id requestAnimationFrame đan
  * @param {number} to
  * @param {{ from?: number, duration?: number, format?: (n:number)=>string }} [tuyChon]
  */
-export function animateNumber(el, to, { from, duration = 420, format = (n) => String(Math.round(n)) } = {}) {
+export function animateNumber(el, to, { from, duration = 600, format = (n) => String(Math.round(n)) } = {}) {
   if (!el) return;
   cancelAnimationFrame(dangChay.get(el));
 
@@ -38,7 +38,7 @@ export function animateNumber(el, to, { from, duration = 420, format = (n) => St
   const batDau = performance.now();
   const buoc = (bay) => {
     const t = Math.min(1, (bay - batDau) / duration);
-    const muot = 1 - Math.pow(1 - t, 3);
+    const muot = 1 - Math.pow(1 - t, 4); // easeOutQuart: dừng êm hơn
     const giaTri = tu + (to - tu) * muot;
     el.textContent = format(t < 1 ? giaTri : to);
     // lưu giá trị đang hiển thị để lần gọi kế tiếp tiếp nối từ đây nếu bị ngắt giữa chừng
@@ -53,7 +53,7 @@ export function animateNumber(el, to, { from, duration = 420, format = (n) => St
  * Dùng Web Animations API nên không cần thêm CSS. Trả về Promise xong khi đã gỡ.
  * @param {HTMLElement} el
  */
-export function collapseAndRemove(el, { duration = 240 } = {}) {
+export function collapseAndRemove(el, { duration = 280 } = {}) {
   if (!el || !el.isConnected) return Promise.resolve();
   if (prefersReducedMotion() || typeof el.animate !== "function") {
     el.remove();
@@ -135,4 +135,101 @@ export function shake(el) {
   void el.offsetWidth; // buộc reflow để animation chạy lại được
   el.classList.add("motion-shake");
   el.addEventListener("animationend", () => el.classList.remove("motion-shake"), { once: true });
+}
+
+/**
+ * Thay nội dung của một vùng bằng cross-fade + co giãn chiều cao (skeleton → dữ liệu, đổi bộ lọc, phân trang).
+ * Nội dung cũ được chuyển sang lớp "bóng" phủ lên và mờ dần, nội dung mới (đã dựng sẵn bên dưới) hiện ra
+ * cùng lúc → không có khung hình trống, không nhảy bố cục. `render` phải đồng bộ và tự ghi vào `el`.
+ * @param {HTMLElement} el
+ * @param {() => void} render
+ */
+export function swapContent(el, render) {
+  if (!el || prefersReducedMotion() || typeof el.animate !== "function" || !el.firstChild) {
+    render();
+    return;
+  }
+  const cao0 = el.offsetHeight;
+  const viTriCu = el.style.position;
+  const bong = document.createElement("div");
+  bong.className = el.className;
+  bong.setAttribute("aria-hidden", "true");
+  bong.inert = true;
+  bong.style.cssText = "position:absolute;inset:0;margin:0;overflow:hidden;pointer-events:none;";
+  bong.append(...el.childNodes);
+  if (getComputedStyle(el).position === "static") el.style.position = "relative";
+
+  render();
+  el.append(bong);
+
+  const cao1 = el.offsetHeight;
+  bong
+    .animate({ opacity: [1, 0] }, { duration: 200, easing: "cubic-bezier(.4, 0, 1, 1)", fill: "forwards" })
+    .finished.catch(() => {})
+    .then(() => {
+      bong.remove();
+      el.style.position = viTriCu;
+    });
+
+  if (Math.abs(cao1 - cao0) > 2) {
+    el.style.overflow = "clip";
+    el.animate(
+      { height: [`${cao0}px`, `${cao1}px`] },
+      { duration: 320, easing: "cubic-bezier(.4, 0, .2, 1)" } // = --ease-move
+    ).finished.catch(() => {}).then(() => { el.style.overflow = ""; });
+  }
+}
+
+/** Nhịp nhỏ khi một dòng trạng thái đổi chữ (co nhẹ rồi về chỗ cũ). */
+export function pulse(el) {
+  if (!el || prefersReducedMotion() || typeof el.animate !== "function") return;
+  el.animate(
+    [{ opacity: 0.35, transform: "scale(.96)" }, { opacity: 1, transform: "none" }],
+    { duration: 300, easing: "cubic-bezier(.22, 1, .36, 1)" }
+  );
+}
+
+/**
+ * Ảnh sản phẩm "bay" vào biểu tượng giỏ hàng trên header theo quỹ đạo cong rồi giỏ hàng nảy nhẹ.
+ * Chạy hoàn toàn bằng transform/opacity trên một bản sao cố định; không đụng tới bố cục.
+ * @param {HTMLImageElement} nguon ảnh đã tải xong
+ */
+export function flyToCart(nguon) {
+  const dich = document.querySelector('.site-header__nav a[href="/cart.html"]');
+  if (!nguon || !dich || prefersReducedMotion() || typeof nguon.animate !== "function") return;
+  if (!nguon.complete || !nguon.naturalWidth) return;
+  const a = nguon.getBoundingClientRect();
+  const b = dich.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+
+  const co = Math.min(a.width, a.height, 160);
+  const bay = document.createElement("img");
+  bay.src = nguon.currentSrc || nguon.src;
+  bay.alt = "";
+  bay.setAttribute("aria-hidden", "true");
+  Object.assign(bay.style, {
+    position: "fixed", zIndex: "3000", pointerEvents: "none", objectFit: "cover",
+    width: `${co}px`, height: `${co}px`, borderRadius: "12px", boxShadow: "0 12px 28px rgba(28,27,25,.25)",
+    left: `${a.left + a.width / 2 - co / 2}px`, top: `${a.top + a.height / 2 - co / 2}px`,
+    willChange: "transform, opacity",
+  });
+  document.body.append(bay);
+
+  const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+  const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+  const chay = bay.animate(
+    [
+      { transform: "translate(0, 0) scale(1)", opacity: 1 },
+      { transform: `translate(${dx * 0.55}px, ${dy * 0.55 - 70}px) scale(.5)`, opacity: 1, offset: 0.55 },
+      { transform: `translate(${dx}px, ${dy}px) scale(.1)`, opacity: 0.35 },
+    ],
+    { duration: 680, easing: "cubic-bezier(.4, 0, .2, 1)", fill: "forwards" } // = --ease-move
+  );
+  chay.finished.catch(() => {}).then(() => {
+    bay.remove();
+    dich.animate(
+      [{ transform: "scale(1)" }, { transform: "scale(1.2)", offset: 0.4 }, { transform: "scale(1)" }],
+      { duration: 380, easing: "cubic-bezier(.34, 1.56, .64, 1)" } // = --ease-spring
+    );
+  });
 }

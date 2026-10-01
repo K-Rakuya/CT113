@@ -3,6 +3,7 @@ import { formatCurrency, formatDate, showToast, ghiNhatKy } from "/js/utils.js";
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const ordersListEl = document.getElementById("orders-list");
+let lanDau = true; // chỉ lần tải đầu xếp lớp; tải lại sau khi duyệt đơn không bắt cả bảng nhấp nháy
 
 /**
  * Hàm: loadOrders
@@ -15,10 +16,12 @@ async function loadOrders() {
     if (!ordersListEl) return;
     ordersListEl.innerHTML = "";
 
+    let i = 0;
     snap.forEach((docSnap) => {
       const don = docSnap.data();
       const id = docSnap.id;
       const tr = document.createElement("tr");
+      if (lanDau) { tr.className = "motion-enter"; tr.style.setProperty("--i", i++); }
 
       tr.innerHTML = `
         <td><code>${id}</code></td>
@@ -36,6 +39,7 @@ async function loadOrders() {
       `;
       ordersListEl.appendChild(tr);
     });
+    lanDau = false;
   } catch (err) {
     showToast("Lỗi khi tải danh sách đơn hàng!", "error");
     console.error("Lỗi loadOrders:", err);

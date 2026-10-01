@@ -4,6 +4,7 @@
 
 import { db } from "/js/firebase-config.js";
 import { formatCurrency, showToast } from "/js/utils.js";
+import { swapContent, prefersReducedMotion } from "/js/motion.js";
 import {
   collection,
   query,
@@ -80,6 +81,10 @@ function apDungBoLoc() {
 }
 
 function render() {
+  swapContent(elDanhSach, renderNoiDung); // cross-fade + co giãn chiều cao khi lọc / phân trang
+}
+
+function renderNoiDung() {
   const tongSo = danhSachSauLoc.length;
   elDem.textContent = tongSo > 0 ? `Tìm thấy ${tongSo} sản phẩm` : "Không có sản phẩm phù hợp";
 
@@ -102,7 +107,7 @@ function render() {
       a.style.setProperty("--i", i);
       const conHang = (sp.soLuongTon ?? 0) > 0;
       a.innerHTML = `
-        <img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
+        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" loading="lazy" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
         <div class="kh-product-card__name">${sp.tenSanPham}</div>
         <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
         <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
@@ -128,7 +133,7 @@ function renderPhanTrang(tongSoTrang) {
     btn.addEventListener("click", () => {
       trangHienTai = trang;
       render();
-      window.scrollTo({ top: 0 }); // mượt hay tức thì do CSS (scroll-behavior) + prefers-reduced-motion quyết định
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
     });
     return btn;
   };

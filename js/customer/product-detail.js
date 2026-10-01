@@ -4,7 +4,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, ghiNhatKy } from "/js/utils.js";
-import { setBusy, confirmButton } from "/js/motion.js";
+import { setBusy, confirmButton, swapContent, flyToCart } from "/js/motion.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -49,7 +49,7 @@ async function taiSanPham() {
       return;
     }
     sanPhamHienTai = { id: snap.id, ...snap.data() };
-    renderSanPham();
+    swapContent(elChiTiet, renderSanPham);
     capNhatBreadcrumb();
   } catch (err) {
     elChiTiet.innerHTML = '<p class="empty-state">Lỗi tải sản phẩm.</p>';
@@ -77,12 +77,12 @@ async function capNhatBreadcrumb() {
     }
   }
 
-  const sep = '<span class="breadcrumb__sep">/</span>';
+  const sep = '<span class="breadcrumb__sep motion-fade">/</span>';
   let them = "";
   if (tenDanhMuc) {
-    them += `${sep}<a href="/product-list.html?danhmuc=${sanPhamHienTai.danhMucId}">${tenDanhMuc}</a>`;
+    them += `${sep}<a class="motion-fade" href="/product-list.html?danhmuc=${sanPhamHienTai.danhMucId}">${tenDanhMuc}</a>`;
   }
-  them += `${sep}<span aria-current="page">${sanPhamHienTai.tenSanPham}</span>`;
+  them += `${sep}<span class="motion-fade" aria-current="page">${sanPhamHienTai.tenSanPham}</span>`;
   elBreadcrumb.insertAdjacentHTML("beforeend", them);
 }
 
@@ -91,7 +91,7 @@ function renderSanPham() {
   const conHang = (sp.soLuongTon ?? 0) > 0;
 
   elChiTiet.innerHTML = `
-    <div class="kh-detail motion-fade">
+    <div class="kh-detail">
       <img class="kh-detail__img img-fade" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
       <div>
         <h1>${sp.tenSanPham}</h1>
@@ -161,7 +161,10 @@ async function themVaoGio(soLuong) {
     showToast("Không thêm được vào giỏ: " + err.message, "error");
   } finally {
     setBusy(nut, false);
-    if (thanhCong) confirmButton(nut, "Đã thêm"); // ✓ ngay trên nút, thấy kết quả tại chỗ bấm
+    if (thanhCong) {
+      confirmButton(nut, "Đã thêm"); // ✓ ngay trên nút, thấy kết quả tại chỗ bấm
+      flyToCart(document.querySelector(".kh-detail__img")); // ảnh bay vào giỏ trên header
+    }
   }
 }
 
@@ -181,16 +184,18 @@ async function taiDanhSachDanhGia() {
       .map((d) => d.data())
       .sort((a, b) => (b.ngayDanhGia?.toMillis?.() ?? 0) - (a.ngayDanhGia?.toMillis?.() ?? 0));
 
+    swapContent(elDanhSachDanhGia, () => {
     elDanhSachDanhGia.innerHTML = danhSach
       .map(
-        (dg) => `
-        <div class="kh-review">
+        (dg, i) => `
+        <div class="kh-review motion-enter" style="--i:${i}">
           <div class="kh-review__stars">${"★".repeat(dg.soSao)}${"☆".repeat(5 - dg.soSao)}</div>
           <p>${dg.noiDung}</p>
           <div class="text-muted" style="font-size:.8em;">${formatDate(dg.ngayDanhGia)}</div>
         </div>`
       )
       .join("");
+    });
   } catch (err) {
     elDanhSachDanhGia.innerHTML = '<p class="text-muted">Không tải được đánh giá.</p>';
   }
@@ -237,7 +242,7 @@ async function daDanhGiaChua(uid) {
 
 async function capNhatKhuVucDanhGia() {
   if (!nguoiDungHienTai) {
-    elFormDanhGia.innerHTML = `<p class="text-muted"><a href="/login.html">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
+    elFormDanhGia.innerHTML = `<p class="text-muted motion-fade"><a href="/login.html">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
     return;
   }
 
@@ -249,9 +254,9 @@ async function capNhatKhuVucDanhGia() {
     ]);
 
     if (daDanhGia) {
-      elFormDanhGia.innerHTML = '<p class="text-muted">Bạn đã đánh giá sản phẩm này. Cảm ơn bạn!</p>';
+      elFormDanhGia.innerHTML = '<p class="text-muted motion-fade">Bạn đã đánh giá sản phẩm này. Cảm ơn bạn!</p>';
     } else if (!duocPhep) {
-      elFormDanhGia.innerHTML = '<p class="text-muted">Bạn cần mua và nhận sản phẩm này (đơn hàng đã hoàn thành) trước khi đánh giá.</p>';
+      elFormDanhGia.innerHTML = '<p class="text-muted motion-fade">Bạn cần mua và nhận sản phẩm này (đơn hàng đã hoàn thành) trước khi đánh giá.</p>';
     } else {
       renderFormDanhGia();
     }
@@ -263,7 +268,7 @@ async function capNhatKhuVucDanhGia() {
 
 function renderFormDanhGia() {
   elFormDanhGia.innerHTML = `
-    <form id="form-danh-gia" class="kh-review-form card">
+    <form id="form-danh-gia" class="kh-review-form card motion-fade">
       <div class="form-group">
         <label for="so-sao">Số sao</label>
         <select class="select" id="so-sao">

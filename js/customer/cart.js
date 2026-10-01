@@ -6,7 +6,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast } from "/js/utils.js";
-import { animateNumber, collapseAndRemove } from "/js/motion.js";
+import { animateNumber, collapseAndRemove, swapContent } from "/js/motion.js";
 import {
   collection,
   query,
@@ -43,7 +43,7 @@ async function taiGioHang() {
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      hienGioTrong();
+      swapContent(elNoiDung, hienGioTrong);
       return;
     }
 
@@ -59,10 +59,10 @@ async function taiGioHang() {
 
     dongHienTai = dongGioHang.filter((d) => d.sanPham); // bỏ qua sp đã bị xoá khỏi hệ thống
     if (dongHienTai.length === 0) {
-      hienGioTrong();
+      swapContent(elNoiDung, hienGioTrong);
       return;
     }
-    renderGioHang();
+    swapContent(elNoiDung, renderGioHang);
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được giỏ hàng.</p>';
     showToast(err.message, "error");
@@ -74,7 +74,7 @@ async function taiGioHang() {
 function hienGioTrong() {
   dongHienTai = [];
   elNoiDung.innerHTML = `
-    <div class="empty-state motion-fade">
+    <div class="empty-state">
       Giỏ hàng của bạn đang trống.
       <div style="margin-top: var(--spacing-md);"><a href="/product-list.html" class="btn btn--primary">Mua sắm ngay</a></div>
     </div>`;
@@ -82,7 +82,7 @@ function hienGioTrong() {
 
 function renderGioHang() {
   elNoiDung.innerHTML = `
-    <div class="kh-cart-layout motion-fade">
+    <div class="kh-cart-layout">
       <div>
         <div id="danh-sach-gio-hang"></div>
       </div>
@@ -96,8 +96,10 @@ function renderGioHang() {
   `;
 
   const elDanhSach = document.getElementById("danh-sach-gio-hang");
-  dongHienTai.forEach((d) => {
+  dongHienTai.forEach((d, i) => {
     d.el = taoDong(d);
+    d.el.classList.add("motion-enter");
+    d.el.style.setProperty("--i", i);
     elDanhSach.appendChild(d.el);
   });
   capNhatTong();
@@ -168,7 +170,7 @@ function xoaDong(d) {
   ghiNen(deleteDoc(doc(db, "giohang", d.id)), "Không xoá được sản phẩm: ");
   capNhatTong();
   collapseAndRemove(d.el).then(() => {
-    if (dongHienTai.length === 0) hienGioTrong();
+    if (dongHienTai.length === 0) swapContent(elNoiDung, hienGioTrong);
   });
 }
 

@@ -7,6 +7,7 @@
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, escapeHtml } from "/js/utils.js";
 import { animateNumber, collapseAndRemove, swapContent, shake } from "/js/motion.js";
+import { setCartCount } from "/js/cart-badge.js";
 import {
   collection,
   query,
@@ -14,6 +15,7 @@ import {
   getDocs,
   doc,
   getDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -21,6 +23,7 @@ import {
 const elNoiDung = document.getElementById("noi-dung-gio-hang");
 
 let dongHienTai = []; // các dòng đang hiển thị: { id, soLuong, sanPham, el }
+let dangHienGio = false; // true khi vùng nội dung đang là giỏ hàng (không phải màn giỏ trống)
 const ghiDangCho = new Set(); // các lệnh ghi Firestore chưa xong
 let loiGhi = false; // có lệnh ghi nào thất bại kể từ lần bấm "Tiến hành đặt hàng" gần nhất
 
@@ -72,7 +75,9 @@ async function taiGioHang() {
 }
 
 function hienGioTrong() {
+  dangHienGio = false;
   dongHienTai = [];
+  setCartCount(0);
   elNoiDung.innerHTML = `
     <div class="empty-state">
       Giỏ hàng của bạn đang trống.
@@ -81,6 +86,7 @@ function hienGioTrong() {
 }
 
 function renderGioHang() {
+  dangHienGio = true;
   elNoiDung.innerHTML = `
     <div class="kh-cart-layout">
       <div>
@@ -184,18 +190,43 @@ function xoaDong(d) {
     (ke?.querySelector(".kh-cart-item__remove") ?? document.getElementById("btn-dat-hang"))?.focus({ preventScroll: true });
   }
 
+  const viTri = dongHienTai.indexOf(d);
   dongHienTai = dongHienTai.filter((x) => x !== d);
   ghiNen(deleteDoc(doc(db, "giohang", d.id)), "Không xoá được sản phẩm: ");
   capNhatTong();
   collapseAndRemove(d.el).then(() => {
     if (dongHienTai.length === 0) swapContent(elNoiDung, hienGioTrong);
   });
+  showToast("Đã xoá sản phẩm khỏi giỏ hàng.", "info", {
+    action: { nhan: "Hoàn tác", onClick: () => khoiPhucDong(d, viTri) },
+  });
+}
+
+/** Hoàn tác xoá: tạo lại bản ghi cùng id và đặt dòng về đúng vị trí cũ. */
+function khoiPhucDong(d, viTri) {
+  d.dangXoa = false;
+  dongHienTai.splice(Math.min(viTri, dongHienTai.length), 0, d);
+  ghiNen(
+    setDoc(doc(db, "giohang", d.id), { khachHangId: d.khachHangId, sanPhamId: d.sanPhamId, soLuong: d.soLuong }),
+    "Không hoàn tác được: "
+  );
+
+  if (!dangHienGio) {
+    swapContent(elNoiDung, renderGioHang);
+    return;
+  }
+  const elDanhSach = document.getElementById("danh-sach-gio-hang");
+  d.el = taoDong(d);
+  d.el.classList.add("motion-enter");
+  elDanhSach.insertBefore(d.el, dongHienTai[dongHienTai.indexOf(d) + 1]?.el ?? null);
+  capNhatTong();
 }
 
 function capNhatTong() {
   const tong = dongHienTai.reduce((t, d) => t + d.sanPham.gia * d.soLuong, 0);
   animateNumber(document.getElementById("tam-tinh"), tong, { format: dinhDangTien });
   animateNumber(document.getElementById("tong-cong"), tong, { format: dinhDangTien });
+  setCartCount(dongHienTai.reduce((t, d) => t + d.soLuong, 0));
 }
 
 /** Theo dõi một lệnh ghi chạy nền; thất bại thì báo lỗi và tải lại giỏ từ server. */

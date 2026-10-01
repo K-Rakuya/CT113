@@ -52,9 +52,10 @@ export function escapeHtml(giaTri) {
  * Cần .toast / .toast-item trong style.css.
  * @param {string} message
  * @param {"success"|"error"|"info"} [type="info"]
+ * @param {{ action?: { nhan: string, onClick: () => void } }} [tuyChon] nút hành động trong toast (vd. Hoàn tác, giữ 6 giây)
  * @returns {void}
  */
-export function showToast(message, type = "info") {
+export function showToast(message, type = "info", { action } = {}) {
   let host = document.getElementById("toast-host");
   if (!host) {
     host = document.createElement("div");
@@ -70,6 +71,18 @@ export function showToast(message, type = "info") {
   el.className = `toast toast--${type}`;
   if (type === "error") el.setAttribute("role", "alert"); // thông báo thường được đọc qua aria-live của #toast-host
   el.textContent = message;
+  if (action) {
+    const nut = document.createElement("button");
+    nut.type = "button";
+    nut.className = "toast__action";
+    nut.textContent = action.nhan;
+    nut.addEventListener("click", () => {
+      action.onClick();
+      dongToast(item);
+    });
+    el.classList.add("toast--has-action");
+    el.append(nut);
+  }
   item.appendChild(el);
   host.appendChild(item);
 
@@ -78,7 +91,7 @@ export function showToast(message, type = "info") {
   if (dangHien.length > 4) dongToast(dangHien[0]);
 
   // Lỗi cần thời gian đọc lâu hơn (5s) thông báo thường (3s). Tạm dừng khi rê chuột / focus.
-  let conLai = type === "error" ? 5000 : 3000;
+  let conLai = type === "error" ? 5000 : action ? 6000 : 3000;
   let moc = 0;
   let timer = 0;
   let tamDung = false;

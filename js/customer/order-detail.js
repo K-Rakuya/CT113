@@ -3,7 +3,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, escapeHtml } from "/js/utils.js";
-import { swapContent } from "/js/motion.js";
+import { swapContent, pulse } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -11,6 +11,7 @@ import {
   query,
   where,
   getDocs,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-chi-tiet-don");
@@ -21,6 +22,43 @@ const NHAN_TRANG_THAI = {
   hoan_thanh: "Hoàn thành",
   huy: "Đã huỷ",
 };
+
+const THU_TU_TRANG_THAI = ["cho_duyet", "dang_giao", "hoan_thanh"];
+
+function capNhatTienTrinh(trangThai) {
+  const ol = document.getElementById("tien-trinh-don");
+  if (!ol) return;
+  const buoc = THU_TU_TRANG_THAI.indexOf(trangThai);
+  ol.classList.toggle("is-cancelled", buoc < 0);
+  ol.style.setProperty("--buoc", Math.max(0, buoc));
+  ol.querySelectorAll("li").forEach((li, i) => {
+    li.classList.toggle("is-done", i <= buoc);
+    if (i === buoc) li.setAttribute("aria-current", "step");
+    else li.removeAttribute("aria-current");
+  });
+}
+
+/** Theo dõi trạng thái đơn theo thời gian thực: nhân viên duyệt là thanh tiến trình tự chạy. */
+function theoDoiTrangThai(donHangId, trangThaiBanDau) {
+  let hienTai = trangThaiBanDau;
+  const huyDangKy = onSnapshot(
+    doc(db, "donhang", donHangId),
+    (snap) => {
+      const trangThai = snap.data()?.trangThai;
+      if (!trangThai || trangThai === hienTai) return;
+      hienTai = trangThai;
+      const badge = elNoiDung.querySelector(".badge");
+      if (badge) {
+        badge.className = `badge badge--${trangThai}`;
+        badge.textContent = NHAN_TRANG_THAI[trangThai] || trangThai;
+        pulse(badge);
+      }
+      capNhatTienTrinh(trangThai);
+    },
+    (err) => console.error("Không theo dõi được trạng thái đơn:", err)
+  );
+  window.addEventListener("pagehide", huyDangKy, { once: true });
+}
 
 export async function initChiTietDonHang() {
   const thamSo = new URLSearchParams(window.location.search);
@@ -54,6 +92,8 @@ export async function initChiTietDonHang() {
     );
 
     swapContent(elNoiDung, () => render(don, chiTietDayDu, laDonMoi));
+    capNhatTienTrinh(don.trangThai);
+    theoDoiTrangThai(donHangId, don.trangThai);
     if (laDonMoi) history.replaceState(null, "", `${window.location.pathname}?id=${encodeURIComponent(donHangId)}`);
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
@@ -80,6 +120,11 @@ function render(don, chiTiet, laDonMoi) {
         <h2 style="margin:0;">${maDon}</h2>
         <span class="badge badge--${don.trangThai}">${NHAN_TRANG_THAI[don.trangThai] || don.trangThai}</span>
       </div>
+      <ol class="kh-progress" id="tien-trinh-don" aria-label="Tiến trình đơn hàng">
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.cho_duyet}</li>
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.dang_giao}</li>
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.hoan_thanh}</li>
+      </ol>
       <p class="text-muted">Ngày đặt: ${formatDate(don.ngayDat)}</p>
       <p><strong>Địa chỉ giao hàng:</strong> ${escapeHtml(don.diaChiGiao)}</p>
 

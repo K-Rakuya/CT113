@@ -205,6 +205,25 @@ p { margin: 0 0 var(--spacing-md); }
 }
 .site-header__nav a:hover { color: var(--color-primary); text-decoration: none; }
 .site-header__nav a svg { width: 18px; height: 18px; stroke: currentColor; flex-shrink: 0; }
+html[data-cart] .site-header__nav a[href="/cart.html"]::before {
+  content: counter(gio);
+  counter-reset: gio var(--cart-n, 0);
+  position: absolute;
+  top: -13px;
+  left: 12px;
+  box-sizing: border-box;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--color-primary);
+  color: #fff;
+  font: 600 11px/18px var(--font-family-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  pointer-events: none;
+}
+html[data-cart="99+"] .site-header__nav a[href="/cart.html"]::before { content: "99+"; }
 .site-header__nav [data-auth] {
   display: flex;
   align-items: center;
@@ -521,6 +540,18 @@ p { margin: 0 0 var(--spacing-md); }
 .toast-item.is-leaving > .toast {
   padding-block: 0;
   transition: padding-block var(--dur-base) var(--ease-move) 60ms;
+}
+.toast--has-action { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-md); }
+.toast__action {
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .toast--success { background: var(--color-success); }
 .toast--error { background: var(--color-danger); }

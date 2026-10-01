@@ -6,6 +6,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { resetGio } from "/js/cart-badge.js";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDstP_hoFLvQoy0dZlyBFogUylnXYcZvLg",
@@ -29,4 +30,6 @@ onAuthStateChanged(auth, (user) => {
     /* chế độ riêng tư có thể chặn localStorage */
   }
   document.documentElement.dataset.authHint = user ? "in" : "out";
+  if (user) import("/js/cart-sync.js").then((m) => m.dongBoSoLuongGio(user.uid)).catch(() => {});
+  else resetGio();
 });

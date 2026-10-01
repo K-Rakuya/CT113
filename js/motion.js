@@ -193,14 +193,15 @@ export function pulse(el) {
  * Ảnh sản phẩm "bay" vào biểu tượng giỏ hàng trên header theo quỹ đạo cong rồi giỏ hàng nảy nhẹ.
  * Chạy hoàn toàn bằng transform/opacity trên một bản sao cố định; không đụng tới bố cục.
  * @param {HTMLImageElement} nguon ảnh đã tải xong
+ * @returns {Promise<void>} xong khi ảnh chạm giỏ (xong ngay nếu không có hiệu ứng)
  */
 export function flyToCart(nguon) {
   const dich = document.querySelector('.site-header__nav a[href="/cart.html"]');
-  if (!nguon || !dich || prefersReducedMotion() || typeof nguon.animate !== "function") return;
-  if (!nguon.complete || !nguon.naturalWidth) return;
+  if (!nguon || !dich || prefersReducedMotion() || typeof nguon.animate !== "function") return Promise.resolve();
+  if (!nguon.complete || !nguon.naturalWidth) return Promise.resolve();
   const a = nguon.getBoundingClientRect();
   const b = dich.getBoundingClientRect();
-  if (!a.width || !b.width) return;
+  if (!a.width || !b.width) return Promise.resolve();
 
   const co = Math.min(a.width, a.height, 160);
   const bay = document.createElement("img");
@@ -225,7 +226,7 @@ export function flyToCart(nguon) {
     ],
     { duration: 680, easing: "cubic-bezier(.4, 0, .2, 1)", fill: "forwards" } // = --ease-move
   );
-  chay.finished.catch(() => {}).then(() => {
+  return chay.finished.catch(() => {}).then(() => {
     bay.remove();
     dich.animate(
       [{ transform: "scale(1)" }, { transform: "scale(1.2)", offset: 0.4 }, { transform: "scale(1)" }],

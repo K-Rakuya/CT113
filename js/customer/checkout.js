@@ -4,6 +4,7 @@
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { setBusy, swapContent, confirmButton, prefersReducedMotion } from "/js/motion.js";
+import { setCartCount } from "/js/cart-badge.js";
 import {
   doc,
   getDoc,
@@ -178,6 +179,7 @@ async function xuLyDatHang(dongGioHang, diaChiGiao) {
     }
 
     await ghiNhatKy(`dat_hang: donhang/${donHangRef.id}`);
+    setCartCount(0);
     setBusy(btn, false);
     confirmButton(btn, "Đã đặt hàng", 5000);
     await new Promise((xong) => setTimeout(xong, prefersReducedMotion() ? 0 : 600));

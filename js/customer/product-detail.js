@@ -5,6 +5,7 @@
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { setBusy, confirmButton, swapContent, flyToCart, shake } from "/js/motion.js";
+import { getCartCount, setCartCount } from "/js/cart-badge.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -144,6 +145,7 @@ async function themVaoGio(soLuong) {
   const nut = document.getElementById("btn-them-gio");
   setBusy(nut, true); // vòng quay + chặn bấm đúp trong lúc ghi Firestore
   let thanhCong = false;
+  let daThem = soLuong;
   try {
     const q = query(
       collection(db, "giohang"),
@@ -160,11 +162,10 @@ async function themVaoGio(soLuong) {
       });
     } else {
       const docHienCo = snap.docs[0];
-      const soLuongMoi = Math.min(
-        sanPhamHienTai.soLuongTon,
-        (docHienCo.data().soLuong || 0) + soLuong
-      );
+      const soLuongCu = docHienCo.data().soLuong || 0;
+      const soLuongMoi = Math.min(sanPhamHienTai.soLuongTon, soLuongCu + soLuong);
       await updateDoc(docHienCo.ref, { soLuong: soLuongMoi });
+      daThem = soLuongMoi - soLuongCu;
     }
     thanhCong = true;
     showToast("Đã thêm vào giỏ hàng.", "success");
@@ -174,7 +175,7 @@ async function themVaoGio(soLuong) {
     setBusy(nut, false);
     if (thanhCong) {
       confirmButton(nut, "Đã thêm"); // ✓ ngay trên nút, thấy kết quả tại chỗ bấm
-      flyToCart(document.querySelector(".kh-detail__img")); // ảnh bay vào giỏ trên header
+      flyToCart(document.querySelector(".kh-detail__img")).then(() => setCartCount(getCartCount() + daThem)); // ảnh bay vào giỏ, chạm giỏ thì huy hiệu nảy
     }
   }
 }

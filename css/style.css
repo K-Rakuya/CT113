@@ -802,6 +802,35 @@ html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
   ::view-transition-new(dash-topbar):only-child { animation: fade-in var(--dur-base) var(--ease-out) var(--enter-delay) backwards; }
 }
 
+/* ---- Lọc / chuyển trang danh sách (cùng trang): thẻ có tên riêng tự trượt về chỗ mới ---- */
+html.vt-loc::view-transition-group(*),
+html.vt-loc::view-transition-old(*),
+html.vt-loc::view-transition-new(*) { animation-duration: var(--dur-base); animation-timing-function: var(--ease-move); }
+html.vt-loc::view-transition-old(root) { animation: none; opacity: 0; }
+html.vt-loc::view-transition-new(root) { animation: none; }
+
+/* ---- Ảnh sản phẩm morph giữa thẻ danh sách và trang chi tiết (js/page-transitions.js) ---- */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-group(anh-chinh) {
+    animation-duration: var(--dur-slow);
+    animation-timing-function: var(--ease-move);
+    overflow: clip;
+    border-radius: var(--radius);
+  }
+  ::view-transition-old(anh-chinh),
+  ::view-transition-new(anh-chinh) { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: normal; }
+}
+
+/* ---- Quay lại (Back/Forward): trang hiện ngay, không chạy lại dàn cảnh vào ---- */
+html[data-dieu-huong="traverse"] main > *,
+html[data-dieu-huong="traverse"] .kh-account-layout > *,
+html[data-dieu-huong="traverse"] .dashboard-layout__content > *,
+html[data-dieu-huong="traverse"] .hero,
+html[data-dieu-huong="traverse"] .hero__title,
+html[data-dieu-huong="traverse"] .hero__lead,
+html[data-dieu-huong="traverse"] .hero .btn,
+html[data-dieu-huong="traverse"] .hero__categories li { animation: none; }
+
 /* Hiện nội dung sau xác thực: chỉ mờ dần vùng <main> */
 .is-guarded body { animation: none; }
 html:not([data-auth-hint="in"]).is-guarded body:not([hidden]) > main {

@@ -25,9 +25,36 @@ const elGiaDen = document.getElementById("gia-den");
 let tatCaSanPham = []; // toàn bộ sp đang bán
 let danhSachSauLoc = [];
 let trangHienTai = 1;
+let daTaiXong = false;
+let daRenderLanDau = false;
+let khoaLocCuoi = null;
+let soLanChuyen = 0;
+const cacheThe = new Map(); // giữ thẻ đã dựng để ảnh không tải lại và các thẻ còn lại trượt đúng chỗ khi lọc
 
-// Đọc query string ?danhmuc=xxx từ trang chủ / breadcrumb để lọc sẵn.
+// Bộ lọc nằm trên query string (tukhoa, danhmuc, giatu, giaden, trang): trang chủ / breadcrumb lọc sẵn, bấm Back quay về đúng kết quả.
 const thamSoUrl = new URLSearchParams(window.location.search);
+
+function docBoLocTuUrl() {
+  elTuKhoa.value = thamSoUrl.get("tukhoa") ?? "";
+  elGiaTu.value = thamSoUrl.get("giatu") ?? "";
+  elGiaDen.value = thamSoUrl.get("giaden") ?? "";
+  trangHienTai = Math.max(1, parseInt(thamSoUrl.get("trang"), 10) || 1);
+}
+
+function dongBoUrl() {
+  const tham = new URLSearchParams();
+  if (elTuKhoa.value.trim()) tham.set("tukhoa", elTuKhoa.value.trim());
+  if (elDanhMuc.value) tham.set("danhmuc", elDanhMuc.value);
+  if (elGiaTu.value) tham.set("giatu", elGiaTu.value);
+  if (elGiaDen.value) tham.set("giaden", elGiaDen.value);
+  if (trangHienTai > 1) tham.set("trang", trangHienTai);
+  const chuoi = tham.toString();
+  history.replaceState(null, "", window.location.pathname + (chuoi ? `?${chuoi}` : ""));
+}
+
+function coChuyenCanh() {
+  return typeof document.startViewTransition === "function" && !prefersReducedMotion();
+}
 
 async function taiDanhMuc() {
   try {
@@ -54,7 +81,8 @@ async function taiSanPham() {
     const q = query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"));
     const snap = await getDocs(q);
     tatCaSanPham = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    apDungBoLoc();
+    daTaiXong = true;
+    apDungBoLoc({ giuTrang: true });
   } catch (err) {
     elDanhSach.innerHTML = '<p class="text-muted">Không tải được sản phẩm.</p>';
     elDanhSach.removeAttribute("aria-busy");
@@ -62,11 +90,15 @@ async function taiSanPham() {
   }
 }
 
-function apDungBoLoc() {
+function apDungBoLoc({ giuTrang = false } = {}) {
   const tuKhoa = elTuKhoa.value.trim().toLowerCase();
   const danhMucId = elDanhMuc.value;
   const giaTu = elGiaTu.value ? Number(elGiaTu.value) : null;
   const giaDen = elGiaDen.value ? Number(elGiaDen.value) : null;
+
+  const khoaLoc = JSON.stringify([tuKhoa, danhMucId, giaTu, giaDen]);
+  if (!giuTrang && khoaLoc === khoaLocCuoi) return;
+  khoaLocCuoi = khoaLoc;
 
   danhSachSauLoc = tatCaSanPham.filter((sp) => {
     if (tuKhoa && !sp.tenSanPham?.toLowerCase().includes(tuKhoa)) return false;
@@ -76,15 +108,49 @@ function apDungBoLoc() {
     return true;
   });
 
-  trangHienTai = 1;
+  if (!giuTrang) trangHienTai = 1;
   render();
 }
 
 function render() {
-  swapContent(elDanhSach, renderNoiDung); // cross-fade + co giãn chiều cao khi lọc / phân trang
+  if (!daRenderLanDau || !coChuyenCanh()) {
+    daRenderLanDau = true;
+    swapContent(elDanhSach, renderNoiDung); // cross-fade + co giãn chiều cao: khung chờ → dữ liệu, hoặc khi trình duyệt không có View Transitions
+    return;
+  }
+
+  const lanNay = ++soLanChuyen;
+  const goc = document.documentElement;
+  goc.classList.add("vt-loc");
+  const chuyen = document.startViewTransition(() => renderNoiDung(true));
+  chuyen.ready.catch(() => {});
+  chuyen.finished
+    .catch(() => {})
+    .finally(() => {
+      if (lanNay !== soLanChuyen) return;
+      goc.classList.remove("vt-loc");
+      cacheThe.forEach((the) => (the.style.viewTransitionName = ""));
+    });
 }
 
-function renderNoiDung() {
+function taoThe(sp, i) {
+  const a = document.createElement("a");
+  a.href = `/product-detail.html?id=${sp.id}`;
+  a.className = "card kh-product-card";
+  const conHang = (sp.soLuongTon ?? 0) > 0;
+  const uuTien = i < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
+  a.innerHTML = `
+        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
+        <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
+        <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
+        <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
+          ${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}
+        </div>
+      `;
+  return a;
+}
+
+function renderNoiDung(dungChuyenCanh = false) {
   const tongSo = danhSachSauLoc.length;
   elDem.textContent = tongSo > 0 ? `Tìm thấy ${tongSo} sản phẩm` : "Không có sản phẩm phù hợp";
 
@@ -100,26 +166,21 @@ function renderNoiDung() {
   } else {
     elDanhSach.innerHTML = "";
     trang.forEach((sp, i) => {
-      const a = document.createElement("a");
-      a.href = `/product-detail.html?id=${sp.id}`;
-      // motion-enter + --i: các thẻ hiện lần lượt (xếp lớp 32ms) mỗi khi kết quả đổi do người dùng lọc/chuyển trang
-      a.className = "card kh-product-card motion-enter";
+      let a = cacheThe.get(sp.id);
+      if (!a) {
+        a = taoThe(sp, i);
+        cacheThe.set(sp.id, a);
+      }
+      // Chuyển cảnh: mỗi thẻ có tên riêng để tự trượt về chỗ mới. Không chuyển cảnh: thẻ hiện lần lượt (motion-enter + --i, xếp lớp 32ms).
+      a.classList.toggle("motion-enter", !dungChuyenCanh);
       a.style.setProperty("--i", i);
-      const conHang = (sp.soLuongTon ?? 0) > 0;
-      const uuTien = i < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
-      a.innerHTML = `
-        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
-        <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
-        <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
-        <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
-          ${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}
-        </div>
-      `;
+      a.style.viewTransitionName = dungChuyenCanh ? `sp-${sp.id.replace(/[^\w-]/g, "_")}` : "";
       elDanhSach.appendChild(a);
     });
   }
 
   renderPhanTrang(tongSoTrang);
+  dongBoUrl();
 }
 
 function renderPhanTrang(tongSoTrang) {
@@ -132,9 +193,11 @@ function renderPhanTrang(tongSoTrang) {
     btn.disabled = disabled;
     if (active) btn.classList.add("is-active");
     btn.addEventListener("click", () => {
+      const dungChuyenCanh = coChuyenCanh();
       trangHienTai = trang;
+      if (dungChuyenCanh) window.scrollTo(0, 0);
       render();
-      window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+      if (!dungChuyenCanh) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
     });
     return btn;
   };
@@ -146,11 +209,22 @@ function renderPhanTrang(tongSoTrang) {
   elPhanTrang.appendChild(taoNut("›", trangHienTai + 1, trangHienTai === tongSoTrang));
 }
 
+const locTheoNguoiDung = () => {
+  if (daTaiXong) apDungBoLoc();
+};
+let henGio = 0;
 document.getElementById("form-loc").addEventListener("submit", (e) => {
   e.preventDefault();
-  apDungBoLoc();
+  locTheoNguoiDung();
 });
-elDanhMuc.addEventListener("change", apDungBoLoc);
+elDanhMuc.addEventListener("change", locTheoNguoiDung);
+elGiaTu.addEventListener("change", locTheoNguoiDung);
+elGiaDen.addEventListener("change", locTheoNguoiDung);
+elTuKhoa.addEventListener("input", () => {
+  clearTimeout(henGio);
+  henGio = setTimeout(locTheoNguoiDung, 250);
+});
 
+docBoLocTuUrl();
 await taiDanhMuc();
 await taiSanPham();

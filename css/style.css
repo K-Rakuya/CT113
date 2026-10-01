@@ -70,11 +70,16 @@
   --ease-spring: cubic-bezier(.34, 1.56, .64, 1);    /* xác nhận: nảy nhẹ */
   --stagger: 45ms;        /* độ trễ giữa các phần tử cùng đợt */
   --rise: 10px;           /* quãng nhích lên khi xuất hiện — một giá trị cho cả site */
+  --header-h: 56px;       /* chiều cao header CỐ ĐỊNH ở mọi trạng thái đăng nhập → không xô lệch, offset sticky dùng chung */
 }
 
 /* ============================== 2. RESET CƠ BẢN ============================ */
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-padding-top: var(--spacing-xl); }
+/* Thanh cuộn luôn chiếm chỗ (hoặc luôn không) trên mọi trang: bề rộng header/sidebar không đổi 15px */
+html {
+  scrollbar-gutter: stable;
+  scroll-padding-top: calc(var(--header-h) + var(--spacing-md));
+}
 body {
   margin: 0;
   font-family: var(--font-family);
@@ -133,11 +138,14 @@ p { margin: 0 0 var(--spacing-md); }
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-md);
+  min-height: var(--header-h);
   padding: var(--spacing-sm) var(--spacing-lg);
   background: var(--color-surface);
   border-bottom: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
+/* Nút "Đăng xuất" gọn lại để header đăng nhập / chưa đăng nhập cao bằng nhau (không đẩy trang xuống khi auth xong) */
+.site-header .btn { padding-block: 7px; }
 .site-header__logo {
   font-size: var(--text-md);
   font-weight: 700;
@@ -590,7 +598,8 @@ html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
 
 /* ---- B. Dàn cảnh trang + màn giới thiệu — chỉ khi không giảm chuyển động ---- */
 @media (prefers-reduced-motion: no-preference) {
-  main:not(.dashboard-layout__main) > *,
+  /* :where() giữ độ ưu tiên thấp để các quy tắc tạm dừng (body[hidden]) bên dưới vẫn thắng */
+  main:where(:not(.dashboard-layout__main)) > :where(:not(.kh-account-layout)),
   .dashboard-layout__content > * {
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
     animation-delay: calc(var(--enter-delay) + min(var(--i, 0), 5) * var(--stagger));
@@ -604,8 +613,14 @@ html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
   /* Trang guard chưa mở: giữ ở khung đầu của animation (đang ẩn); mở khoá thì chạy — không chạy "trong bóng tối" */
   .dashboard-layout__content > .nv-grid-stats { animation: none; }
 
-  body[hidden] main > *, body[hidden] .dashboard-layout__content > * { animation-play-state: paused; }
-  html[data-auth-hint="in"] body[hidden] main > * { animation-play-state: running; }
+  /* Khu "Tài khoản": nav là phần chung (đứng yên cùng header), chỉ vùng nội dung bên cạnh nhích lên */
+  .kh-account-layout > :where(:not(.kh-account-layout__nav)) {
+    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+    animation-delay: calc(var(--enter-delay) + min(var(--i, 0), 5) * var(--stagger));
+  }
+
+  body[hidden] main > *, body[hidden] .kh-account-layout > *, body[hidden] .dashboard-layout__content > * { animation-play-state: paused; }
+  html[data-auth-hint="in"] body[hidden] main > *, html[data-auth-hint="in"] body[hidden] .kh-account-layout > * { animation-play-state: running; }
 
   /* Khối nền tối hiện dần cùng lúc trang cũ mờ đi → không có cú "bật" tối đột ngột */
   .hero { animation: fade-in var(--dur-base) var(--ease-out) backwards; }
@@ -677,16 +692,12 @@ html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
   main > .card > form > :nth-child(n+6) { --j: 5; }
 }
 
-@keyframes vt-leave { to { opacity: 0; } }
+/* Trang cũ rời đi: mờ + nhấc nhẹ ngược chiều với nhịp nhích lên của trang mới liền một dòng chuyển động */
+@keyframes vt-leave { to { opacity: 0; transform: translateY(calc(var(--rise) * -.4)); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
 
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
-
-  /* Nhóm có tên (header, sidebar…): nếu kích thước khác nhau giữa hai trang thì co giãn cùng nhịp với trang cũ */
-  ::view-transition-group(*) {
-    animation-duration: var(--dur-leave);
-    animation-timing-function: var(--ease-move);
-  }
 
   /* normal: plus-lighter (mặc định) sẽ CỘNG màu hai lớp → bật sáng khi trang cũ mờ đi */
   ::view-transition-old(root),
@@ -696,14 +707,33 @@ html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
     animation: vt-leave var(--dur-leave) var(--ease-in) both;
   }
   ::view-transition-new(root) { z-index: 1; animation: none; }
-}
 
-/* ---- [motion S1.1] Trang guard (<body hidden>): dựng khung ngay để chuyển trang mượt. */
-body[hidden] { display: flex !important; }
-body[hidden] > :not(.site-header):not(.site-footer) { visibility: hidden; }
-html[data-auth-hint="in"] body[hidden] > :not(.site-header):not(.site-footer) {
-  visibility: visible;
-  pointer-events: none;
+  /* Phần chung giữa các trang (header, nav tài khoản, sidebar, topbar dashboard) */
+  ::view-transition-group(site-header),
+  ::view-transition-group(account-nav),
+  ::view-transition-group(dash-sidebar),
+  ::view-transition-group(dash-topbar) { animation: none; }
+
+  ::view-transition-old(site-header),
+  ::view-transition-old(account-nav),
+  ::view-transition-old(dash-sidebar),
+  ::view-transition-old(dash-topbar) { animation: none; opacity: 0; }
+
+  ::view-transition-new(site-header),
+  ::view-transition-new(account-nav),
+  ::view-transition-new(dash-sidebar),
+  ::view-transition-new(dash-topbar) { animation: none; mix-blend-mode: normal; }
+
+  /* Trang chỉ MỘT bên có phần chung: mờ ra / hiện vào cùng nhịp với nền */
+  ::view-transition-old(site-header):only-child,
+  ::view-transition-old(account-nav):only-child,
+  ::view-transition-old(dash-sidebar):only-child,
+  ::view-transition-old(dash-topbar):only-child { opacity: 1; animation: vt-fade-out var(--dur-leave) var(--ease-in) both; }
+
+  ::view-transition-new(site-header):only-child,
+  ::view-transition-new(account-nav):only-child,
+  ::view-transition-new(dash-sidebar):only-child,
+  ::view-transition-new(dash-topbar):only-child { animation: fade-in var(--dur-base) var(--ease-out) var(--enter-delay) backwards; }
 }
 
 /* Hiện nội dung sau xác thực: chỉ mờ dần vùng <main> */

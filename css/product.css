@@ -14,7 +14,7 @@
 }
 .kh-catalog-layout__filters {
   position: sticky;
-  top: calc(60px + var(--spacing-md));
+  top: calc(var(--header-h) + var(--spacing-md));
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
@@ -44,7 +44,7 @@
   flex-direction: column;
   gap: 2px;
   position: sticky;
-  top: calc(60px + var(--spacing-md));
+  top: calc(var(--header-h) + var(--spacing-md));
 }
 .kh-account-layout__nav a {
   padding: 10px var(--spacing-md);
@@ -193,7 +193,7 @@
 .kh-cart-item__remove { opacity: .8; transition: opacity var(--dur-fast) var(--ease-out); background: none; border: none; color: var(--color-danger); cursor: pointer; font-size: var(--text-xs); padding: 4px 0; }
 
 /* ---- Tóm tắt đơn hàng (dùng chung cart & checkout) ---- */
-.kh-summary { position: sticky; top: calc(var(--spacing-lg) + 60px); }
+.kh-summary { position: sticky; top: calc(var(--header-h) + var(--spacing-lg)); }
 .kh-summary__row { display: flex; justify-content: space-between; padding: 6px 0; font-size: var(--text-sm); font-variant-numeric: tabular-nums; }
 .kh-summary__total {
   font-variant-numeric: tabular-nums;

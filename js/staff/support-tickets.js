@@ -1,30 +1,22 @@
 import { db, auth } from "/js/firebase-config.js";
 import { showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
+import { pulse, collapseAndRemove } from "/js/motion.js";
 import { collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const ticketsListEl = document.getElementById("tickets-list");
+const NHAN_TRANG_THAI = {
+  cho_xu_ly: "Chờ xử lý",
+  dang_xu_ly: "Đang xử lý",
+  da_xong: "Đã xong",
+};
+const cacThe = new Map();
 let lanDau = true; // realtime: chỉ lần đầu có hiệu ứng vào
 
-/**
- * Lắng nghe dữ liệu Realtime (onSnapshot) từ collection 'yeucauhotro'
- * Tác dụng: Tự động hiển thị các ticket hỗ trợ mới mà khách hàng vừa gửi mà không cần F5 trang.
- */
-const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
-  if (!ticketsListEl) return;
-  ticketsListEl.innerHTML = "";
-
-  let i = 0;
-  snapshot.forEach((docSnap) => {
-    const ticket = docSnap.data();
-    const id = docSnap.id;
-
-    const div = document.createElement("div");
-    div.className = "card nv-ticket-card" + (lanDau ? " motion-enter" : "");
-    if (lanDau) div.style.setProperty("--i", i++);
-    div.innerHTML = `
+function htmlTicket(id, ticket) {
+  return `
       <h3>${escapeHtml(ticket.tieuDe || "Yêu cầu hỗ trợ")}</h3>
       <p>${escapeHtml(ticket.noiDung)}</p>
-      <p>Trạng thái: <span class="badge badge--${ticket.trangThai}">${ticket.trangThai}</span></p>
+      <p>Trạng thái: <span class="badge badge--${ticket.trangThai}">${NHAN_TRANG_THAI[ticket.trangThai] || ticket.trangThai}</span></p>
       ${
         ticket.trangThai !== "da_xong"
           ? `<div class="nv-reply-box">
@@ -34,9 +26,40 @@ const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
           : `<p style="margin-top: 10px; color: var(--color-primary);"><strong>Đã trả lời:</strong> ${escapeHtml(ticket.phanHoi)}</p>`
       }
     `;
-    ticketsListEl.appendChild(div);
-  });
+}
+
+/**
+ * Lắng nghe dữ liệu Realtime (onSnapshot) từ collection 'yeucauhotro'
+ * Tác dụng: Tự động hiển thị các ticket hỗ trợ mới mà khách hàng vừa gửi mà không cần F5 trang.
+ */
+const unsubscribe = onSnapshot(collection(db, "yeucauhotro"), (snapshot) => {
+  if (!ticketsListEl) return;
+
+  const laLanDau = lanDau;
   lanDau = false;
+
+  snapshot.docChanges().forEach((thayDoi) => {
+    const id = thayDoi.doc.id;
+    const ticket = thayDoi.doc.data();
+
+    if (thayDoi.type === "added") {
+      const the = document.createElement("div");
+      the.className = "card nv-ticket-card" + (laLanDau ? " motion-enter" : " nv-ticket-card--moi");
+      if (laLanDau) the.style.setProperty("--i", thayDoi.newIndex);
+      the.innerHTML = htmlTicket(id, ticket);
+      cacThe.set(id, the);
+      ticketsListEl.insertBefore(the, ticketsListEl.children[thayDoi.newIndex] ?? null);
+    } else if (thayDoi.type === "modified") {
+      const the = cacThe.get(id);
+      if (!the) return;
+      the.innerHTML = htmlTicket(id, ticket);
+      pulse(the.querySelector(".badge"));
+    } else {
+      const the = cacThe.get(id);
+      cacThe.delete(id);
+      if (the) collapseAndRemove(the);
+    }
+  });
 }, (err) => {
   console.error("Lỗi realtime support-tickets:", err);
 });

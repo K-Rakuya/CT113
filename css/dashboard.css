@@ -262,6 +262,8 @@
   gap: 20px;
 }
 
+@keyframes flash-moi { from { background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface)); } }
+.nv-ticket-card--moi { animation: flash-moi 1.4s var(--ease-out) backwards; }
 .nv-reply-box {
   display: flex;
   gap: 8px;

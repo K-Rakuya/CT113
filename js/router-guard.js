@@ -26,16 +26,27 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
     }
 
     let vaiTro = null;
+    let userData = null;
     try {
       const snap = await getDoc(doc(db, "users", user.uid));
-      vaiTro = snap.exists() ? snap.data().vaiTro : null;
-    } catch {
+      if (snap.exists()) {
+        userData = snap.data();
+        vaiTro = userData.vaiTro;
+      }
+    } catch (err) {
+      console.error("Lỗi lấy thông tin vai trò:", err);
       vaiTro = null;
     }
 
     if (!vaiTroChoPhep.includes(vaiTro)) {
       window.location.href = "/index.html";
       return;
+    }
+
+    // Gán tên hiển thị thay cho chữ "Đang tải..."
+    const userInfoEl = document.getElementById("user-info");
+    if (userInfoEl) {
+      userInfoEl.textContent = userData?.hoTen || user.email || "Nhân viên";
     }
 
     onDaXacThuc?.(vaiTro);

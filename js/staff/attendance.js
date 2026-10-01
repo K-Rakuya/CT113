@@ -1,89 +1,152 @@
 import { db, auth } from "/js/firebase-config.js";
 import { showToast, ghiNhatKy } from "/js/utils.js";
 import { 
-  collection, addDoc, query, where, getDocs, updateDoc, doc, serverTimestamp 
+  collection, 
+  addDoc, 
+  updateDoc,
+  doc,
+  query, 
+  where, 
+  getDocs, 
+  serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 const btnCheckin = document.getElementById("btn-checkin");
 const btnCheckout = document.getElementById("btn-checkout");
 const statusEl = document.getElementById("attendance-status");
-let currentAttendanceId = null;
 
-// Lắng nghe trạng thái đăng nhập & phục hồi dữ liệu chấm công từ Firestore
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    await checkTodayAttendance(user.uid);
-  }
-});
+// Biến lưu ID của bản ghi chấm công hiện tại
+let currentChamCongId = null;
 
-async function checkTodayAttendance(uid) {
+/**
+ * Kiểm tra trạng thái chấm công hôm nay từ Firestore
+ */
+async function layTrangThaiCaLam(user) {
+  if (!user) return;
+
   try {
-    const todayStr = new Date().toISOString().split("T")[0];
+    const homNay = new Date().toISOString().split("T")[0];
+    
+    // Truy vấn đơn giản hơn (không orderBy) để tránh lỗi thiếu Index của Firestore
     const q = query(
       collection(db, "chamcong"),
-      where("nhanVienId", "==", uid),
-      where("ngay", "==", todayStr)
+      where("nhanVienId", "==", user.uid),
+      where("ngay", "==", homNay)
     );
-    const snap = await getDocs(q);
 
-    if (!snap.empty) {
-      const docData = snap.docs[0].data();
-      currentAttendanceId = snap.docs[0].id;
+    const querySnapshot = await getDocs(q);
 
-      if (docData.gioRa) {
-        if (statusEl) statusEl.textContent = "Trạng thái: Đã kết thúc ca làm";
-        if (btnCheckin) btnCheckin.disabled = true;
-        if (btnCheckout) btnCheckout.disabled = true;
-      } else {
+    if (!querySnapshot.empty) {
+      // Sắp xếp các bản ghi theo thời gian tạo mới nhất ở JS
+      const docs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => (b.gioVao?.seconds || 0) - (a.gioVao?.seconds || 0));
+      
+      const lastDoc = docs[0];
+
+      if (lastDoc.gioVao && !lastDoc.gioRa) {
+        // Đã Vào ca nhưng Chưa Ra ca
+        currentChamCongId = lastDoc.id;
         if (statusEl) statusEl.textContent = "Trạng thái: Đang trong ca làm";
         if (btnCheckin) btnCheckin.disabled = true;
         if (btnCheckout) btnCheckout.disabled = false;
+        return;
+      } else if (lastDoc.gioVao && lastDoc.gioRa) {
+        // Đã hoàn thành ca làm trong ngày
+        if (statusEl) statusEl.textContent = "Trạng thái: Đã kết thúc ca làm hôm nay";
+        if (btnCheckin) btnCheckin.disabled = true;
+        if (btnCheckout) btnCheckout.disabled = true;
+        return;
       }
-    } else {
-      if (statusEl) statusEl.textContent = "Trạng thái: Chưa điểm danh";
-      if (btnCheckin) btnCheckin.disabled = false;
-      if (btnCheckout) btnCheckout.disabled = true;
     }
+
+    // Mặc định: Chưa vào ca
+    if (statusEl) statusEl.textContent = "Trạng thái: Chưa vào ca";
+    if (btnCheckin) btnCheckin.disabled = false;
+    if (btnCheckout) btnCheckout.disabled = true;
+
   } catch (err) {
-    console.error("Lỗi kiểm tra chấm công:", err);
+    console.error("Lỗi kiểm tra trạng thái ca làm:", err);
   }
 }
 
-// Xử lý "Vào Ca"
+// Lắng nghe trạng thái đăng nhập để lấy thông tin ca làm
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    layTrangThaiCaLam(user);
+  }
+});
+
+/**
+ * Xử lý bấm nút "Vào Ca"
+ */
 btnCheckin?.addEventListener("click", async () => {
-  if (!auth.currentUser) return;
   try {
+    const user = auth.currentUser;
+    if (!user) {
+      showToast("Vui lòng đăng nhập lại!", "error");
+      return;
+    }
+
+    btnCheckin.disabled = true; // Chống spam click
+
     const docRef = await addDoc(collection(db, "chamcong"), {
-      nhanVienId: auth.currentUser.uid,
+      nhanVienId: user.uid,
       ngay: new Date().toISOString().split("T")[0],
       gioVao: serverTimestamp(),
       gioRa: null
     });
-    currentAttendanceId = docRef.id;
 
-    await ghiNhatKy("diem_danh_vao_ca");
+    currentChamCongId = docRef.id;
+
+    try {
+      await ghiNhatKy("diem_danh_vao_ca");
+    } catch (e) {
+      console.warn("Không thể ghi nhật ký:", e);
+    }
+
     showToast("Vào ca làm việc thành công!", "success");
-    checkTodayAttendance(auth.currentUser.uid);
+    if (statusEl) statusEl.textContent = "Trạng thái: Đang trong ca làm";
+    btnCheckin.disabled = true;
+    if (btnCheckout) btnCheckout.disabled = false;
   } catch (err) {
+    btnCheckin.disabled = false;
     showToast("Vào ca thất bại!", "error");
-    console.error(err);
+    console.error("Lỗi điểm danh vào ca:", err);
   }
 });
 
-// Xử lý "Ra Ca"
+/**
+ * Xử lý bấm nút "Ra Ca"
+ */
 btnCheckout?.addEventListener("click", async () => {
-  if (!currentAttendanceId) return;
   try {
-    await updateDoc(doc(db, "chamcong", currentAttendanceId), {
+    if (!currentChamCongId) {
+      showToast("Không tìm thấy lượt vào ca cần kết thúc!", "error");
+      return;
+    }
+
+    btnCheckout.disabled = true; // Chống spam click
+
+    // Cập nhật giờ ra vào Firestore
+    const chamCongRef = doc(db, "chamcong", currentChamCongId);
+    await updateDoc(chamCongRef, {
       gioRa: serverTimestamp()
     });
 
-    await ghiNhatKy("diem_danh_ra_ca");
+    try {
+      await ghiNhatKy("diem_danh_ra_ca");
+    } catch (e) {
+      console.warn("Không thể ghi nhật ký:", e);
+    }
+
     showToast("Ra ca làm việc thành công!", "success");
-    checkTodayAttendance(auth.currentUser.uid);
+    if (statusEl) statusEl.textContent = "Trạng thái: Đã kết thúc ca làm hôm nay";
+    if (btnCheckout) btnCheckout.disabled = true;
+    if (btnCheckin) btnCheckin.disabled = true;
   } catch (err) {
+    btnCheckout.disabled = false;
     showToast("Ra ca thất bại!", "error");
-    console.error(err);
+    console.error("Lỗi điểm danh ra ca:", err);
   }
 });

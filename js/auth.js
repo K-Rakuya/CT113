@@ -17,6 +17,31 @@ import {
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+// -----------------------------------------------------------------------------
+// Bộ nhớ đệm vai trò theo phiên tab
+// -----------------------------------------------------------------------------
+const KHOA_VAI_TRO = "ct113.role";
+
+/** @returns {string|null} vai trò đã nhớ cho uid này, hoặc null */
+export function docVaiTroDem(uid) {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(KHOA_VAI_TRO));
+    return o && o.uid === uid ? o.vaiTro : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Nhớ vai trò (hoặc xoá nếu vaiTro rỗng). */
+export function luuVaiTroDem(uid, vaiTro) {
+  try {
+    if (uid && vaiTro) sessionStorage.setItem(KHOA_VAI_TRO, JSON.stringify({ uid, vaiTro }));
+    else sessionStorage.removeItem(KHOA_VAI_TRO);
+  } catch {
+    /* chế độ riêng tư có thể chặn storage */
+  }
+}
+
 /**
  * Đăng ký tài khoản KHÁCH HÀNG mới (dangKy chỉ tạo khách hàng — nhân viên /
  * quản trị / chủ cửa hàng do quản trị viên tạo riêng ở admin/users-manage.html
@@ -48,6 +73,7 @@ export async function dangKy({ hoTen, email, matKhau, soDienThoai }) {
     );
   }
 
+  luuVaiTroDem(cred.user.uid, "khach_hang");
   return cred.user;
 }
 
@@ -68,11 +94,13 @@ export async function dangNhap({ email, matKhau }) {
     throw new Error("Tài khoản đã bị khoá. Liên hệ quản trị viên.");
   }
 
+  luuVaiTroDem(cred.user.uid, snap.exists() ? snap.data().vaiTro ?? null : null);
   return cred.user;
 }
 
 /** Đăng xuất người dùng hiện tại. @returns {Promise<void>} */
 export function dangXuat() {
+  luuVaiTroDem(null);
   return signOut(auth);
 }
 

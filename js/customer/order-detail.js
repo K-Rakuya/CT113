@@ -2,7 +2,8 @@
 // Trang customer/order-detail.html: chi tiết 1 đơn. Collection: donhang, chitietdonhang.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, formatDate, showToast } from "/js/utils.js";
+import { formatCurrency, formatDate, showToast, escapeHtml } from "/js/utils.js";
+import { swapContent, pulse } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -10,6 +11,7 @@ import {
   query,
   where,
   getDocs,
+  onSnapshot,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-chi-tiet-don");
@@ -21,8 +23,47 @@ const NHAN_TRANG_THAI = {
   huy: "Đã huỷ",
 };
 
+const THU_TU_TRANG_THAI = ["cho_duyet", "dang_giao", "hoan_thanh"];
+
+function capNhatTienTrinh(trangThai) {
+  const ol = document.getElementById("tien-trinh-don");
+  if (!ol) return;
+  const buoc = THU_TU_TRANG_THAI.indexOf(trangThai);
+  ol.classList.toggle("is-cancelled", buoc < 0);
+  ol.style.setProperty("--buoc", Math.max(0, buoc));
+  ol.querySelectorAll("li").forEach((li, i) => {
+    li.classList.toggle("is-done", i <= buoc);
+    if (i === buoc) li.setAttribute("aria-current", "step");
+    else li.removeAttribute("aria-current");
+  });
+}
+
+/** Theo dõi trạng thái đơn theo thời gian thực: nhân viên duyệt là thanh tiến trình tự chạy. */
+function theoDoiTrangThai(donHangId, trangThaiBanDau) {
+  let hienTai = trangThaiBanDau;
+  const huyDangKy = onSnapshot(
+    doc(db, "donhang", donHangId),
+    (snap) => {
+      const trangThai = snap.data()?.trangThai;
+      if (!trangThai || trangThai === hienTai) return;
+      hienTai = trangThai;
+      const badge = elNoiDung.querySelector(".badge");
+      if (badge) {
+        badge.className = `badge badge--${trangThai}`;
+        badge.textContent = NHAN_TRANG_THAI[trangThai] || trangThai;
+        pulse(badge);
+      }
+      capNhatTienTrinh(trangThai);
+    },
+    (err) => console.error("Không theo dõi được trạng thái đơn:", err)
+  );
+  window.addEventListener("pagehide", huyDangKy, { once: true });
+}
+
 export async function initChiTietDonHang() {
-  const donHangId = new URLSearchParams(window.location.search).get("id");
+  const thamSo = new URLSearchParams(window.location.search);
+  const donHangId = thamSo.get("id");
+  const laDonMoi = thamSo.get("moi") === "1";
   if (!donHangId) {
     elNoiDung.innerHTML = '<p class="empty-state">Thiếu mã đơn hàng.</p>';
     return;
@@ -50,26 +91,42 @@ export async function initChiTietDonHang() {
       })
     );
 
-    render(don, chiTietDayDu);
+    swapContent(elNoiDung, () => render(don, chiTietDayDu, laDonMoi));
+    capNhatTienTrinh(don.trangThai);
+    theoDoiTrangThai(donHangId, don.trangThai);
+    if (laDonMoi) history.replaceState(null, "", `${window.location.pathname}?id=${encodeURIComponent(donHangId)}`);
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
     showToast(err.message, "error");
   }
 }
 
-function render(don, chiTiet) {
+function render(don, chiTiet, laDonMoi) {
   const maDon = "Đơn #" + don.id.slice(0, 8).toUpperCase();
   const elBreadcrumb = document.getElementById("breadcrumb-ma-don");
   if (elBreadcrumb) elBreadcrumb.textContent = maDon;
 
+  const bannerThanhCong = laDonMoi
+    ? `<div class="kh-order-success" role="status">
+        <svg class="kh-order-success__tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+        <div><strong>Đặt hàng thành công</strong><div>Đơn hàng đang chờ cửa hàng duyệt.</div></div>
+      </div>`
+    : "";
+
   elNoiDung.innerHTML = `
+    ${bannerThanhCong}
     <div class="card">
       <div class="flex-between">
         <h2 style="margin:0;">${maDon}</h2>
         <span class="badge badge--${don.trangThai}">${NHAN_TRANG_THAI[don.trangThai] || don.trangThai}</span>
       </div>
+      <ol class="kh-progress" id="tien-trinh-don" aria-label="Tiến trình đơn hàng">
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.cho_duyet}</li>
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.dang_giao}</li>
+        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.hoan_thanh}</li>
+      </ol>
       <p class="text-muted">Ngày đặt: ${formatDate(don.ngayDat)}</p>
-      <p><strong>Địa chỉ giao hàng:</strong> ${don.diaChiGiao}</p>
+      <p><strong>Địa chỉ giao hàng:</strong> ${escapeHtml(don.diaChiGiao)}</p>
 
       <div class="table-responsive" style="margin-top: var(--spacing-md);">
         <table class="table">
@@ -79,7 +136,7 @@ function render(don, chiTiet) {
               .map(
                 (ct) => `
               <tr>
-                <td>${ct.tenSanPham}</td>
+                <td>${escapeHtml(ct.tenSanPham)}</td>
                 <td>${ct.soLuong}</td>
                 <td>${formatCurrency(ct.donGia)}</td>
                 <td>${formatCurrency(ct.thanhTien)}</td>

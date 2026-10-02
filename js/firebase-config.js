@@ -4,8 +4,9 @@
 // -----------------------------------------------------------------------------
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { resetGio } from "/js/cart-badge.js";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyDstP_hoFLvQoy0dZlyBFogUylnXYcZvLg",
@@ -20,3 +21,15 @@ const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Nhớ trạng thái đăng nhập gần nhất để lần tải sau
+onAuthStateChanged(auth, (user) => {
+  try {
+    localStorage.setItem("ct113.auth", user ? "in" : "out");
+  } catch {
+    /* chế độ riêng tư có thể chặn localStorage */
+  }
+  document.documentElement.dataset.authHint = user ? "in" : "out";
+  if (user) import("/js/cart-sync.js").then((m) => m.dongBoSoLuongGio(user.uid)).catch(() => {});
+  else resetGio();
+});

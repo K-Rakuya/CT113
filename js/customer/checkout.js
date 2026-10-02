@@ -2,7 +2,9 @@
 // Trang checkout.html — cài đặt UC-03 "Đặt hàng"
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, showToast, ghiNhatKy } from "/js/utils.js";
+import { formatCurrency, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
+import { setBusy, swapContent, confirmButton, prefersReducedMotion } from "/js/motion.js";
+import { setCartCount } from "/js/cart-badge.js";
 import {
   doc,
   getDoc,
@@ -16,6 +18,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-checkout");
+let daGuiDon = false;
 
 export async function initCheckout() {
   const uid = auth.currentUser.uid;
@@ -27,11 +30,11 @@ export async function initCheckout() {
     ]);
 
     if (gioHangSnap.empty) {
-      elNoiDung.innerHTML = `
+      swapContent(elNoiDung, () => { elNoiDung.innerHTML = `
         <div class="empty-state">
           Giỏ hàng đang trống, không có gì để đặt hàng.
           <div style="margin-top: var(--spacing-md);"><a href="/product-list.html" class="btn btn--primary">Tiếp tục mua sắm</a></div>
-        </div>`;
+        </div>`; });
       return;
     }
 
@@ -45,7 +48,7 @@ export async function initCheckout() {
     );
 
     const diaChiMacDinh = userSnap.exists() ? userSnap.data().diaChi || "" : "";
-    render(dongGioHang.filter((d) => d.sanPham), diaChiMacDinh);
+    swapContent(elNoiDung, () => render(dongGioHang.filter((d) => d.sanPham), diaChiMacDinh));
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được thông tin đặt hàng.</p>';
     showToast(err.message, "error");
@@ -56,15 +59,15 @@ function render(dongGioHang, diaChiMacDinh) {
   const tongTien = dongGioHang.reduce((tong, d) => tong + d.sanPham.gia * d.soLuong, 0);
 
   elNoiDung.innerHTML = `
-    <div class="card" style="margin-bottom: var(--spacing-lg);">
+    <div class="card motion-enter" style="margin-bottom: var(--spacing-lg);">
       <h3>Sản phẩm (${dongGioHang.length})</h3>
       ${dongGioHang
         .map(
           (d) => `
         <div class="kh-cart-item">
-          <img class="kh-cart-item__img" src="${d.sanPham.hinhAnh || ''}" alt="${d.sanPham.tenSanPham}" onerror="this.style.visibility='hidden'">
+          <img class="kh-cart-item__img" src="${escapeHtml(d.sanPham.hinhAnh)}" alt="${escapeHtml(d.sanPham.tenSanPham)}" onerror="this.style.visibility='hidden'">
           <div class="kh-cart-item__info">
-            <div class="kh-cart-item__name">${d.sanPham.tenSanPham}</div>
+            <div class="kh-cart-item__name">${escapeHtml(d.sanPham.tenSanPham)}</div>
             <div class="text-muted">${formatCurrency(d.sanPham.gia)} × ${d.soLuong}</div>
           </div>
           <div style="font-weight:700;">${formatCurrency(d.sanPham.gia * d.soLuong)}</div>
@@ -73,10 +76,10 @@ function render(dongGioHang, diaChiMacDinh) {
         .join("")}
     </div>
 
-    <form id="form-checkout" class="card">
+    <form id="form-checkout" class="card motion-enter" style="--i:1">
       <div class="form-group">
         <label for="dia-chi-giao">Địa chỉ giao hàng</label>
-        <textarea class="textarea" id="dia-chi-giao" required>${diaChiMacDinh}</textarea>
+        <textarea class="textarea" id="dia-chi-giao" required>${escapeHtml(diaChiMacDinh)}</textarea>
         <span class="hint">Bạn có thể sửa lại địa chỉ trước khi đặt hàng.</span>
       </div>
       <div class="form-group">
@@ -96,6 +99,7 @@ function render(dongGioHang, diaChiMacDinh) {
 
   document.getElementById("form-checkout").addEventListener("submit", (e) => {
     e.preventDefault();
+    if (daGuiDon) return;
     const diaChiGiao = document.getElementById("dia-chi-giao").value.trim();
     if (!diaChiGiao) return;
     xuLyDatHang(dongGioHang, diaChiGiao);
@@ -104,7 +108,8 @@ function render(dongGioHang, diaChiMacDinh) {
 
 async function xuLyDatHang(dongGioHang, diaChiGiao) {
   const btn = document.getElementById("btn-xac-nhan");
-  btn.disabled = true;
+  daGuiDon = true;
+  setBusy(btn, true);
   btn.textContent = "Đang xử lý...";
 
   const uid = auth.currentUser.uid;
@@ -174,12 +179,16 @@ async function xuLyDatHang(dongGioHang, diaChiGiao) {
     }
 
     await ghiNhatKy(`dat_hang: donhang/${donHangRef.id}`);
-    showToast("Đặt hàng thành công! Mã đơn: " + donHangRef.id.slice(0, 8).toUpperCase(), "success");
-    window.location.href = `/customer/order-detail.html?id=${donHangRef.id}`;
+    setCartCount(0);
+    setBusy(btn, false);
+    confirmButton(btn, "Đã đặt hàng", 5000);
+    await new Promise((xong) => setTimeout(xong, prefersReducedMotion() ? 0 : 600));
+    window.location.href = `/customer/order-detail.html?id=${donHangRef.id}&moi=1`;
   } catch (err) {
     // NL-1: quay lại bước xác nhận, báo lỗi rõ ràng.
+    daGuiDon = false;
     showToast(err.message || "Đặt hàng thất bại, vui lòng thử lại.", "error");
-    btn.disabled = false;
+    setBusy(btn, false);
     btn.textContent = "Xác nhận đặt hàng";
   }
 }

@@ -3,7 +3,9 @@
 // Collection: sanpham, danhgia, donhang.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, formatDate, showToast, ghiNhatKy } from "/js/utils.js";
+import { formatCurrency, formatDate, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
+import { setBusy, confirmButton, swapContent, flyToCart, shake } from "/js/motion.js";
+import { getCartCount, setCartCount } from "/js/cart-badge.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -29,6 +31,7 @@ let nguoiDungHienTai = null; // cập nhật bởi onAuthStateChanged
 
 if (!sanPhamId) {
   elChiTiet.innerHTML = '<p class="empty-state">Thiếu mã sản phẩm.</p>';
+  elChiTiet.removeAttribute("aria-busy");
 } else {
   taiSanPham();
   taiDanhSachDanhGia();
@@ -47,11 +50,13 @@ async function taiSanPham() {
       return;
     }
     sanPhamHienTai = { id: snap.id, ...snap.data() };
-    renderSanPham();
+    swapContent(elChiTiet, renderSanPham);
     capNhatBreadcrumb();
   } catch (err) {
     elChiTiet.innerHTML = '<p class="empty-state">Lỗi tải sản phẩm.</p>';
     showToast(err.message, "error");
+  } finally {
+    elChiTiet.removeAttribute("aria-busy"); // khung chờ (skeleton) tĩnh trong product-detail.html đã được thay
   }
 }
 
@@ -73,12 +78,12 @@ async function capNhatBreadcrumb() {
     }
   }
 
-  const sep = '<span class="breadcrumb__sep">/</span>';
+  const sep = '<span class="breadcrumb__sep motion-fade">/</span>';
   let them = "";
   if (tenDanhMuc) {
-    them += `${sep}<a href="/product-list.html?danhmuc=${sanPhamHienTai.danhMucId}">${tenDanhMuc}</a>`;
+    them += `${sep}<a class="motion-fade" href="/product-list.html?danhmuc=${encodeURIComponent(sanPhamHienTai.danhMucId)}">${escapeHtml(tenDanhMuc)}</a>`;
   }
-  them += `${sep}<span aria-current="page">${sanPhamHienTai.tenSanPham}</span>`;
+  them += `${sep}<span class="motion-fade" aria-current="page">${escapeHtml(sanPhamHienTai.tenSanPham)}</span>`;
   elBreadcrumb.insertAdjacentHTML("beforeend", them);
 }
 
@@ -88,12 +93,12 @@ function renderSanPham() {
 
   elChiTiet.innerHTML = `
     <div class="kh-detail">
-      <img class="kh-detail__img" src="${sp.hinhAnh || ''}" alt="${sp.tenSanPham}" onerror="this.style.visibility='hidden'">
+      <img class="kh-detail__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" fetchpriority="high" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">
       <div>
-        <h1>${sp.tenSanPham}</h1>
+        <h1>${escapeHtml(sp.tenSanPham)}</h1>
         <div class="kh-detail__price">${formatCurrency(sp.gia)}</div>
         <p class="${conHang ? '' : 'kh-product-card__stock--out'}">${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}</p>
-        <p class="kh-detail__desc">${sp.moTa || ''}</p>
+        <p class="kh-detail__desc">${escapeHtml(sp.moTa)}</p>
         ${conHang ? `
           <div class="flex" style="margin-top: var(--spacing-md);">
             <div class="kh-qty-stepper">
@@ -110,12 +115,23 @@ function renderSanPham() {
 
   if (conHang) {
     const elSoLuong = document.getElementById("so-luong");
-    document.getElementById("btn-giam").addEventListener("click", () => {
-      elSoLuong.value = Math.max(1, Number(elSoLuong.value) - 1);
-    });
-    document.getElementById("btn-tang").addEventListener("click", () => {
-      elSoLuong.value = Math.min(sp.soLuongTon, Number(elSoLuong.value) + 1);
-    });
+    const btnGiam = document.getElementById("btn-giam");
+    const btnTang = document.getElementById("btn-tang");
+    const elBoTang = elSoLuong.closest(".kh-qty-stepper");
+    const datSoLuong = (yeuCau) => {
+      const soLuong = Math.max(1, Math.min(sp.soLuongTon, Math.trunc(yeuCau) || 1));
+      if (yeuCau > sp.soLuongTon) {
+        shake(elBoTang);
+        showToast(`Chỉ còn ${sp.soLuongTon} sản phẩm trong kho.`, "info");
+      }
+      elSoLuong.value = soLuong;
+      btnGiam.disabled = soLuong <= 1;
+      btnTang.disabled = soLuong >= sp.soLuongTon;
+    };
+    btnGiam.addEventListener("click", () => datSoLuong(Number(elSoLuong.value) - 1));
+    btnTang.addEventListener("click", () => datSoLuong(Number(elSoLuong.value) + 1));
+    elSoLuong.addEventListener("change", () => datSoLuong(Number(elSoLuong.value)));
+    datSoLuong(1);
     document.getElementById("btn-them-gio").addEventListener("click", () => themVaoGio(Number(elSoLuong.value)));
   }
 }
@@ -126,6 +142,10 @@ async function themVaoGio(soLuong) {
     setTimeout(() => (window.location.href = "/login.html"), 1200);
     return;
   }
+  const nut = document.getElementById("btn-them-gio");
+  setBusy(nut, true); // vòng quay + chặn bấm đúp trong lúc ghi Firestore
+  let thanhCong = false;
+  let daThem = soLuong;
   try {
     const q = query(
       collection(db, "giohang"),
@@ -142,15 +162,21 @@ async function themVaoGio(soLuong) {
       });
     } else {
       const docHienCo = snap.docs[0];
-      const soLuongMoi = Math.min(
-        sanPhamHienTai.soLuongTon,
-        (docHienCo.data().soLuong || 0) + soLuong
-      );
+      const soLuongCu = docHienCo.data().soLuong || 0;
+      const soLuongMoi = Math.min(sanPhamHienTai.soLuongTon, soLuongCu + soLuong);
       await updateDoc(docHienCo.ref, { soLuong: soLuongMoi });
+      daThem = soLuongMoi - soLuongCu;
     }
+    thanhCong = true;
     showToast("Đã thêm vào giỏ hàng.", "success");
   } catch (err) {
     showToast("Không thêm được vào giỏ: " + err.message, "error");
+  } finally {
+    setBusy(nut, false);
+    if (thanhCong) {
+      confirmButton(nut, "Đã thêm"); // ✓ ngay trên nút, thấy kết quả tại chỗ bấm
+      flyToCart(document.querySelector(".kh-detail__img")).then(() => setCartCount(getCartCount() + daThem)); // ảnh bay vào giỏ, chạm giỏ thì huy hiệu nảy
+    }
   }
 }
 
@@ -170,16 +196,18 @@ async function taiDanhSachDanhGia() {
       .map((d) => d.data())
       .sort((a, b) => (b.ngayDanhGia?.toMillis?.() ?? 0) - (a.ngayDanhGia?.toMillis?.() ?? 0));
 
+    swapContent(elDanhSachDanhGia, () => {
     elDanhSachDanhGia.innerHTML = danhSach
       .map(
-        (dg) => `
-        <div class="kh-review">
+        (dg, i) => `
+        <div class="kh-review motion-enter" style="--i:${i}">
           <div class="kh-review__stars">${"★".repeat(dg.soSao)}${"☆".repeat(5 - dg.soSao)}</div>
-          <p>${dg.noiDung}</p>
+          <p>${escapeHtml(dg.noiDung)}</p>
           <div class="text-muted" style="font-size:.8em;">${formatDate(dg.ngayDanhGia)}</div>
         </div>`
       )
       .join("");
+    });
   } catch (err) {
     elDanhSachDanhGia.innerHTML = '<p class="text-muted">Không tải được đánh giá.</p>';
   }
@@ -226,7 +254,7 @@ async function daDanhGiaChua(uid) {
 
 async function capNhatKhuVucDanhGia() {
   if (!nguoiDungHienTai) {
-    elFormDanhGia.innerHTML = `<p class="text-muted"><a href="/login.html">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
+    elFormDanhGia.innerHTML = `<p class="text-muted motion-fade"><a href="/login.html">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
     return;
   }
 
@@ -238,9 +266,9 @@ async function capNhatKhuVucDanhGia() {
     ]);
 
     if (daDanhGia) {
-      elFormDanhGia.innerHTML = '<p class="text-muted">Bạn đã đánh giá sản phẩm này. Cảm ơn bạn!</p>';
+      elFormDanhGia.innerHTML = '<p class="text-muted motion-fade">Bạn đã đánh giá sản phẩm này. Cảm ơn bạn!</p>';
     } else if (!duocPhep) {
-      elFormDanhGia.innerHTML = '<p class="text-muted">Bạn cần mua và nhận sản phẩm này (đơn hàng đã hoàn thành) trước khi đánh giá.</p>';
+      elFormDanhGia.innerHTML = '<p class="text-muted motion-fade">Bạn cần mua và nhận sản phẩm này (đơn hàng đã hoàn thành) trước khi đánh giá.</p>';
     } else {
       renderFormDanhGia();
     }
@@ -252,7 +280,7 @@ async function capNhatKhuVucDanhGia() {
 
 function renderFormDanhGia() {
   elFormDanhGia.innerHTML = `
-    <form id="form-danh-gia" class="kh-review-form card">
+    <form id="form-danh-gia" class="kh-review-form card motion-fade">
       <div class="form-group">
         <label for="so-sao">Số sao</label>
         <select class="select" id="so-sao">

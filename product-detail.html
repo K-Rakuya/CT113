@@ -3,10 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
+  <script>try{(function(d){var n=parseInt(localStorage.getItem("ct113.cart"),10);localStorage.getItem("ct113.auth")==="in"&&(d.dataset.authHint="in");n>0&&(d.dataset.cart=n>99?"99+":n,d.style.setProperty("--cart-n",Math.min(n,99)))})(document.documentElement)}catch(e){}</script>
+  <script src="/js/page-transitions.js"></script>
   <title>Chi tiết sản phẩm — Website bán linh kiện máy tính</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/product.css" />
 </head>
@@ -31,14 +40,25 @@
     </nav>
   </header>
 
-  <main class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
+  <main id="main" class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
     <nav class="breadcrumb" aria-label="Breadcrumb" id="breadcrumb-san-pham">
       <a href="/index.html">Trang chủ</a>
       <span class="breadcrumb__sep">/</span>
       <a href="/product-list.html">Sản phẩm</a>
     </nav>
-    <div id="noi-dung-chi-tiet">
-      <p class="text-muted">Đang tải sản phẩm...</p>
+    <div id="noi-dung-chi-tiet" aria-busy="true">
+      <!-- Khung chờ cùng lưới .kh-detail với nội dung thật; product-detail.js thay và gỡ aria-busy -->
+      <div class="kh-detail skeleton" aria-hidden="true">
+        <span class="sk kh-skeleton-detail__img"></span>
+        <div>
+          <span class="sk kh-skeleton-detail__title"></span>
+          <span class="sk kh-skeleton-detail__price"></span>
+          <span class="sk kh-skeleton-detail__line"></span>
+          <span class="sk kh-skeleton-detail__line"></span>
+          <span class="sk kh-skeleton-detail__line kh-skeleton-detail__line--short"></span>
+          <span class="sk kh-skeleton-detail__btn"></span>
+        </div>
+      </div>
     </div>
 
     <section style="margin-top: calc(var(--spacing-lg) * 1.5);">

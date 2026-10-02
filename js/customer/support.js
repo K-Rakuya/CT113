@@ -3,7 +3,8 @@
 // onSnapshot. Collection: yeucauhotro.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatDate, showToast } from "/js/utils.js";
+import { formatDate, showToast, escapeHtml } from "/js/utils.js";
+import { setBusy, swapContent } from "/js/motion.js";
 import {
   collection,
   query,
@@ -53,7 +54,17 @@ function huyKhiRoiTrang() {
   huyDangKy = null;
 }
 
+let daCoDuLieu = false; // onSnapshot render lại liên tục: chỉ lần đầu mới có hiệu ứng
 function render(danhSach) {
+  if (!daCoDuLieu) {
+    daCoDuLieu = true;
+    swapContent(elDanhSach, () => renderNoiDung(danhSach, true));
+  } else {
+    renderNoiDung(danhSach, false);
+  }
+}
+
+function renderNoiDung(danhSach, hieuUng) {
   if (danhSach.length === 0) {
     elDanhSach.innerHTML = '<p class="empty-state">Bạn chưa gửi yêu cầu hỗ trợ nào.</p>';
     return;
@@ -61,15 +72,15 @@ function render(danhSach) {
 
   elDanhSach.innerHTML = danhSach
     .map(
-      (yc) => `
-    <div class="kh-ticket kh-ticket--${yc.trangThai}">
+      (yc, i) => `
+    <div class="kh-ticket kh-ticket--${yc.trangThai}${hieuUng ? " motion-enter" : ""}" style="--i:${i}">
       <div class="flex-between">
-        <strong>${yc.tieuDe}</strong>
+        <strong>${escapeHtml(yc.tieuDe)}</strong>
         <span class="badge badge--${yc.trangThai}">${NHAN_TRANG_THAI[yc.trangThai] || yc.trangThai}</span>
       </div>
       <p class="text-muted" style="font-size:.85em; margin: 2px 0;">${formatDate(yc.ngayTao)}</p>
-      <p>${yc.noiDung}</p>
-      ${yc.phanHoi ? `<div class="kh-ticket__phanhoi"><strong>Phản hồi từ nhân viên:</strong> ${yc.phanHoi}</div>` : ""}
+      <p>${escapeHtml(yc.noiDung)}</p>
+      ${yc.phanHoi ? `<div class="kh-ticket__phanhoi"><strong>Phản hồi từ nhân viên:</strong> ${escapeHtml(yc.phanHoi)}</div>` : ""}
     </div>`
     )
     .join("");
@@ -82,7 +93,7 @@ elForm.addEventListener("submit", async (e) => {
   const noiDung = document.getElementById("noi-dung").value.trim();
   if (!tieuDe || !noiDung) return;
 
-  btn.disabled = true;
+  setBusy(btn, true);
   btn.textContent = "Đang gửi...";
   try {
     await addDoc(collection(db, "yeucauhotro"), {
@@ -99,7 +110,7 @@ elForm.addEventListener("submit", async (e) => {
   } catch (err) {
     showToast("Gửi yêu cầu thất bại: " + err.message, "error");
   } finally {
-    btn.disabled = false;
+    setBusy(btn, false);
     btn.textContent = "Gửi yêu cầu";
   }
 });

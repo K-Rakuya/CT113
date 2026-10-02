@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tổng Quan - Bảng Điều Khiển Nhân Viên</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
@@ -20,7 +29,7 @@
       </nav>
     </aside>
 
-    <main class="dashboard-layout__main">
+    <main id="main" class="dashboard-layout__main">
       <header class="dashboard-layout__topbar">
         <h1>Tổng Quan Công Việc</h1>
         <div>
@@ -48,6 +57,7 @@
     import { checkRole } from "/js/router-guard.js";
     import { dangXuat } from "/js/auth.js";
     import { db } from "/js/firebase-config.js";
+    import { animateNumber } from "/js/motion.js";
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
     checkRole(["nhan_vien"]);
@@ -65,12 +75,12 @@
         const ordersQ = query(collection(db, "donhang"), where("trangThai", "==", "cho_duyet"));
         const ordersSnap = await getDocs(ordersQ);
         const pendingOrdersEl = document.getElementById("stat-pending-orders");
-        if (pendingOrdersEl) pendingOrdersEl.textContent = ordersSnap.size;
+        if (pendingOrdersEl) animateNumber(pendingOrdersEl, ordersSnap.size, { from: 0 });
 
         const ticketsQ = query(collection(db, "yeucauhotro"), where("trangThai", "==", "cho_xu_ly"));
         const ticketsSnap = await getDocs(ticketsQ);
         const pendingTicketsEl = document.getElementById("stat-pending-tickets");
-        if (pendingTicketsEl) pendingTicketsEl.textContent = ticketsSnap.size;
+        if (pendingTicketsEl) animateNumber(pendingTicketsEl, ticketsSnap.size, { from: 0 });
       } catch (err) {
         console.error("Lỗi loadDashboardStats:", err);
       }

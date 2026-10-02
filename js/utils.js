@@ -38,26 +38,95 @@ export function formatDate(timestamp) {
 }
 
 /**
- * Hiện thông báo nổi 3 giây rồi tự xoá. Cần class .toast trong style.css
+ * Thoát ký tự HTML trước khi chèn chuỗi người dùng/dữ liệu vào innerHTML.
+ * @param {*} giaTri
+ * @returns {string}
+ */
+export function escapeHtml(giaTri) {
+  return String(giaTri ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+}
+
+/**
+ * Hiện thông báo nổi rồi tự đóng: 3 giây, tạm dừng khi rê chuột/focus vào.
+ * Tối đa 4 toast cùng lúc. Vào/ra bằng animation, các toast bên dưới trượt lên mượt.
+ * Cần .toast / .toast-item trong style.css.
  * @param {string} message
  * @param {"success"|"error"|"info"} [type="info"]
+ * @param {{ action?: { nhan: string, onClick: () => void } }} [tuyChon] nút hành động trong toast (vd. Hoàn tác, giữ 6 giây)
  * @returns {void}
  */
-export function showToast(message, type = "info") {
+export function showToast(message, type = "info", { action } = {}) {
   let host = document.getElementById("toast-host");
   if (!host) {
     host = document.createElement("div");
     host.id = "toast-host";
+    host.setAttribute("aria-live", "polite");
     document.body.appendChild(host);
   }
 
+  // .toast-item là khung để toast co lại mượt khi đóng
+  const item = document.createElement("div");
+  item.className = "toast-item";
   const el = document.createElement("div");
   el.className = `toast toast--${type}`;
-  el.setAttribute("role", "status");
+  if (type === "error") el.setAttribute("role", "alert"); // thông báo thường được đọc qua aria-live của #toast-host
   el.textContent = message;
-  host.appendChild(el);
+  if (action) {
+    const nut = document.createElement("button");
+    nut.type = "button";
+    nut.className = "toast__action";
+    nut.textContent = action.nhan;
+    nut.addEventListener("click", () => {
+      action.onClick();
+      dongToast(item);
+    });
+    el.classList.add("toast--has-action");
+    el.append(nut);
+  }
+  item.appendChild(el);
+  host.appendChild(item);
 
-  setTimeout(() => el.remove(), 3000);
+  // Tối đa 4 toast cùng lúc: đóng cái cũ nhất nếu vượt
+  const dangHien = host.querySelectorAll(".toast-item:not(.is-leaving)");
+  if (dangHien.length > 4) dongToast(dangHien[0]);
+
+  // Lỗi cần thời gian đọc lâu hơn (5s) thông báo thường (3s). Tạm dừng khi rê chuột / focus.
+  let conLai = type === "error" ? 5000 : action ? 6000 : 3000;
+  let moc = 0;
+  let timer = 0;
+  let tamDung = false;
+  const chay = () => {
+    tamDung = false;
+    moc = Date.now();
+    timer = setTimeout(() => dongToast(item), conLai);
+  };
+  const dung = () => {
+    if (tamDung) return;
+    tamDung = true;
+    clearTimeout(timer);
+    conLai = Math.max(1200, conLai - (Date.now() - moc)); // còn ít nhất 1,2s sau khi thả ra
+  };
+  item.addEventListener("pointerenter", dung);
+  item.addEventListener("focusin", dung);
+  item.addEventListener("pointerleave", chay);
+  item.addEventListener("focusout", chay);
+  chay();
+}
+
+/** Ẩn 1 toast bằng animation rồi gỡ khỏi DOM (có timer dự phòng nếu transition không chạy). */
+function dongToast(item) {
+  if (item.classList.contains("is-leaving")) return;
+  item.classList.add("is-leaving");
+  let daGo = false;
+  const go = () => {
+    if (daGo) return;
+    daGo = true;
+    item.remove();
+  };
+  item.addEventListener("transitionend", (e) => {
+    if (e.target === item && e.propertyName === "grid-template-rows") go();
+  });
+  setTimeout(go, 600);
 }
 
 /**

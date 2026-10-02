@@ -1,5 +1,6 @@
 import { db, auth } from "/js/firebase-config.js";
 import { showToast, ghiNhatKy } from "/js/utils.js";
+import { pulse } from "/js/motion.js";
 import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const btnCheckin = document.getElementById("btn-checkin");
@@ -24,6 +25,7 @@ btnCheckin?.addEventListener("click", async () => {
 
     showToast("Vào ca làm việc thành công!", "success");
     if (statusEl) statusEl.textContent = "Trạng thái: Đang trong ca làm";
+    pulse(statusEl);
     btnCheckin.disabled = true;
     if (btnCheckout) btnCheckout.disabled = false;
   } catch (err) {
@@ -43,6 +45,7 @@ btnCheckout?.addEventListener("click", async () => {
 
     showToast("Ra ca làm việc thành công!", "success");
     if (statusEl) statusEl.textContent = "Trạng thái: Đã kết thúc ca làm";
+    pulse(statusEl);
     btnCheckout.disabled = true;
   } catch (err) {
     showToast("Ra ca thất bại!", "error");

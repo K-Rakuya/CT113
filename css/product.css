@@ -300,6 +300,9 @@
 .kh-progress li[aria-current="step"] { font-weight: 600; }
 .kh-progress.is-cancelled { opacity: .45; }
 
+.kh-order-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: var(--spacing-sm); margin-top: var(--spacing-md); }
+.kh-order-note { margin: 0; margin-right: auto; font-size: var(--text-sm); color: var(--color-text-muted); }
+
 /* ---- Hỗ trợ kỹ thuật (customer/support.html) ---- */
 .kh-ticket { border-left: 3px solid var(--color-border); padding-left: var(--spacing-md); margin-bottom: var(--spacing-md); }
 .kh-ticket--cho_xu_ly { border-left-color: var(--color-warning); }

@@ -5,7 +5,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { docVaiTroDem, luuVaiTroDem } from "/js/auth.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /**
@@ -35,6 +35,7 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
       onDaXacThuc?.(vaiTroDem);
       layVaiTro(user.uid).then((that) => {
         if (that === undefined) return;
+        if (that === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
         luuVaiTroDem(user.uid, that);
         if (!vaiTroChoPhep.includes(that)) window.location.href = "/index.html";
       });
@@ -43,6 +44,7 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
 
     // Đường đầy đủ (lần đầu trong phiên): chờ Firestore như trước.
     let vaiTro = await layVaiTro(user.uid);
+    if (vaiTro === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
     if (vaiTro === undefined) vaiTro = null;
     luuVaiTroDem(user.uid, vaiTro);
 
@@ -56,9 +58,18 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
 }
 
 /** @returns {Promise<string|null|undefined>} vai trò; null nếu chưa có hồ sơ; undefined nếu đọc lỗi */
+const TAI_KHOAN_BI_KHOA = Symbol("khoa");
+
+async function dangXuatTaiKhoanKhoa() {
+  luuVaiTroDem(null);
+  await signOut(auth);
+  window.location.href = "/login.html";
+}
+
 async function layVaiTro(uid) {
   try {
     const snap = await getDoc(doc(db, "users", uid));
+    if (snap.exists() && snap.data().trangThai === "khoa") return TAI_KHOAN_BI_KHOA;
     return snap.exists() ? snap.data().vaiTro ?? null : null;
   } catch {
     return undefined;

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tổng Quan - Chủ Cửa Hàng</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body hidden>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2 id="ten-vai-tro"></h2>
+      <nav id="dieu-huong"></nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Tổng Quan Cửa Hàng</h1>
+        <div>
+          <span id="user-info"></span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="nv-grid-stats">
+          <div class="card nv-stat-card">
+            <h3>Doanh thu 30 ngày</h3>
+            <p id="stat-doanh-thu" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Đơn cần xử lý</h3>
+            <p id="stat-cho-xu-ly" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Tổng sản phẩm</h3>
+            <p id="stat-tong" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Đang bán</h3>
+            <p id="stat-dang-ban" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Sắp hết hàng</h3>
+            <p id="stat-sap-het" class="nv-stat-num">0</p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Hết hàng</h3>
+            <p id="stat-het" class="nv-stat-num">0</p>
+          </div>
+        </div>
+        <div class="card qt-section">
+          <div class="qt-section__head">
+            <h3>Cần nhập thêm</h3>
+            <a class="btn btn--secondary btn--sm" href="/owner/products-manage.html?loc=sap-het">Xem tất cả</a>
+          </div>
+          <div class="qt-scroll">
+            <table class="nv-table">
+              <thead><tr><th>Sản phẩm</th><th class="qt-num">Tồn kho</th><th>Tình trạng</th></tr></thead>
+              <tbody id="ds-sap-het"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
+    import { khoiTao } from "/js/owner/dashboard.js";
+    khoiTaoTrangQuanTri(["chu_cua_hang"], khoiTao);
+  </script>
+</body>
+</html>

@@ -37,6 +37,13 @@ export function formatDate(timestamp) {
   return d.toLocaleDateString("vi-VN");
 }
 
+export function formatDateTime(timestamp) {
+  if (timestamp === null || timestamp === undefined || timestamp === "") return "";
+  const d = typeof timestamp?.toDate === "function" ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(d.getTime())) return "Invalid Date";
+  return d.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
+}
+
 /**
  * Thoát ký tự HTML trước khi chèn chuỗi người dùng/dữ liệu vào innerHTML.
  * @param {*} giaTri

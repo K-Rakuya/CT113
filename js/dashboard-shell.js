@@ -1,7 +1,5 @@
 import { checkRole } from "/js/router-guard.js";
 import { dangXuat } from "/js/auth.js";
-import { auth, db } from "/js/firebase-config.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const THONG_TIN = {
   chu_cua_hang: {
@@ -24,19 +22,6 @@ const THONG_TIN = {
   },
 };
 
-async function hienTenNguoiDung() {
-  const el = document.getElementById("user-info");
-  const user = auth.currentUser;
-  if (!el || !user) return;
-  el.textContent = user.email || "";
-  try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists() && snap.data().hoTen) el.textContent = snap.data().hoTen;
-  } catch {
-    el.textContent = user.email || "";
-  }
-}
-
 /**
  * Dựng khung trang quản trị theo vai trò rồi chạy khoiTao(vaiTro).
  * @param {string[]} vaiTroChoPhep
@@ -54,7 +39,6 @@ export function khoiTaoTrangQuanTri(vaiTroChoPhep, khoiTao) {
       window.location.href = "/login.html";
     });
     document.body.hidden = false;
-    hienTenNguoiDung();
     khoiTao(vaiTro);
   });
 }

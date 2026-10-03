@@ -1,5 +1,5 @@
 import { db } from "/js/firebase-config.js";
-import { showToast, escapeHtml, formatDateTime } from "/js/utils.js";
+import { showToast, escapeHtml, formatDateTime, ngayHienTai } from "/js/utils.js";
 import { setBusy } from "/js/motion.js";
 import { taoCsv, taiFileCsv } from "/js/csv.js";
 import { NHOM_HANH_DONG, phanTichHanhDong } from "/js/admin/log-format.js";
@@ -92,7 +92,7 @@ function xuatCsv() {
     return;
   }
   const dong = ds.map((d) => [formatDateTime(d.thoiGian), tenNguoi(d.nguoiThucHienId), d.hd.nhan, d.hd.doiTuong, d.hd.chiTiet]);
-  taiFileCsv(`nhat-ky-he-thong_${new Date().toISOString().slice(0, 10)}.csv`, taoCsv(["Thời gian", "Người thực hiện", "Hành động", "Đối tượng", "Chi tiết"], dong));
+  taiFileCsv(`nhat-ky-he-thong_${ngayHienTai()}.csv`, taoCsv(["Thời gian", "Người thực hiện", "Hành động", "Đối tượng", "Chi tiết"], dong));
 }
 
 elTaiThem.addEventListener("click", taiThem);

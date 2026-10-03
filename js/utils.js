@@ -161,6 +161,18 @@ export async function ghiNhatKy(hanhDong) {
   }
 }
 
+/**
+ * Ngày hiện tại theo GIỜ MÁY ở dạng "YYYY-MM-DD".
+ * Không dùng new Date().toISOString(): hàm đó trả ngày theo UTC nên ở Việt Nam (UTC+7)
+ * mọi thời điểm trước 07:00 sáng sẽ bị tính là ngày hôm trước.
+ * @param {Date} [d]
+ * @returns {string}
+ */
+export function ngayHienTai(d = new Date()) {
+  const hai = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${hai(d.getMonth() + 1)}-${hai(d.getDate())}`;
+}
+
 // -----------------------------------------------------------------------------
 // Cache tạm trong phiên làm việc (sessionStorage). KHÔNG dùng cache/persistence
 // riêng của Firestore SDK (enableIndexedDbPersistence / persistentLocalCache) —

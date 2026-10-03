@@ -1,5 +1,5 @@
 import { db, auth } from "/js/firebase-config.js";
-import { showToast, ghiNhatKy } from "/js/utils.js";
+import { showToast, ghiNhatKy, ngayHienTai } from "/js/utils.js";
 import { pulse } from "/js/motion.js";
 import { 
   collection, 
@@ -27,7 +27,7 @@ async function layTrangThaiCaLam(user) {
   if (!user) return;
 
   try {
-    const homNay = new Date().toISOString().split("T")[0];
+    const homNay = ngayHienTai();
     
     // Truy vấn đơn giản hơn (không orderBy) để tránh lỗi thiếu Index của Firestore
     const q = query(
@@ -93,7 +93,7 @@ btnCheckin?.addEventListener("click", async () => {
 
     const docRef = await addDoc(collection(db, "chamcong"), {
       nhanVienId: user.uid,
-      ngay: new Date().toISOString().split("T")[0],
+      ngay: ngayHienTai(),
       gioVao: serverTimestamp(),
       gioRa: null
     });

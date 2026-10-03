@@ -8,6 +8,8 @@ import { docVaiTroDem, luuVaiTroDem } from "/js/auth.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+const TAI_KHOAN_BI_KHOA = Symbol("khoa");
+
 /**
  * @param {string[]} vaiTroChoPhep - vd. ["nhan_vien"], ["quan_tri"],
  *   ["chu_cua_hang"], ["khach_hang"]
@@ -17,6 +19,9 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase
  *   chạy xong: ẩn <body hidden> trong HTML, rồi trong callback này mới bỏ
  *   thuộc tính hidden. Hoàn toàn tương thích ngược — không truyền tham số
  *   này thì checkRole hoạt động y như trước.
+ *
+ * Phần tử #user-info (nếu trang có) được điền tên người dùng từ chính lần đọc
+ * hồ sơ phục vụ kiểm tra vai trò, không tốn thêm lượt đọc Firestore.
  * @returns {void}
  */
 export function checkRole(vaiTroChoPhep, onDaXacThuc) {
@@ -29,23 +34,26 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
       return;
     }
 
-    // đã biết vai trò trong phiên này → mở trang trang, xác minh lại ở nền.
+    hienTenNguoiDung(user); // hiện email ngay, thay bằng họ tên khi đã đọc xong hồ sơ
+
+    // đã biết vai trò trong phiên này → mở trang ngay, xác minh lại ở nền.
     const vaiTroDem = docVaiTroDem(user.uid);
     if (vaiTroDem && vaiTroChoPhep.includes(vaiTroDem)) {
       onDaXacThuc?.(vaiTroDem);
-      layVaiTro(user.uid).then((that) => {
-        if (that === undefined) return;
-        if (that === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
-        luuVaiTroDem(user.uid, that);
-        if (!vaiTroChoPhep.includes(that)) window.location.href = "/index.html";
+      layHoSo(user.uid).then((hoSo) => {
+        if (hoSo === undefined) return;
+        if (hoSo === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
+        luuVaiTroDem(user.uid, hoSo.vaiTro);
+        hienTenNguoiDung(user, hoSo.hoTen);
+        if (!vaiTroChoPhep.includes(hoSo.vaiTro)) window.location.href = "/index.html";
       });
       return;
     }
 
     // Đường đầy đủ (lần đầu trong phiên): chờ Firestore như trước.
-    let vaiTro = await layVaiTro(user.uid);
-    if (vaiTro === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
-    if (vaiTro === undefined) vaiTro = null;
+    const hoSo = await layHoSo(user.uid);
+    if (hoSo === TAI_KHOAN_BI_KHOA) return dangXuatTaiKhoanKhoa();
+    const vaiTro = hoSo === undefined ? null : hoSo.vaiTro;
     luuVaiTroDem(user.uid, vaiTro);
 
     if (!vaiTroChoPhep.includes(vaiTro)) {
@@ -53,12 +61,16 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
       return;
     }
 
+    hienTenNguoiDung(user, hoSo.hoTen);
     onDaXacThuc?.(vaiTro);
   });
 }
 
-/** @returns {Promise<string|null|undefined>} vai trò; null nếu chưa có hồ sơ; undefined nếu đọc lỗi */
-const TAI_KHOAN_BI_KHOA = Symbol("khoa");
+/** Điền tên vào #user-info; chưa có họ tên thì dùng email. */
+function hienTenNguoiDung(user, hoTen) {
+  const el = document.getElementById("user-info");
+  if (el) el.textContent = hoTen || user.email || "";
+}
 
 async function dangXuatTaiKhoanKhoa() {
   luuVaiTroDem(null);
@@ -66,12 +78,20 @@ async function dangXuatTaiKhoanKhoa() {
   window.location.href = "/login.html";
 }
 
-async function layVaiTro(uid) {
+/**
+ * @returns {Promise<{vaiTro: string|null, hoTen: string}|symbol|undefined>}
+ *   hồ sơ (vaiTro null nếu chưa có hồ sơ); TAI_KHOAN_BI_KHOA nếu bị khoá;
+ *   undefined nếu đọc lỗi
+ */
+async function layHoSo(uid) {
   try {
     const snap = await getDoc(doc(db, "users", uid));
-    if (snap.exists() && snap.data().trangThai === "khoa") return TAI_KHOAN_BI_KHOA;
-    return snap.exists() ? snap.data().vaiTro ?? null : null;
-  } catch {
+    if (!snap.exists()) return { vaiTro: null, hoTen: "" };
+    const d = snap.data();
+    if (d.trangThai === "khoa") return TAI_KHOAN_BI_KHOA;
+    return { vaiTro: d.vaiTro ?? null, hoTen: d.hoTen ?? "" };
+  } catch (err) {
+    console.error("Lỗi lấy thông tin vai trò:", err);
     return undefined;
   }
 }

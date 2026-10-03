@@ -42,6 +42,7 @@
               <button type="button" class="qt-chip" data-loc="quan_tri" aria-pressed="false">Quản trị viên <strong>0</strong></button>
             </div>
             <input class="input qt-toolbar__grow" type="search" id="tim-kiem" placeholder="Tìm theo tên, email hoặc số điện thoại..." aria-label="Tìm người dùng">
+            <button type="button" class="btn btn--primary" id="btn-tao-tai-khoan">+ Tạo tài khoản</button>
           </div>
           <div class="qt-scroll">
             <table class="nv-table">
@@ -85,6 +86,37 @@
       <div class="modal__footer">
         <button type="button" class="btn btn--secondary" data-dong-modal>Hủy</button>
         <button type="submit" class="btn btn--primary" id="btn-luu">Lưu</button>
+      </div>
+    </form>
+  </div>
+  <div class="modal" id="modal-tao-tai-khoan" hidden>
+    <div class="modal__backdrop" data-dong-modal></div>
+    <form class="modal__dialog" id="form-tao-tai-khoan" role="dialog" aria-modal="true" aria-labelledby="tieu-de-tao" novalidate>
+      <div class="modal__header">
+        <h3 id="tieu-de-tao">Tạo tài khoản nhân sự</h3>
+        <button type="button" class="modal__close" data-dong-modal aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal__body">
+        <p class="hint">Dùng cho Nhân viên, Chủ cửa hàng và Quản trị viên. Khách hàng tự đăng ký ở trang đăng ký.</p>
+        <div class="qt-form-grid">
+          <div class="form-group"><label for="t-ho-ten">Họ tên</label><input class="input" id="t-ho-ten" maxlength="80" autocomplete="off" required></div>
+          <div class="form-group"><label for="t-vai-tro">Vai trò</label>
+            <select class="select" id="t-vai-tro">
+              <option value="nhan_vien">Nhân viên</option>
+              <option value="chu_cua_hang">Chủ cửa hàng</option>
+              <option value="quan_tri">Quản trị viên</option>
+            </select></div>
+        </div>
+        <div class="qt-form-grid">
+          <div class="form-group"><label for="t-email">Email đăng nhập</label><input class="input" id="t-email" type="email" autocomplete="off" required></div>
+          <div class="form-group"><label for="t-mat-khau">Mật khẩu tạm</label><input class="input" id="t-mat-khau" type="password" minlength="6" autocomplete="new-password" required>
+            <span class="hint">Tối thiểu 6 ký tự. Hãy bảo người dùng đổi sau lần đăng nhập đầu.</span></div>
+        </div>
+        <p class="hint qt-loi" id="t-loi" role="alert" hidden></p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-dong-modal>Hủy</button>
+        <button type="submit" class="btn btn--primary" id="btn-tao">Tạo tài khoản</button>
       </div>
     </form>
   </div>

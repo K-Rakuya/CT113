@@ -3,6 +3,7 @@ import { showToast, ghiNhatKy, escapeHtml, formatDate } from "/js/utils.js";
 import { pulse, setBusy, shake } from "/js/motion.js";
 import { openModal, closeModal, confirmDialog } from "/js/dialog.js";
 import { NHAN_VAI_TRO, laNhanSu, kiemTraThayDoi } from "/js/admin/users-rules.js";
+import { taoTaiKhoanNhanSu, thongBaoLoi } from "/js/admin/account-create.js";
 import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const NHAN_TRANG_THAI = { hoat_dong: "Hoạt động", khoa: "Đã khoá" };
@@ -220,6 +221,44 @@ let henGio = 0;
 elTimKiem.addEventListener("input", () => {
   clearTimeout(henGio);
   henGio = setTimeout(render, 200);
+});
+
+// ---- Tạo tài khoản nhân sự (admin tạo; khách tự đăng ký) ----
+const modalTao = document.getElementById("modal-tao-tai-khoan");
+const formTao = document.getElementById("form-tao-tai-khoan");
+const elLoiTao = document.getElementById("t-loi");
+
+document.getElementById("btn-tao-tai-khoan").addEventListener("click", () => {
+  formTao.reset();
+  elLoiTao.hidden = true;
+  openModal(modalTao);
+});
+
+formTao.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  elLoiTao.hidden = true;
+  const nut = document.getElementById("btn-tao");
+  const hoTen = document.getElementById("t-ho-ten").value;
+  const email = document.getElementById("t-email").value;
+  setBusy(nut, true);
+  try {
+    await taoTaiKhoanNhanSu({
+      hoTen,
+      email,
+      matKhau: document.getElementById("t-mat-khau").value,
+      vaiTro: document.getElementById("t-vai-tro").value,
+    });
+    closeModal(modalTao);
+    showToast(`Đã tạo tài khoản cho ${hoTen.trim()}.`, "success");
+    await taiDuLieu();
+  } catch (err) {
+    console.error("Lỗi tạo tài khoản:", err);
+    elLoiTao.textContent = thongBaoLoi(err);
+    elLoiTao.hidden = false;
+    shake(formTao);
+  } finally {
+    setBusy(nut, false);
+  }
 });
 
 export function khoiTao() {

@@ -12,6 +12,7 @@ const NHAN = {
   sua_danh_muc: ["Sửa danh mục", "san_pham"],
   xoa_danh_muc: ["Xóa danh mục", "san_pham"],
   them_danh_gia: ["Thêm đánh giá", "san_pham"],
+  tao_tai_khoan: ["Tạo tài khoản", "nguoi_dung"],
   sua_nguoi_dung: ["Sửa người dùng", "nguoi_dung"],
   khoa_nguoi_dung: ["Khoá tài khoản", "nguoi_dung"],
   mo_khoa_nguoi_dung: ["Mở khoá tài khoản", "nguoi_dung"],

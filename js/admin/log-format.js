@@ -17,6 +17,7 @@ const NHAN = {
   khoa_nguoi_dung: ["Khoá tài khoản", "nguoi_dung"],
   mo_khoa_nguoi_dung: ["Mở khoá tài khoản", "nguoi_dung"],
   phan_hoi_ho_tro: ["Phản hồi hỗ trợ", "ho_tro"],
+  tiep_nhan_tu_van: ["Tiếp nhận tư vấn", "ho_tro"],
   diem_danh_vao_ca: ["Điểm danh vào ca", "cham_cong"],
   diem_danh_ra_ca: ["Điểm danh ra ca", "cham_cong"],
 };

@@ -1,5 +1,5 @@
 import { db, auth } from "/js/firebase-config.js";
-import { showToast, ghiNhatKy } from "/js/utils.js";
+import { showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { 
   collection, query, where, onSnapshot, doc, updateDoc, serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -30,10 +30,10 @@ if (consultListEl) {
       item.style.cssText = "padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; background: #fff;";
       item.innerHTML = `
         <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-          <strong>Khách hàng: ${data.hoTenKhach || data.khachHangId || "Khách vãng lai"}</strong>
+          <strong>Khách hàng: ${escapeHtml(data.hoTenKhach || data.khachHangId || "Khách vãng lai")}</strong>
           <small style="color: #888;">${data.ngayTao ? new Date(data.ngayTao.toDate()).toLocaleTimeString("vi-VN") : "Vừa xong"}</small>
         </div>
-        <p style="margin-bottom: 10px; color: #444;">${data.noiDung || "Cần hỗ trợ thông tin sản phẩm"}</p>
+        <p style="margin-bottom: 10px; color: #444;">${escapeHtml(data.noiDung || "Cần hỗ trợ thông tin sản phẩm")}</p>
         <button class="btn btn--primary btn-reply" data-id="${docSnap.id}" style="padding: 6px 12px; background: #0d6efd; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
           Tiếp nhận tư vấn
         </button>

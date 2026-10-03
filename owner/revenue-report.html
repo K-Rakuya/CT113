@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Báo Cáo Doanh Thu</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body hidden>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2 id="ten-vai-tro"></h2>
+      <nav id="dieu-huong"></nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Báo Cáo Doanh Thu</h1>
+        <div>
+          <span id="user-info"></span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="card">
+          <div class="qt-toolbar">
+            <div class="qt-seg" role="group" aria-label="Khoảng thời gian">
+              <button type="button" class="qt-seg__nut" data-kieu="7" aria-pressed="false">7 ngày</button>
+              <button type="button" class="qt-seg__nut" data-kieu="30" aria-pressed="true">30 ngày</button>
+              <button type="button" class="qt-seg__nut" data-kieu="90" aria-pressed="false">90 ngày</button>
+              <button type="button" class="qt-seg__nut" data-kieu="thang" aria-pressed="false">Tháng này</button>
+              <button type="button" class="qt-seg__nut" data-kieu="tuy_chon" aria-pressed="false">Tùy chọn</button>
+            </div>
+            <div class="qt-tuy-chon" id="tuy-chon" hidden>
+              <input class="input" type="date" id="tu-ngay" aria-label="Từ ngày">
+              <span>đến</span>
+              <input class="input" type="date" id="den-ngay" aria-label="Đến ngày">
+              <button type="button" class="btn btn--secondary btn--sm" id="btn-ap-dung">Áp dụng</button>
+            </div>
+            <span class="qt-toolbar__grow"></span>
+            <button type="button" class="btn btn--secondary" id="btn-xuat">Xuất CSV</button>
+          </div>
+          <p class="qt-sub" id="mo-ta-khoang"></p>
+        </div>
+
+        <div id="bao-cao">
+          <div class="nv-grid-stats">
+          <div class="card nv-stat-card">
+            <h3>Doanh thu</h3>
+            <p class="nv-stat-num qt-kpi" data-kpi="doanh-thu">0</p>
+            <p class="qt-delta" data-delta="doanh-thu"></p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Đơn hoàn thành</h3>
+            <p class="nv-stat-num qt-kpi" data-kpi="don-hoan-thanh">0</p>
+            <p class="qt-delta" data-delta="don-hoan-thanh"></p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Giá trị trung bình / đơn</h3>
+            <p class="nv-stat-num qt-kpi" data-kpi="gia-tri-tb">0</p>
+            <p class="qt-delta" data-delta="gia-tri-tb"></p>
+          </div>
+          <div class="card nv-stat-card">
+            <h3>Tỷ lệ đơn huỷ</h3>
+            <p class="nv-stat-num qt-kpi" data-kpi="ty-le-huy">0</p>
+          </div>
+          </div>
+
+          <div class="qt-hai-cot">
+            <div class="card">
+              <h3 id="tieu-de-bieu-do">Doanh thu theo ngày</h3>
+              <div class="qt-chart-wrap">
+                <div id="bieu-do" class="qt-chart"></div>
+                <div class="qt-chu-giai-noi" id="chu-giai" role="status" hidden></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Trạng thái đơn hàng</h3>
+              <div id="trang-thai"></div>
+            </div>
+          </div>
+
+          <div class="card qt-section">
+            <h3>Top 5 sản phẩm theo doanh thu</h3>
+            <div id="top-san-pham"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
+    import { khoiTao } from "/js/owner/revenue-report.js";
+    khoiTaoTrangQuanTri(["chu_cua_hang"], khoiTao);
+  </script>
+</body>
+</html>

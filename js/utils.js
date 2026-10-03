@@ -37,6 +37,13 @@ export function formatDate(timestamp) {
   return d.toLocaleDateString("vi-VN");
 }
 
+export function formatDateTime(timestamp) {
+  if (timestamp === null || timestamp === undefined || timestamp === "") return "";
+  const d = typeof timestamp?.toDate === "function" ? timestamp.toDate() : new Date(timestamp);
+  if (isNaN(d.getTime())) return "Invalid Date";
+  return d.toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
+}
+
 /**
  * Thoát ký tự HTML trước khi chèn chuỗi người dùng/dữ liệu vào innerHTML.
  * @param {*} giaTri
@@ -151,5 +158,83 @@ export async function ghiNhatKy(hanhDong) {
     });
   } catch (err) {
     console.error("ghiNhatKy thất bại (đã bỏ qua, không ảnh hưởng thao tác chính):", err);
+  }
+}
+
+/**
+ * Ngày hiện tại theo GIỜ MÁY ở dạng "YYYY-MM-DD".
+ * Không dùng new Date().toISOString(): hàm đó trả ngày theo UTC nên ở Việt Nam (UTC+7)
+ * mọi thời điểm trước 07:00 sáng sẽ bị tính là ngày hôm trước.
+ * @param {Date} [d]
+ * @returns {string}
+ */
+export function ngayHienTai(d = new Date()) {
+  const hai = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${hai(d.getMonth() + 1)}-${hai(d.getDate())}`;
+}
+
+// -----------------------------------------------------------------------------
+// Cache tạm trong phiên làm việc (sessionStorage). KHÔNG dùng cache/persistence
+// riêng của Firestore SDK (enableIndexedDbPersistence / persistentLocalCache) —
+// đây là cache tự viết, chỉ tồn tại trong 1 tab, để tránh gọi lại Firestore cho
+// dữ liệu ít đổi mỗi khi người dùng chuyển qua lại giữa các trang (vd. danh mục
+// sản phẩm). Tự xoá khi tab đóng. Vai trò đăng nhập có cache riêng
+// (docVaiTroDem/luuVaiTroDem trong auth.js, xoá khi đăng xuất). Dữ liệu CỦA TỪNG
+// NGƯỜI DÙNG đưa vào đây phải được xoá bằng xoaCache() khi đăng xuất.
+// -----------------------------------------------------------------------------
+
+const TIEN_TO_CACHE = "cache:";
+
+/**
+ * Đọc dữ liệu đã cache.
+ * @param {string} key
+ * @returns {*} dữ liệu đã lưu (đã JSON.parse), hoặc null nếu chưa có / đã hết
+ *   hạn / đọc lỗi (vd. sessionStorage bị chặn ở chế độ ẩn danh khắt khe) —
+ *   mọi trường hợp lỗi đều coi là cache-miss, không ném lỗi ra ngoài.
+ */
+export function layCache(key) {
+  try {
+    const raw = sessionStorage.getItem(TIEN_TO_CACHE + key);
+    if (!raw) return null;
+    const { giaTri, hetHan } = JSON.parse(raw);
+    if (Date.now() > hetHan) {
+      sessionStorage.removeItem(TIEN_TO_CACHE + key);
+      return null;
+    }
+    return giaTri;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lưu dữ liệu vào cache kèm thời gian sống.
+ * @param {string} key
+ * @param {*} giaTri Dữ liệu cần lưu — phải serialize được bằng JSON.stringify.
+ * @param {number} [ttlMs=60000] Thời gian sống tính bằng mili-giây.
+ * @returns {void}
+ */
+export function luuCache(key, giaTri, ttlMs = 60000) {
+  try {
+    sessionStorage.setItem(
+      TIEN_TO_CACHE + key,
+      JSON.stringify({ giaTri, hetHan: Date.now() + ttlMs })
+    );
+  } catch {
+    /* sessionStorage đầy / bị chặn — bỏ qua, lần đọc sau tự coi là cache-miss */
+  }
+}
+
+/**
+ * Xoá 1 khoá cache cụ thể — dùng khi dữ liệu vừa bị sửa và cần buộc trang sau
+ * đó tải lại từ Firestore thay vì dùng bản cache cũ.
+ * @param {string} key
+ * @returns {void}
+ */
+export function xoaCache(key) {
+  try {
+    sessionStorage.removeItem(TIEN_TO_CACHE + key);
+  } catch {
+    /* bỏ qua */
   }
 }

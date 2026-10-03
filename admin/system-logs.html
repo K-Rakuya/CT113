@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhật Ký Hệ Thống</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body hidden>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2 id="ten-vai-tro"></h2>
+      <nav id="dieu-huong"></nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Nhật Ký Hệ Thống</h1>
+        <div>
+          <span id="user-info"></span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="card">
+          <div class="qt-toolbar">
+            <input class="input qt-toolbar__grow" type="search" id="tim-kiem" placeholder="Tìm theo người thực hiện, hành động, đối tượng..." aria-label="Tìm nhật ký">
+            <select class="select" id="loc-nhom" aria-label="Lọc theo nhóm hành động"><option value="">Mọi hành động</option></select>
+            <button type="button" class="btn btn--secondary" id="btn-xuat">Xuất CSV</button>
+          </div>
+          <div class="qt-scroll">
+            <table class="nv-table">
+              <thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th></tr></thead>
+              <tbody id="ds-nhat-ky"></tbody>
+            </table>
+          </div>
+          <div class="qt-chan-bang">
+            <p class="qt-sub" id="tong-ket"></p>
+            <button type="button" class="btn btn--secondary" id="btn-tai-them">Tải thêm</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
+    import { khoiTao } from "/js/admin/system-logs.js";
+    khoiTaoTrangQuanTri(["quan_tri"], khoiTao);
+  </script>
+</body>
+</html>

@@ -3,7 +3,9 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, escapeHtml } from "/js/utils.js";
-import { swapContent, pulse } from "/js/motion.js";
+import { confirmDialog } from "/js/dialog.js";
+import { muaLaiDon } from "/js/customer/reorder.js";
+import { swapContent, pulse, setBusy, confirmButton, prefersReducedMotion } from "/js/motion.js";
 import {
   doc,
   getDoc,
@@ -12,6 +14,8 @@ import {
   where,
   getDocs,
   onSnapshot,
+  updateDoc,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elNoiDung = document.getElementById("noi-dung-chi-tiet-don");
@@ -38,22 +42,96 @@ function capNhatTienTrinh(trangThai) {
   });
 }
 
+function veHanhDong(don, chiTiet) {
+  const el = document.getElementById("hanh-dong-don");
+  if (!el) return;
+  const nutMuaLai = '<button type="button" class="btn btn--secondary" data-hanh-dong="mua-lai">Mua lại</button>';
+  let html = "";
+  if (don.trangThai === "cho_duyet") {
+    html = don.yeuCauHuy
+      ? '<p class="kh-order-note" role="status">Đã gửi yêu cầu huỷ, đang chờ cửa hàng xác nhận.</p>'
+      : '<button type="button" class="btn btn--danger" data-hanh-dong="yeu-cau-huy">Yêu cầu huỷ đơn</button>';
+  } else if (don.trangThai === "dang_giao") {
+    html = '<p class="kh-order-note">Đơn hàng đang được giao.</p>';
+  } else {
+    html = nutMuaLai;
+    if (don.trangThai === "huy") html = '<p class="kh-order-note">Đơn hàng đã được huỷ.</p>' + html;
+  }
+  el.innerHTML = html;
+  el.onclick = async (e) => {
+    const nut = e.target.closest("[data-hanh-dong]");
+    if (!nut) return;
+    if (nut.dataset.hanhDong === "yeu-cau-huy") await yeuCauHuy(don, chiTiet, nut);
+    else await muaLai(chiTiet, nut);
+  };
+}
+
+async function yeuCauHuy(don, chiTiet, nut) {
+  const dongY = await confirmDialog({
+    tieuDe: "Yêu cầu huỷ đơn?",
+    noiDung: "Cửa hàng sẽ xem xét và xác nhận việc huỷ đơn. Bạn có thể theo dõi kết quả ngay tại trang này.",
+    nhanXacNhan: "Gửi yêu cầu",
+    nguyHiem: true,
+  });
+  if (!dongY) return;
+  setBusy(nut, true);
+  try {
+    await updateDoc(doc(db, "donhang", don.id), { yeuCauHuy: { luc: serverTimestamp() } });
+    don.yeuCauHuy = true;
+    veHanhDong(don, chiTiet);
+    showToast("Đã gửi yêu cầu huỷ đơn.", "success");
+  } catch (err) {
+    setBusy(nut, false);
+    showToast("Không gửi được yêu cầu huỷ, vui lòng thử lại.", "error");
+    console.error("Lỗi yêu cầu huỷ:", err);
+  }
+}
+
+async function muaLai(chiTiet, nut) {
+  setBusy(nut, true);
+  try {
+    const { daThem, boQua } = await muaLaiDon(chiTiet);
+    setBusy(nut, false);
+    if (!daThem) {
+      showToast("Các sản phẩm trong đơn hiện đã hết hàng hoặc ngừng bán.", "error");
+      return;
+    }
+    if (boQua) showToast(`${boQua} sản phẩm hết hàng hoặc ngừng bán đã được bỏ qua.`, "info");
+    confirmButton(nut, "Đã thêm vào giỏ", 5000);
+    await new Promise((xong) => setTimeout(xong, prefersReducedMotion() ? 0 : 600));
+    window.location.href = "/cart.html";
+  } catch (err) {
+    setBusy(nut, false);
+    showToast("Không thêm được vào giỏ hàng, vui lòng thử lại.", "error");
+    console.error("Lỗi mua lại:", err);
+  }
+}
+
 /** Theo dõi trạng thái đơn theo thời gian thực: nhân viên duyệt là thanh tiến trình tự chạy. */
-function theoDoiTrangThai(donHangId, trangThaiBanDau) {
-  let hienTai = trangThaiBanDau;
+function theoDoiTrangThai(donHangId, don, chiTiet) {
+  let khoaHienTai = `${don.trangThai}|${Boolean(don.yeuCauHuy)}`;
+  veHanhDong(don, chiTiet);
   const huyDangKy = onSnapshot(
     doc(db, "donhang", donHangId),
     (snap) => {
-      const trangThai = snap.data()?.trangThai;
-      if (!trangThai || trangThai === hienTai) return;
-      hienTai = trangThai;
-      const badge = elNoiDung.querySelector(".badge");
-      if (badge) {
-        badge.className = `badge badge--${trangThai}`;
-        badge.textContent = NHAN_TRANG_THAI[trangThai] || trangThai;
-        pulse(badge);
+      const moi = snap.data();
+      if (!moi) return;
+      const khoa = `${moi.trangThai}|${Boolean(moi.yeuCauHuy)}`;
+      if (khoa === khoaHienTai) return;
+      const doiTrangThai = moi.trangThai !== don.trangThai;
+      khoaHienTai = khoa;
+      don.trangThai = moi.trangThai;
+      don.yeuCauHuy = moi.yeuCauHuy ?? null;
+      if (doiTrangThai) {
+        const badge = elNoiDung.querySelector(".badge");
+        if (badge) {
+          badge.className = `badge badge--${moi.trangThai}`;
+          badge.textContent = NHAN_TRANG_THAI[moi.trangThai] || moi.trangThai;
+          pulse(badge);
+        }
+        capNhatTienTrinh(moi.trangThai);
       }
-      capNhatTienTrinh(trangThai);
+      veHanhDong(don, chiTiet);
     },
     (err) => console.error("Không theo dõi được trạng thái đơn:", err)
   );
@@ -93,7 +171,7 @@ export async function initChiTietDonHang() {
 
     swapContent(elNoiDung, () => render(don, chiTietDayDu, laDonMoi));
     capNhatTienTrinh(don.trangThai);
-    theoDoiTrangThai(donHangId, don.trangThai);
+    theoDoiTrangThai(donHangId, don, chiTietDayDu);
     if (laDonMoi) history.replaceState(null, "", `${window.location.pathname}?id=${encodeURIComponent(donHangId)}`);
   } catch (err) {
     elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
@@ -150,6 +228,7 @@ function render(don, chiTiet, laDonMoi) {
       <div class="kh-summary__row kh-summary__total" style="margin-top: var(--spacing-md);">
         <span>Tổng cộng</span><span>${formatCurrency(don.tongTien)}</span>
       </div>
+      <div class="kh-order-actions" id="hanh-dong-don"></div>
     </div>
   `;
 }

@@ -18,10 +18,7 @@ service cloud.firestore {
       allow update: if dangNhap() && (
         laQT() ||
         (request.auth.uid == uid
-          && request.resource.data.vaiTro == resource.data.vaiTro
-          && request.resource.data.trangThai == resource.data.trangThai
-          && request.resource.data.chucVu == resource.data.chucVu
-          && request.resource.data.luongCoBan == resource.data.luongCoBan)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hoTen', 'soDienThoai', 'diaChi']))
       );
       allow delete: if laQT();
     }
@@ -44,12 +41,12 @@ service cloud.firestore {
       allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laNV());
       allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid
         && request.resource.data.trangThai == 'cho_duyet';
-      allow update: if laNV() 
-        // Khách tự hủy đơn nếu đang chờ duyệt
-        || (dangNhap() 
-            && resource.data.khachHangId == request.auth.uid 
-            && resource.data.trangThai == 'cho_duyet' 
-            && request.resource.data.trangThai == 'da_huy');
+      allow update: if laNV()
+        // Khách chỉ được gửi yêu cầu huỷ khi đơn đang chờ duyệt; nhân viên xác nhận và hoàn kho
+        || (dangNhap()
+            && resource.data.khachHangId == request.auth.uid
+            && resource.data.trangThai == 'cho_duyet'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['yeuCauHuy']));
     }
 
     match /chitietdonhang/{id} {
@@ -95,7 +92,7 @@ service cloud.firestore {
 
     match /nhatky/{id} {
       allow read: if laQT();
-      allow create: if dangNhap();
+      allow create: if dangNhap() && request.resource.data.nguoiThucHienId == request.auth.uid;
     }
   }
 }

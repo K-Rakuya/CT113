@@ -10,6 +10,7 @@ const THONG_TIN = {
       ["/owner/categories.html", "Danh mục"],
       ["/owner/staff-manage.html", "Nhân sự"],
       ["/owner/revenue-report.html", "Báo cáo doanh thu"],
+      ["/owner/activity-logs.html", "Nhật ký hoạt động"],
     ],
   },
   quan_tri: {

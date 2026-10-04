@@ -15,6 +15,7 @@
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/chat.css">
 </head>
 <body>
   <div class="dashboard-layout">
@@ -25,7 +26,7 @@
         <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
         <a href="/staff/inventory.html">Kho hàng</a>
         <a href="/staff/support-tickets.html">Hỗ trợ khách hàng</a>
-        <a href="/staff/consult.html" class="active">Tư vấn trực tuyến</a>
+        <a href="/staff/chat.html" class="active">Tư vấn trực tuyến</a>
         <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
       </nav>
     </aside>
@@ -40,15 +41,41 @@
       </header>
 
       <section class="dashboard-layout__content">
-        <div class="card">
-          <h3>Khu vực nhắn tin tư vấn</h3>
-          <p style="margin-top: 8px; color: var(--color-text-muted, #64748b);">Hệ thống giao tiếp trực tiếp với khách hàng tìm hiểu sản phẩm dịch vụ.</p>
+        <div class="nv-chat">
+          <div class="nv-chat__cot">
+            <div class="nv-chat__nhom">
+              <h3>Chờ tiếp nhận <span id="so-cho"></span></h3>
+              <div id="ds-cho"></div>
+            </div>
+            <div class="nv-chat__nhom">
+              <h3>Của tôi <span id="so-cua-toi"></span></h3>
+              <div id="ds-cua-toi"></div>
+            </div>
+            <div class="nv-chat__nhom">
+              <h3>Nhân viên khác đang tư vấn <span id="so-nguoi-khac"></span></h3>
+              <div id="ds-nguoi-khac"></div>
+            </div>
+          </div>
 
-          <div id="consult-list" style="margin-top: 20px;">
-            <p>Đang tải danh sách tư vấn...</p>
+          <div id="chat-khung" class="chat-khung" hidden>
+            <div class="chat-tieu-de">
+              <div>
+                <strong id="chat-ten-khach"></strong>
+                <div class="chat-tieu-de__nhan" id="chat-phu"></div>
+              </div>
+              <div>
+                <button type="button" class="btn btn--secondary btn--sm" id="btn-tra-ve">Trả về</button>
+                <button type="button" class="btn btn--primary btn--sm" id="btn-ket-thuc">Kết thúc</button>
+              </div>
+            </div>
+            <div class="chat-danh-sach" id="chat-ds" aria-live="polite"></div>
+            <form class="chat-soan" id="chat-form">
+              <textarea class="textarea" id="chat-noi-dung" rows="1" maxlength="1000" placeholder="Nhập tin nhắn..." aria-label="Tin nhắn"></textarea>
+              <button type="submit" class="btn btn--primary" id="btn-gui">Gửi</button>
+            </form>
+          </div>
+          <p id="chat-chua-chon" class="chat-trong">Chọn một phiên trong danh sách hoặc tiếp nhận phiên đang chờ.</p>
         </div>
-        </div>
-        
       </section>
     </main>
   </div>
@@ -64,6 +91,6 @@
       window.location.href = "/login.html";
     });
   </script>
-  <script type="module" src="/js/staff/consult.js"></script>
+  <script type="module" src="/js/staff/chat.js"></script>
 </body>
 </html>

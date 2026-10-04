@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Sản Phẩm</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body hidden>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2 id="ten-vai-tro"></h2>
+      <nav id="dieu-huong"></nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Quản Lý Sản Phẩm</h1>
+        <div>
+          <span id="user-info"></span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="card">
+          <div class="qt-toolbar">
+            <input class="input qt-toolbar__grow" type="search" id="tim-kiem" placeholder="Tìm theo tên hoặc mã sản phẩm..." aria-label="Tìm sản phẩm">
+            <select class="select" id="loc-danh-muc" aria-label="Lọc danh mục"><option value="">Tất cả danh mục</option></select>
+            <select class="select" id="loc-trang-thai" aria-label="Lọc trạng thái">
+              <option value="">Mọi trạng thái</option>
+              <option value="dang_ban">Đang bán</option>
+              <option value="ngung_ban">Ngừng bán</option>
+            </select>
+            <button type="button" class="qt-chip" id="loc-sap-het" aria-pressed="false">Sắp hết hàng <strong id="dem-sap-het">0</strong></button>
+            <button type="button" class="btn btn--primary" id="btn-them">+ Thêm sản phẩm</button>
+          </div>
+          <div class="qt-scroll">
+            <table class="nv-table">
+              <thead>
+                <tr><th>Sản phẩm</th><th>Danh mục</th><th class="qt-num">Giá</th><th class="qt-num">Tồn kho</th><th>Trạng thái</th><th></th></tr>
+              </thead>
+              <tbody id="ds-san-pham"></tbody>
+            </table>
+          </div>
+          <p class="qt-sub" id="tong-ket"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="modal-san-pham" hidden>
+    <div class="modal__backdrop" data-dong-modal></div>
+    <form class="modal__dialog modal__dialog--rong" id="form-san-pham" role="dialog" aria-modal="true" aria-labelledby="tieu-de-form" novalidate>
+      <div class="modal__header">
+        <h3 id="tieu-de-form">Thêm sản phẩm</h3>
+        <button type="button" class="modal__close" data-dong-modal aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="qt-form-grid">
+          <div class="form-group qt-full"><label for="f-ten">Tên sản phẩm</label><input class="input" id="f-ten" maxlength="120" required></div>
+          <div class="form-group"><label for="f-danh-muc">Danh mục</label><select class="select" id="f-danh-muc"><option value="">Chọn danh mục</option></select></div>
+          <div class="form-group"><label for="f-trang-thai">Trạng thái</label>
+            <select class="select" id="f-trang-thai"><option value="dang_ban">Đang bán</option><option value="ngung_ban">Ngừng bán</option></select></div>
+          <div class="form-group"><label for="f-gia">Giá (VNĐ)</label><input class="input" id="f-gia" type="number" min="0" step="1000" inputmode="numeric"></div>
+          <div class="form-group"><label for="f-ton">Tồn kho</label><input class="input" id="f-ton" type="number" min="0" step="1" inputmode="numeric"></div>
+          <div class="form-group qt-full"><label for="f-hinh">Đường dẫn ảnh</label>
+            <div class="qt-preview-row">
+              <input class="input" id="f-hinh" type="text" placeholder="https://...">
+              <img class="qt-thumb qt-thumb--lg" id="f-xem-truoc" alt="Xem trước ảnh sản phẩm" hidden onerror="this.hidden=true" onload="this.hidden=false">
+            </div></div>
+          <div class="form-group qt-full"><label for="f-mo-ta">Mô tả</label><textarea class="textarea" id="f-mo-ta" rows="3"></textarea></div>
+        </div>
+        <p class="hint qt-loi" id="f-loi" role="alert" hidden></p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-dong-modal>Hủy</button>
+        <button type="submit" class="btn btn--primary" id="btn-luu">Lưu</button>
+      </div>
+    </form>
+  </div>
+  <script type="module">
+    import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
+    import { khoiTao } from "/js/owner/products-manage.js";
+    khoiTaoTrangQuanTri(["chu_cua_hang", "quan_tri"], khoiTao);
+  </script>
+</body>
+</html>

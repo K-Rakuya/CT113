@@ -12,7 +12,6 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { ghiNhatKy } from "/js/utils.js";
-import { laNhanSu } from "/js/admin/users-rules.js";
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
@@ -66,7 +65,6 @@ export async function taoTaiKhoanNhanSu({ hoTen, email, matKhau, vaiTro }) {
         diaChi: "",
         vaiTro,
         trangThai: "hoat_dong",
-        ...(laNhanSu(vaiTro) ? { chucVu: "", luongCoBan: 0 } : {}),
         ngayTao: serverTimestamp(),
       });
     } catch (err) {

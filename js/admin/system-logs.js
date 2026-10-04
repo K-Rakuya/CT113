@@ -7,6 +7,12 @@ import { NHAN_VAI_TRO } from "/js/admin/users-rules.js";
 import { collection, getDocs, getDoc, doc, query, orderBy, limit, startAfter } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const SO_DONG_MOI_LAN = 50;
+const SO_DONG_TOI_THIEU = 20;
+const SO_LAN_TAI_TOI_DA = 4;
+const NHOM_THEO_VAI_TRO = {
+  quan_tri: ["nguoi_dung"],
+  chu_cua_hang: Object.keys(NHOM_HANH_DONG),
+};
 
 const elDanhSach = document.getElementById("ds-nhat-ky");
 const elTimKiem = document.getElementById("tim-kiem");
@@ -17,6 +23,7 @@ const elTongKet = document.getElementById("tong-ket");
 let nhatKy = [];
 let conTiepTheo = null;
 let heT = false;
+let nhomChoPhep = [];
 const nguoiDung = new Map();
 
 const tenNguoi = (id) => {
@@ -27,6 +34,7 @@ const tenNguoi = (id) => {
 function locDanhSach() {
   const tuKhoa = elTimKiem.value.trim().toLowerCase();
   return nhatKy.filter((d) => {
+    if (!nhomChoPhep.includes(d.hd.nhom)) return false;
     if (elNhom.value && d.hd.nhom !== elNhom.value) return false;
     return !tuKhoa || `${d.hd.nhan} ${d.hd.doiTuong} ${d.hd.chiTiet} ${tenNguoi(d.nguoiThucHienId)}`.toLowerCase().includes(tuKhoa);
   });
@@ -95,9 +103,15 @@ function xuatCsv() {
   taiFileCsv(`nhat-ky-he-thong_${ngayHienTai()}.csv`, taoCsv(["Thời gian", "Người thực hiện", "Hành động", "Đối tượng", "Chi tiết"], dong));
 }
 
-elTaiThem.addEventListener("click", taiThem);
+async function taiDuHienThi() {
+  for (let lan = 0; lan < SO_LAN_TAI_TOI_DA && !heT; lan++) {
+    await taiThem();
+    if (locDanhSach().length >= SO_DONG_TOI_THIEU) break;
+  }
+}
+
+elTaiThem.addEventListener("click", taiDuHienThi);
 document.getElementById("btn-xuat").addEventListener("click", xuatCsv);
-elNhom.insertAdjacentHTML("beforeend", Object.entries(NHOM_HANH_DONG).map(([ma, ten]) => `<option value="${ma}">${ten}</option>`).join(""));
 elNhom.addEventListener("change", () => render(0));
 let henGio = 0;
 elTimKiem.addEventListener("input", () => {
@@ -105,6 +119,8 @@ elTimKiem.addEventListener("input", () => {
   henGio = setTimeout(() => render(0), 200);
 });
 
-export function khoiTao() {
-  taiThem();
+export function khoiTao(vaiTro) {
+  nhomChoPhep = NHOM_THEO_VAI_TRO[vaiTro] ?? [];
+  elNhom.insertAdjacentHTML("beforeend", nhomChoPhep.map((ma) => `<option value="${ma}">${NHOM_HANH_DONG[ma]}</option>`).join(""));
+  taiDuHienThi();
 }

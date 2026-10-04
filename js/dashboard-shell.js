@@ -9,6 +9,7 @@ const THONG_TIN = {
       ["/owner/products-manage.html", "Sản phẩm"],
       ["/owner/categories.html", "Danh mục"],
       ["/owner/staff-manage.html", "Nhân sự"],
+      ["/owner/support-overview.html", "Tư vấn và hỗ trợ"],
       ["/owner/revenue-report.html", "Báo cáo doanh thu"],
       ["/owner/activity-logs.html", "Nhật ký hoạt động"],
     ],

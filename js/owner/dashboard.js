@@ -1,7 +1,7 @@
 import { db } from "/js/firebase-config.js";
 import { escapeHtml, showToast, formatCurrency } from "/js/utils.js";
 import { animateNumber } from "/js/motion.js";
-import { NGUONG_SAP_HET } from "/js/dashboard-shell.js";
+import { NGUONG_SAP_HET } from "/js/inventory-rules.js";
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import { taiDonHang } from "/js/owner/revenue-data.js";
 import { taoKhoang, thongKeDon } from "/js/owner/revenue-metrics.js";

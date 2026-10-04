@@ -5,6 +5,7 @@ const NHAN = {
   duyet_don_hang: ["Cập nhật đơn hàng", "don_hang"],
   tu_choi_yeu_cau_huy: ["Từ chối yêu cầu huỷ", "don_hang"],
   them_san_pham: ["Thêm sản phẩm", "san_pham"],
+  cap_nhat_ton_kho: ["Cập nhật tồn kho", "san_pham"],
   sua_san_pham: ["Sửa sản phẩm", "san_pham"],
   xoa_san_pham: ["Xóa sản phẩm", "san_pham"],
   doi_trang_thai_san_pham: ["Đổi trạng thái sản phẩm", "san_pham"],

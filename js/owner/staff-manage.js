@@ -2,7 +2,8 @@ import { db } from "/js/firebase-config.js";
 import { showToast, ghiNhatKy, escapeHtml, formatCurrency, formatDate, ngayHienTai } from "/js/utils.js";
 import { pulse, setBusy, shake } from "/js/motion.js";
 import { openModal, closeModal } from "/js/dialog.js";
-import { NHAN_TRANG_THAI_CA, thangHienTai, khoangThang, thoiLuongPhut, dinhDangThoiLuong, trangThaiCa, tongHopThang, kiemTraHoSo } from "/js/owner/staff-rules.js";
+import { NHAN_TRANG_THAI_CA, thangHienTai, khoangThang, thoiLuongPhut, dinhDangThoiLuong, trangThaiCa, tongHopThang } from "/js/attendance-rules.js";
+import { kiemTraHoSo } from "/js/owner/staff-profile.js";
 import { collection, getDocs, updateDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const elDanhSach = document.getElementById("ds-nhan-vien");

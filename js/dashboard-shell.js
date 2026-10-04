@@ -43,5 +43,3 @@ export function khoiTaoTrangQuanTri(vaiTroChoPhep, khoiTao) {
     khoiTao(vaiTro);
   });
 }
-
-export const NGUONG_SAP_HET = 5;

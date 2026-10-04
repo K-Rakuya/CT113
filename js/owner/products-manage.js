@@ -2,7 +2,7 @@ import { db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { collapseAndRemove, pulse, setBusy, shake } from "/js/motion.js";
 import { openModal, closeModal, confirmDialog } from "/js/dialog.js";
-import { NGUONG_SAP_HET } from "/js/dashboard-shell.js";
+import { NGUONG_SAP_HET } from "/js/inventory-rules.js";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const NHAN_TRANG_THAI = { dang_ban: "Đang bán", ngung_ban: "Ngừng bán" };

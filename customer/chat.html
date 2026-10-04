@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script>try{(function(d){var n=parseInt(localStorage.getItem("ct113.cart"),10);localStorage.getItem("ct113.auth")==="in"&&(d.dataset.authHint="in");n>0&&(d.dataset.cart=n>99?"99+":n,d.style.setProperty("--cart-n",Math.min(n,99)))})(document.documentElement)}catch(e){}</script>
+  <script src="/js/page-transitions.js"></script>
+  <title>Tư vấn trực tuyến — Website bán linh kiện máy tính</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/product.css" />
+  <link rel="stylesheet" href="/css/chat.css" />
+</head>
+<body hidden>
+
+  <header class="site-header">
+    <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>
+    <nav class="site-header__nav">
+      <a href="/product-list.html">Sản phẩm</a>
+      <a href="/cart.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+        Giỏ hàng
+      </a>
+      <span data-auth="out"><a href="/login.html">Đăng nhập</a></span>
+      <span data-auth="in" hidden>
+        <a href="/customer/profile.html">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.2-3.6 4-5.5 7-5.5s5.8 1.9 7 5.5"/></svg>
+          Tài khoản
+        </a>
+        <button id="btn-dang-xuat" class="btn btn--secondary">Đăng xuất</button>
+      </span>
+    </nav>
+  </header>
+
+  <main id="main" class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
+    <h1>Tài khoản của tôi</h1>
+    <div class="kh-account-layout">
+      <nav class="kh-account-layout__nav" aria-label="Tài khoản">
+        <a href="/customer/profile.html">Thông tin cá nhân</a>
+        <a href="/customer/orders.html">Đơn hàng của tôi</a>
+        <a href="/customer/support.html">Hỗ trợ kỹ thuật</a>
+        <a href="/customer/chat.html" aria-current="page">Tư vấn trực tuyến</a>
+      </nav>
+      <div>
+        <div id="chat-bat-dau" class="card chat-bat-dau" hidden>
+          <h3>Tư vấn trực tuyến</h3>
+          <p class="text-muted">Trao đổi trực tiếp với nhân viên để được tư vấn cấu hình, linh kiện và đơn hàng.</p>
+          <button type="button" class="btn btn--primary" id="btn-bat-dau">Bắt đầu tư vấn</button>
+        </div>
+
+        <div id="chat-khung" class="chat-khung" hidden>
+          <div class="chat-tieu-de">
+            <span class="chat-tieu-de__nhan" id="chat-trang-thai"></span>
+            <button type="button" class="btn btn--secondary btn--sm" id="btn-ket-thuc">Kết thúc</button>
+          </div>
+          <div class="chat-danh-sach" id="chat-ds" aria-live="polite"></div>
+          <form class="chat-soan" id="chat-form">
+            <textarea class="textarea" id="chat-noi-dung" rows="1" maxlength="1000" placeholder="Nhập tin nhắn..." aria-label="Tin nhắn"></textarea>
+            <button type="submit" class="btn btn--primary" id="btn-gui">Gửi</button>
+          </form>
+          <p class="chat-ket-thuc" id="chat-da-dong" hidden>Phiên tư vấn đã kết thúc.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">© 2026 — Đồ án CT113</footer>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { auth } from "/js/firebase-config.js";
+    import { dangXuat } from "/js/auth.js";
+    import { khoiTaoChat } from "/js/customer/chat.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+    checkRole(["khach_hang"], () => {
+      document.body.hidden = false;
+      khoiTaoChat();
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      document.querySelector('[data-auth="in"]').hidden = !user;
+      document.querySelector('[data-auth="out"]').hidden = !!user;
+    });
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/index.html";
+    });
+  </script>
+</body>
+</html>

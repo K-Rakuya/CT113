@@ -7,6 +7,7 @@ const THONG_TIN = {
     muc: [
       ["/owner/dashboard.html", "Tổng quan"],
       ["/owner/products-manage.html", "Sản phẩm"],
+      ["/owner/categories.html", "Danh mục"],
       ["/owner/revenue-report.html", "Báo cáo doanh thu"],
     ],
   },
@@ -14,8 +15,6 @@ const THONG_TIN = {
     ten: "Quản Trị Viên",
     muc: [
       ["/admin/dashboard.html", "Tổng quan"],
-      ["/owner/products-manage.html", "Sản phẩm"],
-      ["/admin/categories.html", "Danh mục"],
       ["/admin/users-manage.html", "Người dùng"],
       ["/admin/system-logs.html", "Nhật ký hệ thống"],
     ],

@@ -95,7 +95,15 @@ service cloud.firestore {
     match /yeucauhotro/{id} {
       allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laBanHang());
       allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
-      allow update: if laBanHang();
+      allow update: if laCH()
+        || (laNhanVien() && (
+          (resource.data.get('nhanVienId', null) == null
+            && request.resource.data.nhanVienId == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nhanVienId', 'nhanVienTen', 'ngayTiepNhan', 'trangThai']))
+          || (resource.data.get('nhanVienId', null) == request.auth.uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nhanVienId', 'nhanVienTen', 'trangThai', 'phanHoi', 'nhanVienXuLyId'])
+            && request.resource.data.nhanVienId in [null, request.auth.uid])
+        ));
     }
 
     match /nhatky/{id} {

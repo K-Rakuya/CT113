@@ -17,6 +17,8 @@ const NHAN = {
   sua_nguoi_dung: ["Sửa người dùng", "nguoi_dung"],
   khoa_nguoi_dung: ["Khoá tài khoản", "nguoi_dung"],
   mo_khoa_nguoi_dung: ["Mở khoá tài khoản", "nguoi_dung"],
+  tiep_nhan_ho_tro: ["Tiếp nhận hỗ trợ", "ho_tro"],
+  tra_ve_ho_tro: ["Trả yêu cầu về danh sách chờ", "ho_tro"],
   phan_hoi_ho_tro: ["Phản hồi hỗ trợ", "ho_tro"],
   tiep_nhan_tu_van: ["Tiếp nhận tư vấn", "ho_tro"],
   sua_nhan_su: ["Sửa hồ sơ nhân sự", "nhan_su"],

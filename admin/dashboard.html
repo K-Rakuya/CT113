@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
+  <script src="/js/page-transitions.js"></script>
   <title>Tổng Quan - Quản Trị Viên</title>
   <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/admin/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -18,8 +21,12 @@
 <body hidden>
   <div class="dashboard-layout">
     <aside class="dashboard-layout__sidebar">
-      <h2 id="ten-vai-tro"></h2>
-      <nav id="dieu-huong"></nav>
+      <h2>Quản Trị Viên</h2>
+      <nav>
+        <a href="/admin/dashboard.html" class="active" aria-current="page">Tổng quan</a>
+        <a href="/admin/users-manage.html">Người dùng</a>
+        <a href="/admin/system-logs.html">Nhật ký hệ thống</a>
+      </nav>
     </aside>
 
     <main id="main" class="dashboard-layout__main">

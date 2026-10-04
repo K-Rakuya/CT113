@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>try{localStorage.getItem("ct113.auth")==="in"&&(document.documentElement.dataset.authHint="in")}catch(e){}</script>
+  <script src="/js/page-transitions.js"></script>
   <title>Tổng Quan - Chủ Cửa Hàng</title>
   <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/owner/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -18,8 +21,16 @@
 <body hidden>
   <div class="dashboard-layout">
     <aside class="dashboard-layout__sidebar">
-      <h2 id="ten-vai-tro"></h2>
-      <nav id="dieu-huong"></nav>
+      <h2>Chủ Cửa Hàng</h2>
+      <nav>
+        <a href="/owner/dashboard.html" class="active" aria-current="page">Tổng quan</a>
+        <a href="/owner/products-manage.html">Sản phẩm</a>
+        <a href="/owner/categories.html">Danh mục</a>
+        <a href="/owner/staff-manage.html">Nhân sự</a>
+        <a href="/owner/support-overview.html">Tư vấn và hỗ trợ</a>
+        <a href="/owner/revenue-report.html">Báo cáo doanh thu</a>
+        <a href="/owner/activity-logs.html">Nhật ký hoạt động</a>
+      </nav>
     </aside>
 
     <main id="main" class="dashboard-layout__main">

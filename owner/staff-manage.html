@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhân Sự và Chấm Công</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+</head>
+<body hidden>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2 id="ten-vai-tro"></h2>
+      <nav id="dieu-huong"></nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Nhân Sự và Chấm Công</h1>
+        <div>
+          <span id="user-info"></span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="card">
+          <div class="qt-toolbar">
+            <input class="input qt-toolbar__grow" type="search" id="tim-kiem" placeholder="Tìm theo tên hoặc email..." aria-label="Tìm nhân viên">
+            <input class="input" type="month" id="chon-thang" aria-label="Tháng chấm công">
+          </div>
+          <div class="qt-scroll">
+            <table class="nv-table">
+              <thead><tr><th>Nhân viên</th><th>Chức vụ</th><th>Lương cơ bản</th><th>Hôm nay</th><th>Công trong tháng</th><th></th></tr></thead>
+              <tbody id="ds-nhan-vien"></tbody>
+            </table>
+          </div>
+          <p class="qt-sub" id="tong-ket"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="modal-ho-so" hidden>
+    <div class="modal__backdrop" data-dong-modal></div>
+    <form class="modal__dialog" id="form-ho-so" role="dialog" aria-modal="true" aria-labelledby="tieu-de-ho-so" novalidate>
+      <div class="modal__header">
+        <h3 id="tieu-de-ho-so">Hồ sơ nhân viên</h3>
+        <button type="button" class="modal__close" data-dong-modal aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="qt-form-grid">
+          <div class="form-group"><label for="f-chuc-vu">Chức vụ</label><input class="input" id="f-chuc-vu" maxlength="60"></div>
+          <div class="form-group"><label for="f-luong">Lương cơ bản (VNĐ)</label><input class="input" id="f-luong" type="number" min="0" step="100000" inputmode="numeric"></div>
+        </div>
+        <p class="hint qt-loi" id="f-loi" role="alert" hidden></p>
+      </div>
+      <div class="modal__footer">
+        <button type="button" class="btn btn--secondary" data-dong-modal>Hủy</button>
+        <button type="submit" class="btn btn--primary" id="btn-luu">Lưu</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="modal" id="modal-cham-cong" hidden>
+    <div class="modal__backdrop" data-dong-modal></div>
+    <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="tieu-de-cham-cong">
+      <div class="modal__header">
+        <h3 id="tieu-de-cham-cong">Chấm công</h3>
+        <button type="button" class="modal__close" data-dong-modal aria-label="Đóng">&times;</button>
+      </div>
+      <div class="modal__body">
+        <div class="qt-scroll">
+          <table class="nv-table">
+            <thead><tr><th>Ngày</th><th>Vào ca</th><th>Ra ca</th><th>Thời lượng</th></tr></thead>
+            <tbody id="ds-cham-cong"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
+    import { khoiTao } from "/js/owner/staff-manage.js";
+    khoiTaoTrangQuanTri(["chu_cua_hang"], khoiTao);
+  </script>
+</body>
+</html>

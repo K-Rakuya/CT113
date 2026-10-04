@@ -31,6 +31,12 @@ export function taoKhoang(kieu, tuyChon = {}, bayGio = new Date()) {
   return { tu, den, truocTu, truocDen };
 }
 
+/** đơn hoàn thành tính theo ngày hoàn thành, đơn cũ chưa có thì lấy ngày đặt */
+export function ngayCuaDon(don) {
+  const ngayDat = don.ngayDat?.toDate?.() ?? new Date(0);
+  return don.trangThai === "hoan_thanh" ? don.ngayHoanThanh?.toDate?.() ?? ngayDat : ngayDat;
+}
+
 const trongKhoang = (don, tu, den) => don.ngay >= tu && don.ngay <= den;
 
 /** @param {{ngay: Date, trangThai: string, tongTien: number}[]} donHang */

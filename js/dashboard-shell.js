@@ -8,6 +8,7 @@ const THONG_TIN = {
       ["/owner/dashboard.html", "Tổng quan"],
       ["/owner/products-manage.html", "Sản phẩm"],
       ["/owner/categories.html", "Danh mục"],
+      ["/owner/staff-manage.html", "Nhân sự"],
       ["/owner/revenue-report.html", "Báo cáo doanh thu"],
     ],
   },

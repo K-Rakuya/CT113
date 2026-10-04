@@ -4,20 +4,25 @@ service cloud.firestore {
 
     function dangNhap() { return request.auth != null; }
     function vaiTro() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.vaiTro; }
-    function laNV() { return dangNhap() && vaiTro() in ['nhan_vien','quan_tri','chu_cua_hang']; }
-    function laQT() { return dangNhap() && vaiTro() == 'quan_tri'; }
+    function laNhanVien() { return dangNhap() && vaiTro() == 'nhan_vien'; }
     function laCH() { return dangNhap() && vaiTro() == 'chu_cua_hang'; }
+    function laQT() { return dangNhap() && vaiTro() == 'quan_tri'; }
+    function laBanHang() { return laNhanVien() || laCH(); }
 
     match /users/{uid} {
-      // Chỉ chủ tài khoản hoặc nhân viên/quản trị mới được xem thông tin
-      allow read: if dangNhap() && (request.auth.uid == uid || laNV());
-      
+      allow read: if dangNhap() && (
+        request.auth.uid == uid || laQT() || laCH()
+        || (laNhanVien() && resource.data.vaiTro == 'khach_hang')
+      );
+
       allow create: if dangNhap() && (
         (request.auth.uid == uid && request.resource.data.vaiTro == 'khach_hang') || laQT()
       );
       allow update: if dangNhap() && (
-        laQT() ||
-        (request.auth.uid == uid
+        (laQT() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['vaiTro', 'trangThai']))
+        || (laCH() && resource.data.vaiTro != 'khach_hang'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['chucVu', 'luongCoBan']))
+        || (request.auth.uid == uid
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hoTen', 'soDienThoai', 'diaChi']))
       );
       allow delete: if laQT();
@@ -25,23 +30,26 @@ service cloud.firestore {
 
     match /sanpham/{id} {
       allow read: if true;
-      allow write: if laNV();
-      // Khách tự trừ tồn kho lúc checkout
-      allow update: if dangNhap()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['soLuongTon'])
-        && request.resource.data.soLuongTon >= 0
-        && request.resource.data.soLuongTon < resource.data.soLuongTon;
+      allow create, delete: if laCH();
+      allow update: if laCH()
+        || (laBanHang()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['soLuongTon'])
+          && request.resource.data.soLuongTon >= 0)
+        || (dangNhap()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['soLuongTon'])
+          && request.resource.data.soLuongTon >= 0
+          && request.resource.data.soLuongTon < resource.data.soLuongTon);
     }
 
-    match /danhmuc/{id} { allow read: if true; allow write: if laQT(); }
-    match /cauhinh/{id} { allow read: if true; allow write: if laQT(); }
-    match /nhacungcap/{id} { allow read: if laNV(); allow write: if laCH(); }
+    match /danhmuc/{id} { allow read: if true; allow write: if laCH(); }
+    match /cauhinh/{id} { allow read: if true; allow write: if laCH(); }
+    match /nhacungcap/{id} { allow read, write: if laCH(); }
 
     match /donhang/{id} {
-      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laNV());
+      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laBanHang());
       allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid
         && request.resource.data.trangThai == 'cho_duyet';
-      allow update: if laNV()
+      allow update: if laBanHang()
         // Khách chỉ được gửi yêu cầu huỷ khi đơn đang chờ duyệt; nhân viên xác nhận và hoàn kho
         || (dangNhap()
             && resource.data.khachHangId == request.auth.uid
@@ -50,11 +58,11 @@ service cloud.firestore {
     }
 
     match /chitietdonhang/{id} {
-      allow read: if dangNhap() && (laNV() || resource.data.khachHangId == request.auth.uid);
+      allow read: if dangNhap() && (laBanHang() || resource.data.khachHangId == request.auth.uid);
       allow create: if dangNhap()
         && request.resource.data.khachHangId == request.auth.uid
         && getAfter(/databases/$(database)/documents/donhang/$(request.resource.data.donHangId)).data.khachHangId == request.auth.uid;
-      allow update, delete: if laNV();
+      allow update, delete: if laBanHang();
     }
 
     match /giohang/{id} {
@@ -85,13 +93,13 @@ service cloud.firestore {
     }
 
     match /yeucauhotro/{id} {
-      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laNV());
+      allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laBanHang());
       allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
-      allow update: if laNV();
+      allow update: if laBanHang();
     }
 
     match /nhatky/{id} {
-      allow read: if laQT();
+      allow read: if laQT() || laCH();
       allow create: if dangNhap() && request.resource.data.nguoiThucHienId == request.auth.uid;
     }
   }

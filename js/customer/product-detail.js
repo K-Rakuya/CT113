@@ -6,6 +6,7 @@ import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, formatDate, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { setBusy, confirmButton, swapContent, flyToCart, shake } from "/js/motion.js";
 import { getCartCount, setCartCount } from "/js/cart-badge.js";
+import { duongDanDangNhap } from "/js/redirect-rules.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   doc,
@@ -139,7 +140,7 @@ function renderSanPham() {
 async function themVaoGio(soLuong) {
   if (!auth.currentUser) {
     showToast("Vui lòng đăng nhập để thêm vào giỏ hàng.", "info");
-    setTimeout(() => (window.location.href = "/login.html"), 1200);
+    setTimeout(() => (window.location.href = duongDanDangNhap(window.location.pathname + window.location.search)), 1200);
     return;
   }
   const nut = document.getElementById("btn-them-gio");
@@ -254,7 +255,7 @@ async function daDanhGiaChua(uid) {
 
 async function capNhatKhuVucDanhGia() {
   if (!nguoiDungHienTai) {
-    elFormDanhGia.innerHTML = `<p class="text-muted motion-fade"><a href="/login.html">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
+    elFormDanhGia.innerHTML = `<p class="text-muted motion-fade"><a href="${duongDanDangNhap(window.location.pathname + window.location.search)}">Đăng nhập</a> và mua sản phẩm này để có thể đánh giá.</p>`;
     return;
   }
 

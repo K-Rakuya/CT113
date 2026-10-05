@@ -81,6 +81,7 @@
     import { auth } from "/js/firebase-config.js";
     import { dangKy, dangXuat, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
     import { showToast } from "/js/utils.js";
+    import { diemDenSauDangNhap, giuNext } from "/js/redirect-rules.js";
     import { thongBaoLoiXacThuc } from "/js/auth-messages.js";
     import { setBusy, shake } from "/js/motion.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
@@ -93,6 +94,9 @@
       await dangXuat();
       window.location.href = "/index.html";
     });
+
+    const next = new URLSearchParams(window.location.search).get("next");
+    document.querySelector('main a[href="/login.html"]').href = giuNext("/login.html", next);
 
     const form = document.getElementById("form-dang-ky");
     const btnSubmit = document.getElementById("btn-submit");
@@ -118,7 +122,7 @@
         await dangKy({ hoTen, email, matKhau, soDienThoai });
         showToast("Tạo tài khoản thành công!", "success");
         const vaiTro = await layVaiTroHienTai();
-        window.location.href = duongDanTheoVaiTro(vaiTro);
+        window.location.href = diemDenSauDangNhap(vaiTro, next, duongDanTheoVaiTro(vaiTro));
       } catch (err) {
         showToast(thongBaoLoiXacThuc(err, "Đăng ký thất bại, vui lòng thử lại."), "error");
         setBusy(btnSubmit, false);

@@ -5,6 +5,7 @@
 
 import { auth, db } from "/js/firebase-config.js";
 import { docVaiTroDem, luuVaiTroDem } from "/js/auth.js";
+import { duongDanDangNhap } from "/js/redirect-rules.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -30,7 +31,7 @@ export function checkRole(vaiTroChoPhep, onDaXacThuc) {
   onAuthStateChanged(auth, async (user) => {
     if (!user) {
       luuVaiTroDem(null);
-      window.location.href = "/login.html";
+      window.location.href = duongDanDangNhap(window.location.pathname + window.location.search);
       return;
     }
 

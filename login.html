@@ -66,6 +66,7 @@
   <script type="module">
     import { auth } from "/js/firebase-config.js";
     import { dangNhap, dangXuat, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
+    import { diemDenSauDangNhap, giuNext } from "/js/redirect-rules.js";
     import { showToast } from "/js/utils.js";
     import { thongBaoLoiXacThuc } from "/js/auth-messages.js";
     import { setBusy, shake } from "/js/motion.js";
@@ -80,6 +81,9 @@
       window.location.href = "/index.html";
     });
 
+    const next = new URLSearchParams(window.location.search).get("next");
+    document.querySelector('a[href="/register.html"]').href = giuNext("/register.html", next);
+
     const form = document.getElementById("form-dang-nhap");
     const btnSubmit = document.getElementById("btn-submit");
 
@@ -93,7 +97,7 @@
       try {
         await dangNhap({ email, matKhau });
         const vaiTro = await layVaiTroHienTai();
-        window.location.href = duongDanTheoVaiTro(vaiTro);
+        window.location.href = diemDenSauDangNhap(vaiTro, next, duongDanTheoVaiTro(vaiTro));
       } catch (err) {
         showToast(thongBaoLoiXacThuc(err, "Đăng nhập thất bại, vui lòng thử lại."), "error");
         setBusy(btnSubmit, false);

@@ -1,10 +1,11 @@
 // js/customer/product-list.js
 // Trang product-list.html: danh sách sp, tìm theo tên, lọc danh mục + khoảng
-// giá, phân trang. Collection dùng: sanpham, danhmuc.
+// giá, sắp xếp, phân trang. Collection dùng: sanpham, danhmuc.
 
 import { db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, escapeHtml } from "/js/utils.js";
 import { swapContent, prefersReducedMotion } from "/js/motion.js";
+import { khopTuKhoa, sapXepSanPham, KIEU_SAP_XEP } from "/js/search-rules.js";
 import {
   collection,
   query,
@@ -21,6 +22,7 @@ const elDanhMuc = document.getElementById("danh-muc");
 const elTuKhoa = document.getElementById("tu-khoa");
 const elGiaTu = document.getElementById("gia-tu");
 const elGiaDen = document.getElementById("gia-den");
+const elSapXep = document.getElementById("sap-xep");
 
 let tatCaSanPham = []; // toàn bộ sp đang bán
 let danhSachSauLoc = [];
@@ -31,13 +33,14 @@ let khoaLocCuoi = null;
 let soLanChuyen = 0;
 const cacheThe = new Map(); // giữ thẻ đã dựng để ảnh không tải lại và các thẻ còn lại trượt đúng chỗ khi lọc
 
-// Bộ lọc nằm trên query string (tukhoa, danhmuc, giatu, giaden, trang): trang chủ / breadcrumb lọc sẵn, bấm Back quay về đúng kết quả.
+// Bộ lọc nằm trên query string (tukhoa, danhmuc, giatu, giaden, sapxep, trang): trang chủ / breadcrumb lọc sẵn, bấm Back quay về đúng kết quả.
 const thamSoUrl = new URLSearchParams(window.location.search);
 
 function docBoLocTuUrl() {
   elTuKhoa.value = thamSoUrl.get("tukhoa") ?? "";
   elGiaTu.value = thamSoUrl.get("giatu") ?? "";
   elGiaDen.value = thamSoUrl.get("giaden") ?? "";
+  elSapXep.value = thamSoUrl.get("sapxep") in KIEU_SAP_XEP ? thamSoUrl.get("sapxep") : "mac_dinh";
   trangHienTai = Math.max(1, parseInt(thamSoUrl.get("trang"), 10) || 1);
 }
 
@@ -47,6 +50,7 @@ function dongBoUrl() {
   if (elDanhMuc.value) tham.set("danhmuc", elDanhMuc.value);
   if (elGiaTu.value) tham.set("giatu", elGiaTu.value);
   if (elGiaDen.value) tham.set("giaden", elGiaDen.value);
+  if (elSapXep.value !== "mac_dinh") tham.set("sapxep", elSapXep.value);
   if (trangHienTai > 1) tham.set("trang", trangHienTai);
   const chuoi = tham.toString();
   history.replaceState(null, "", window.location.pathname + (chuoi ? `?${chuoi}` : ""));
@@ -91,17 +95,19 @@ async function taiSanPham() {
 }
 
 function apDungBoLoc({ giuTrang = false } = {}) {
-  const tuKhoa = elTuKhoa.value.trim().toLowerCase();
+  const tuKhoa = elTuKhoa.value.trim();
   const danhMucId = elDanhMuc.value;
   const giaTu = elGiaTu.value ? Number(elGiaTu.value) : null;
   const giaDen = elGiaDen.value ? Number(elGiaDen.value) : null;
 
-  const khoaLoc = JSON.stringify([tuKhoa, danhMucId, giaTu, giaDen]);
+  const kieuSapXep = elSapXep.value;
+
+  const khoaLoc = JSON.stringify([tuKhoa, danhMucId, giaTu, giaDen, kieuSapXep]);
   if (!giuTrang && khoaLoc === khoaLocCuoi) return;
   khoaLocCuoi = khoaLoc;
 
-  danhSachSauLoc = tatCaSanPham.filter((sp) => {
-    if (tuKhoa && !sp.tenSanPham?.toLowerCase().includes(tuKhoa)) return false;
+  danhSachSauLoc = sapXepSanPham(tatCaSanPham, kieuSapXep).filter((sp) => {
+    if (tuKhoa && !khopTuKhoa(sp.tenSanPham, tuKhoa)) return false;
     if (danhMucId && sp.danhMucId !== danhMucId) return false;
     if (giaTu !== null && sp.gia < giaTu) return false;
     if (giaDen !== null && sp.gia > giaDen) return false;
@@ -220,6 +226,7 @@ document.getElementById("form-loc").addEventListener("submit", (e) => {
 elDanhMuc.addEventListener("change", locTheoNguoiDung);
 elGiaTu.addEventListener("change", locTheoNguoiDung);
 elGiaDen.addEventListener("change", locTheoNguoiDung);
+elSapXep.addEventListener("change", locTheoNguoiDung);
 elTuKhoa.addEventListener("input", () => {
   clearTimeout(henGio);
   henGio = setTimeout(locTheoNguoiDung, 250);

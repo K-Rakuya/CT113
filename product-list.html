@@ -71,7 +71,16 @@
       </aside>
 
       <div class="kh-catalog-layout__results">
-        <div id="ket-qua-dem" class="text-muted" style="margin-bottom: var(--spacing-md); min-height: 1.55em;"></div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
+        <div class="flex-between" style="margin-bottom: var(--spacing-md); gap: var(--spacing-md); flex-wrap: wrap;">
+          <div id="ket-qua-dem" class="text-muted" style="min-height: 1.55em;"></div>
+          <select class="select" id="sap-xep" aria-label="Sắp xếp sản phẩm" style="width: auto;">
+            <option value="mac_dinh">Sắp xếp: Mặc định</option>
+            <option value="moi_nhat">Mới nhất</option>
+            <option value="gia_tang">Giá thấp đến cao</option>
+            <option value="gia_giam">Giá cao đến thấp</option>
+            <option value="ten_az">Tên A đến Z</option>
+          </select>
+        </div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
         <div id="danh-sach-san-pham" class="grid" aria-busy="true">
           <!-- Khung chờ: hiện ngay khung hình đầu, kích thước khớp thẻ thật (không xô lệch bố cục).
                product-list.js thay bằng thẻ thật và gỡ aria-busy. -->

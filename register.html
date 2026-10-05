@@ -81,6 +81,7 @@
     import { auth } from "/js/firebase-config.js";
     import { dangKy, dangXuat, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
     import { showToast } from "/js/utils.js";
+    import { thongBaoLoiXacThuc } from "/js/auth-messages.js";
     import { setBusy, shake } from "/js/motion.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
@@ -119,7 +120,7 @@
         const vaiTro = await layVaiTroHienTai();
         window.location.href = duongDanTheoVaiTro(vaiTro);
       } catch (err) {
-        showToast(err.message || "Đăng ký thất bại.", "error");
+        showToast(thongBaoLoiXacThuc(err, "Đăng ký thất bại, vui lòng thử lại."), "error");
         setBusy(btnSubmit, false);
         btnSubmit.textContent = "Đăng ký";
         shake(form.closest(".card"));

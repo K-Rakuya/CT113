@@ -30,6 +30,8 @@ export function phanBe(dsPhien, uid) {
   };
 }
 
+export const tieuDeCoSoPhienCho = (tieuDe, soCho) => (soCho > 0 ? `(${soCho}) ${tieuDe}` : tieuDe);
+
 export function conTiepNhanDuoc(dsPhien, uid) {
   return phanBe(dsPhien, uid).cuaToi.length < SO_PHIEN_TOI_DA;
 }

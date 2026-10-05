@@ -55,6 +55,10 @@
             <h3>Ticket hỗ trợ chờ xử lý</h3>
             <p id="stat-pending-tickets" class="nv-stat-num">0</p>
           </div>
+          <div class="card nv-stat-card">
+            <h3>Phiên tư vấn đang chờ</h3>
+            <p id="stat-pending-chats" class="nv-stat-num">0</p>
+          </div>
         </div>
       </section>
     </main>
@@ -65,6 +69,7 @@
     import { dangXuat } from "/js/auth.js";
     import { db } from "/js/firebase-config.js";
     import { animateNumber } from "/js/motion.js";
+    import { ngheSoPhienCho } from "/js/staff/chat-badge.js";
     import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
     checkRole(["nhan_vien"]);
@@ -94,6 +99,13 @@
     }
 
     document.addEventListener("DOMContentLoaded", loadDashboardStats);
+
+    let soPhienHienThi = 0;
+    ngheSoPhienCho((soCho) => {
+      const el = document.getElementById("stat-pending-chats");
+      if (el) animateNumber(el, soCho, { from: soPhienHienThi });
+      soPhienHienThi = soCho;
+    });
   </script>
 </body>
 </html>

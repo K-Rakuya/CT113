@@ -1,15 +1,18 @@
 import { db } from "/js/firebase-config.js";
+import { ngayCuaDon } from "/js/owner/revenue-metrics.js";
 import { collection, getDocs, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /** @returns {Promise<{id: string, ngay: Date, trangThai: string, tongTien: number}[]>} */
 export async function taiDonHang(tu, den) {
-  const snap = await getDocs(
-    query(collection(db, "donhang"), where("ngayDat", ">=", Timestamp.fromDate(tu)), where("ngayDat", "<=", Timestamp.fromDate(den)))
-  );
-  return snap.docs.map((d) => {
+  const [tuTs, denTs] = [Timestamp.fromDate(tu), Timestamp.fromDate(den)];
+  const theoKhoang = (truong) => getDocs(query(collection(db, "donhang"), where(truong, ">=", tuTs), where(truong, "<=", denTs)));
+  const [theoNgayDat, theoNgayHoanThanh] = await Promise.all([theoKhoang("ngayDat"), theoKhoang("ngayHoanThanh")]);
+  const donHang = new Map();
+  for (const d of [...theoNgayDat.docs, ...theoNgayHoanThanh.docs]) {
     const x = d.data();
-    return { id: d.id, ngay: x.ngayDat?.toDate?.() ?? new Date(0), trangThai: x.trangThai, tongTien: x.tongTien };
-  });
+    if (!donHang.has(d.id)) donHang.set(d.id, { id: d.id, ngay: ngayCuaDon(x), trangThai: x.trangThai, tongTien: x.tongTien });
+  }
+  return [...donHang.values()];
 }
 
 export async function taiChiTiet(donHangIds) {

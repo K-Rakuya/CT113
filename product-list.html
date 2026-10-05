@@ -6,6 +6,13 @@
   <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
   <script>try{(function(d){var n=parseInt(localStorage.getItem("ct113.cart"),10);localStorage.getItem("ct113.auth")==="in"&&(d.dataset.authHint="in");n>0&&(d.dataset.cart=n>99?"99+":n,d.style.setProperty("--cart-n",Math.min(n,99)))})(document.documentElement)}catch(e){}</script>
   <script src="/js/page-transitions.js"></script>
+  <meta name="description" content="Danh sách linh kiện máy tính. Tìm theo tên, lọc theo danh mục và khoảng giá, sắp xếp theo giá hoặc sản phẩm mới." />
+  <meta name="theme-color" content="#A6541C" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="vi_VN" />
+  <meta property="og:title" content="Sản phẩm — Website bán linh kiện máy tính" />
+  <meta property="og:description" content="Danh sách linh kiện máy tính. Tìm theo tên, lọc theo danh mục và khoảng giá, sắp xếp theo giá hoặc sản phẩm mới." />
   <title>Sản phẩm — Website bán linh kiện máy tính</title>
   <link rel="expect" href="#main" blocking="render" />
   <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
@@ -20,11 +27,16 @@
   <link rel="stylesheet" href="/css/product.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
 
   <header class="site-header">
     <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>
+    <form class="site-search" action="/product-list.html" method="get" role="search">
+      <input class="input" type="search" name="tukhoa" placeholder="Tìm linh kiện..." aria-label="Tìm sản phẩm" autocomplete="off" />
+    </form>
     <nav class="site-header__nav">
       <a href="/product-list.html">Sản phẩm</a>
+      <a href="/customer/chat.html">Tư vấn</a>
       <a href="/cart.html">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l2.4 12.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 8H6"/><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
         Giỏ hàng
@@ -70,7 +82,16 @@
       </aside>
 
       <div class="kh-catalog-layout__results">
-        <div id="ket-qua-dem" class="text-muted" style="margin-bottom: var(--spacing-md); min-height: 1.55em;"></div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
+        <div class="flex-between" style="margin-bottom: var(--spacing-md); gap: var(--spacing-md); flex-wrap: wrap;">
+          <div id="ket-qua-dem" class="text-muted" style="min-height: 1.55em;"></div>
+          <select class="select" id="sap-xep" aria-label="Sắp xếp sản phẩm" style="width: auto;">
+            <option value="mac_dinh">Sắp xếp: Mặc định</option>
+            <option value="moi_nhat">Mới nhất</option>
+            <option value="gia_tang">Giá thấp đến cao</option>
+            <option value="gia_giam">Giá cao đến thấp</option>
+            <option value="ten_az">Tên A đến Z</option>
+          </select>
+        </div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
         <div id="danh-sach-san-pham" class="grid" aria-busy="true">
           <!-- Khung chờ: hiện ngay khung hình đầu, kích thước khớp thẻ thật (không xô lệch bố cục).
                product-list.js thay bằng thẻ thật và gỡ aria-busy. -->

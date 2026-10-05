@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/page-transitions.js"></script>
+  <meta name="description" content="Khu vực quản lý nội bộ." />
+  <meta name="theme-color" content="#A6541C" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="noindex" />
   <title>Hỗ Trợ Khách Hàng - Nhân Viên</title>
   <link rel="expect" href="#main" blocking="render" />
-  <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/staff/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -17,14 +22,16 @@
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
   <div class="dashboard-layout">
     <aside class="dashboard-layout__sidebar">
       <h2>Nhân Viên</h2>
       <nav>
         <a href="/staff/dashboard.html">Tổng quan</a>
         <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/inventory.html">Kho hàng</a>
         <a href="/staff/support-tickets.html" class="active">Hỗ trợ khách hàng</a>
-        <a href="/staff/consult.html">Tư vấn trực tuyến</a>
+        <a href="/staff/chat.html">Tư vấn trực tuyến</a>
         <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
       </nav>
     </aside>
@@ -58,5 +65,6 @@
     });
   </script>
   <script type="module" src="/js/staff/support-tickets.js"></script>
+  <script type="module" src="/js/staff/chat-badge.js"></script>
 </body>
 </html>

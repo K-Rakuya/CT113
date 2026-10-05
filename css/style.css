@@ -188,6 +188,19 @@ p { margin: 0 0 var(--spacing-md); }
   letter-spacing: var(--tracking-tight);
 }
 .site-header__logo:hover { text-decoration: none; }
+.skip-link {
+  position: absolute;
+  left: var(--spacing-md);
+  top: -48px;
+  z-index: 200;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius);
+}
+.skip-link:focus { top: var(--spacing-sm); }
+.site-search { flex: 1 1 200px; max-width: 380px; }
+.site-search .input { padding-block: 7px; }
 .site-header__nav {
   display: flex;
   align-items: center;
@@ -835,4 +848,10 @@ html[data-dieu-huong="traverse"] .hero__categories li { animation: none; }
 .is-guarded body { animation: none; }
 html:not([data-auth-hint="in"]).is-guarded body:not([hidden]) > main {
   animation: fade-in var(--dur-base) var(--ease-out) backwards;
+}
+
+@media (max-width: 640px) {
+  .site-header { gap: var(--spacing-sm); padding-inline: var(--spacing-md); }
+  .site-search { order: 2; flex: 1 1 0; min-width: 0; max-width: none; }
+  .site-header__nav { order: 3; flex: 1 0 100%; justify-content: space-between; gap: var(--spacing-sm); }
 }

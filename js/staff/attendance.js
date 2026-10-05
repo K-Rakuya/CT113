@@ -1,6 +1,7 @@
 import { db, auth } from "/js/firebase-config.js";
-import { showToast, ghiNhatKy, ngayHienTai } from "/js/utils.js";
+import { showToast, ghiNhatKy, ngayHienTai, formatDate } from "/js/utils.js";
 import { pulse } from "/js/motion.js";
+import { thangHienTai, thoiLuongPhut, dinhDangThoiLuong, tongHopThang } from "/js/attendance-rules.js";
 import { 
   collection, 
   addDoc, 
@@ -16,6 +17,31 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/f
 const btnCheckin = document.getElementById("btn-checkin");
 const btnCheckout = document.getElementById("btn-checkout");
 const statusEl = document.getElementById("attendance-status");
+const elLichSu = document.getElementById("ds-lich-su");
+const elTongLichSu = document.getElementById("tong-lich-su");
+
+const SO_BAN_GHI_LICH_SU = 31;
+const gio = (ms) => (ms == null ? "—" : new Date(ms).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }));
+
+async function taiLichSu(uid) {
+  if (!elLichSu) return;
+  try {
+    const snap = await getDocs(query(collection(db, "chamcong"), where("nhanVienId", "==", uid)));
+    const ds = snap.docs
+      .map((d) => {
+        const x = d.data();
+        return { nhanVienId: uid, ngay: x.ngay, gioVao: x.gioVao?.toMillis?.() ?? null, gioRa: x.gioRa?.toMillis?.() ?? null };
+      })
+      .sort((a, b) => b.ngay.localeCompare(a.ngay) || (b.gioVao ?? 0) - (a.gioVao ?? 0));
+    elLichSu.innerHTML = ds.length
+      ? ds.slice(0, SO_BAN_GHI_LICH_SU).map((b) => `<tr><td>${formatDate(new Date(`${b.ngay}T00:00:00`))}</td><td>${gio(b.gioVao)}</td><td>${b.gioRa == null ? "đang làm" : gio(b.gioRa)}</td><td>${dinhDangThoiLuong(thoiLuongPhut(b.gioVao, b.gioRa))}</td></tr>`).join("")
+      : '<tr><td colspan="4" class="qt-empty">Chưa có lịch sử chấm công.</td></tr>';
+    const cong = tongHopThang(ds.filter((b) => b.ngay.startsWith(thangHienTai()))).get(uid) ?? { soNgay: 0, tongPhut: 0 };
+    elTongLichSu.textContent = `Tháng này: ${cong.soNgay} ngày công · ${dinhDangThoiLuong(cong.tongPhut || null)}`;
+  } catch (err) {
+    console.error("Lỗi tải lịch sử chấm công:", err);
+  }
+}
 
 // Biến lưu ID của bản ghi chấm công hiện tại
 let currentChamCongId = null;
@@ -75,6 +101,7 @@ async function layTrangThaiCaLam(user) {
 onAuthStateChanged(auth, (user) => {
   if (user) {
     layTrangThaiCaLam(user);
+    taiLichSu(user.uid);
   }
 });
 
@@ -111,6 +138,7 @@ btnCheckin?.addEventListener("click", async () => {
     pulse(statusEl);
     btnCheckin.disabled = true;
     if (btnCheckout) btnCheckout.disabled = false;
+    taiLichSu(user.uid);
   } catch (err) {
     btnCheckin.disabled = false;
     showToast("Vào ca thất bại!", "error");
@@ -147,6 +175,7 @@ btnCheckout?.addEventListener("click", async () => {
     pulse(statusEl);
     if (btnCheckout) btnCheckout.disabled = true;
     if (btnCheckin) btnCheckin.disabled = true;
+    taiLichSu(auth.currentUser.uid);
   } catch (err) {
     btnCheckout.disabled = false;
     showToast("Ra ca thất bại!", "error");

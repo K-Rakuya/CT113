@@ -3,9 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tư Vấn Trực Tuyến - Nhân Viên</title>
+  <script src="/js/page-transitions.js"></script>
+  <meta name="description" content="Khu vực quản lý nội bộ." />
+  <meta name="theme-color" content="#A6541C" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="noindex" />
+  <title>Kho Hàng - Nhân Viên</title>
   <link rel="expect" href="#main" blocking="render" />
-  <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/staff/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
@@ -17,21 +22,23 @@
   <link rel="stylesheet" href="/css/dashboard.css">
 </head>
 <body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
   <div class="dashboard-layout">
     <aside class="dashboard-layout__sidebar">
       <h2>Nhân Viên</h2>
       <nav>
         <a href="/staff/dashboard.html">Tổng quan</a>
         <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/inventory.html" class="active">Kho hàng</a>
         <a href="/staff/support-tickets.html">Hỗ trợ khách hàng</a>
-        <a href="/staff/consult.html" class="active">Tư vấn trực tuyến</a>
+        <a href="/staff/chat.html">Tư vấn trực tuyến</a>
         <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
       </nav>
     </aside>
 
     <main id="main" class="dashboard-layout__main">
       <header class="dashboard-layout__topbar">
-        <h1>Tư Vấn Trực Tuyến</h1>
+        <h1>Kho Hàng</h1>
         <div>
           <span id="user-info">Đang tải...</span>
           <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
@@ -40,14 +47,22 @@
 
       <section class="dashboard-layout__content">
         <div class="card">
-          <h3>Khu vực nhắn tin tư vấn</h3>
-          <p style="margin-top: 8px; color: var(--color-text-muted, #64748b);">Hệ thống giao tiếp trực tiếp với khách hàng tìm hiểu sản phẩm dịch vụ.</p>
-
-          <div id="consult-list" style="margin-top: 20px;">
-            <p>Đang tải danh sách tư vấn...</p>
+          <div class="qt-toolbar">
+            <input class="input qt-toolbar__grow" type="search" id="tim-kiem" placeholder="Tìm theo tên sản phẩm..." aria-label="Tìm sản phẩm">
+            <select class="select" id="loc-ton" aria-label="Lọc theo tồn kho">
+              <option value="">Mọi mức tồn</option>
+              <option value="sap_het">Sắp hết</option>
+              <option value="het">Hết hàng</option>
+            </select>
+          </div>
+          <div class="qt-scroll">
+            <table class="nv-table">
+              <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá bán</th><th>Tồn kho</th><th></th></tr></thead>
+              <tbody id="ds-san-pham"></tbody>
+            </table>
+          </div>
+          <p class="qt-sub" id="tong-ket"></p>
         </div>
-        </div>
-        
       </section>
     </main>
   </div>
@@ -63,6 +78,7 @@
       window.location.href = "/login.html";
     });
   </script>
-  <script type="module" src="/js/staff/consult.js"></script>
+  <script type="module" src="/js/staff/inventory.js"></script>
+  <script type="module" src="/js/staff/chat-badge.js"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ import { auth, db } from "/js/firebase-config.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
@@ -96,6 +97,11 @@ export async function dangNhap({ email, matKhau }) {
 
   luuVaiTroDem(cred.user.uid, snap.exists() ? snap.data().vaiTro ?? null : null);
   return cred.user;
+}
+
+/** gửi email đặt lại mật khẩu. @returns {Promise<void>} */
+export function guiEmailDatLaiMatKhau(email) {
+  return sendPasswordResetEmail(auth, email);
 }
 
 /** Đăng xuất người dùng hiện tại. @returns {Promise<void>} */

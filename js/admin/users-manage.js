@@ -2,7 +2,7 @@ import { auth, db } from "/js/firebase-config.js";
 import { showToast, ghiNhatKy, escapeHtml, formatDate } from "/js/utils.js";
 import { pulse, setBusy, shake } from "/js/motion.js";
 import { openModal, closeModal, confirmDialog } from "/js/dialog.js";
-import { NHAN_VAI_TRO, laNhanSu, kiemTraThayDoi } from "/js/admin/users-rules.js";
+import { NHAN_VAI_TRO, kiemTraThayDoi } from "/js/admin/users-rules.js";
 import { taoTaiKhoanNhanSu, thongBaoLoi } from "/js/admin/account-create.js";
 import { collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
@@ -18,10 +18,7 @@ const form = document.getElementById("form-nguoi-dung");
 const truong = {
   vaiTro: document.getElementById("f-vai-tro"),
   trangThai: document.getElementById("f-trang-thai"),
-  chucVu: document.getElementById("f-chuc-vu"),
-  luong: document.getElementById("f-luong"),
 };
-const elNhomNhanSu = document.getElementById("nhom-nhan-su");
 const elLoi = document.getElementById("f-loi");
 
 let nguoiDung = [];
@@ -92,24 +89,17 @@ async function taiDuLieu() {
   }
 }
 
-function hienNhomNhanSu() {
-  elNhomNhanSu.hidden = !laNhanSu(truong.vaiTro.value);
-}
-
 function moForm(u) {
   dangSua = u;
   document.getElementById("tieu-de-form").textContent = u.hoTen || u.email || "Người dùng";
   document.getElementById("f-email").textContent = u.email ?? "";
   truong.vaiTro.value = u.vaiTro;
   truong.trangThai.value = u.trangThai;
-  truong.chucVu.value = u.chucVu ?? "";
-  truong.luong.value = u.luongCoBan ?? "";
   const laToi = u.id === uidHienTai;
   truong.vaiTro.disabled = laToi;
   truong.trangThai.disabled = laToi;
   document.getElementById("ghi-chu-ban-than").hidden = !laToi;
   elLoi.hidden = true;
-  hienNhomNhanSu();
   openModal(modal);
 }
 
@@ -120,14 +110,14 @@ function baoLoi(thongBao, el) {
   el?.focus();
 }
 
-async function luu(truongMoi) {
-  await updateDoc(doc(db, "users", dangSua.id), truongMoi);
+async function luu(moi) {
+  await updateDoc(doc(db, "users", dangSua.id), moi);
   const nhatKy = [];
-  if (truongMoi.vaiTro !== dangSua.vaiTro) nhatKy.push(`sua_nguoi_dung: users/${dangSua.id} -> vai_tro ${dangSua.vaiTro} thanh ${truongMoi.vaiTro}`);
-  if (truongMoi.trangThai !== dangSua.trangThai) nhatKy.push(`${truongMoi.trangThai === "khoa" ? "khoa" : "mo_khoa"}_nguoi_dung: users/${dangSua.id}`);
+  if (moi.vaiTro !== dangSua.vaiTro) nhatKy.push(`sua_nguoi_dung: users/${dangSua.id} -> vai_tro ${dangSua.vaiTro} thanh ${moi.vaiTro}`);
+  if (moi.trangThai !== dangSua.trangThai) nhatKy.push(`${moi.trangThai === "khoa" ? "khoa" : "mo_khoa"}_nguoi_dung: users/${dangSua.id}`);
   if (!nhatKy.length) nhatKy.push(`sua_nguoi_dung: users/${dangSua.id}`);
   for (const hanhDong of nhatKy) await ghiNhatKy(hanhDong);
-  Object.assign(dangSua, truongMoi);
+  Object.assign(dangSua, moi);
   const tr = elDanhSach.querySelector(`tr[data-id="${CSS.escape(dangSua.id)}"]`);
   if (tr) {
     tr.innerHTML = htmlDong(dangSua);
@@ -142,13 +132,6 @@ form.addEventListener("submit", async (e) => {
   const loi = kiemTraThayDoi(dangSua, moi, nguoiDung, uidHienTai);
   if (loi) return baoLoi(loi);
 
-  const truongMoi = { ...moi };
-  if (laNhanSu(moi.vaiTro)) {
-    const luong = truong.luong.value === "" ? 0 : Number(truong.luong.value);
-    if (!Number.isFinite(luong) || luong < 0) return baoLoi("Lương cơ bản phải là số không âm.", truong.luong);
-    truongMoi.chucVu = truong.chucVu.value.trim();
-    truongMoi.luongCoBan = luong;
-  }
   if (moi.vaiTro !== dangSua.vaiTro) {
     const dongY = await confirmDialog({
       tieuDe: "Đổi vai trò?",
@@ -162,7 +145,7 @@ form.addEventListener("submit", async (e) => {
   const nutLuu = document.getElementById("btn-luu");
   setBusy(nutLuu, true);
   try {
-    await luu(truongMoi);
+    await luu(moi);
     showToast("Đã cập nhật người dùng.", "success");
     closeModal(modal);
   } catch (err) {
@@ -216,7 +199,6 @@ elTab.addEventListener("click", (e) => {
   boLoc = nut.dataset.loc;
   render();
 });
-truong.vaiTro.addEventListener("change", hienNhomNhanSu);
 let henGio = 0;
 elTimKiem.addEventListener("input", () => {
   clearTimeout(henGio);

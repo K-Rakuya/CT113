@@ -429,3 +429,16 @@
 .qt-chan-bang { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .qt-chan-bang p { margin: 0; }
 .qt-form-grid + .qt-form-grid { margin-top: 0; }
+
+.nv-badge {
+  display: inline-block;
+  min-width: 20px;
+  margin-left: var(--spacing-xs);
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: var(--color-text-on-dark);
+  font-size: var(--text-xs);
+  line-height: 20px;
+  text-align: center;
+}

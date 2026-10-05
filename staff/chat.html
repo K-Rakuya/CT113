@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/js/page-transitions.js"></script>
+  <meta name="description" content="Khu vực quản lý nội bộ." />
+  <meta name="theme-color" content="#A6541C" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="noindex" />
+  <title>Tư Vấn Trực Tuyến - Nhân Viên</title>
+  <link rel="expect" href="#main" blocking="render" />
+  <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/staff/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
+  <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/chat.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
+  <div class="dashboard-layout">
+    <aside class="dashboard-layout__sidebar">
+      <h2>Nhân Viên</h2>
+      <nav>
+        <a href="/staff/dashboard.html">Tổng quan</a>
+        <a href="/staff/orders-manage.html">Quản lý đơn hàng</a>
+        <a href="/staff/inventory.html">Kho hàng</a>
+        <a href="/staff/support-tickets.html">Hỗ trợ khách hàng</a>
+        <a href="/staff/chat.html" class="active">Tư vấn trực tuyến</a>
+        <a href="/staff/attendance.html">Điểm danh / Ca làm</a>
+      </nav>
+    </aside>
+
+    <main id="main" class="dashboard-layout__main">
+      <header class="dashboard-layout__topbar">
+        <h1>Tư Vấn Trực Tuyến</h1>
+        <div>
+          <span id="user-info">Đang tải...</span>
+          <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
+        </div>
+      </header>
+
+      <section class="dashboard-layout__content">
+        <div class="nv-chat">
+          <div class="nv-chat__cot">
+            <div class="nv-chat__nhom">
+              <h3>Chờ tiếp nhận <span id="so-cho"></span></h3>
+              <div id="ds-cho"></div>
+            </div>
+            <div class="nv-chat__nhom">
+              <h3>Của tôi <span id="so-cua-toi"></span></h3>
+              <div id="ds-cua-toi"></div>
+            </div>
+            <div class="nv-chat__nhom">
+              <h3>Nhân viên khác đang tư vấn <span id="so-nguoi-khac"></span></h3>
+              <div id="ds-nguoi-khac"></div>
+            </div>
+          </div>
+
+          <div id="chat-khung" class="chat-khung" hidden>
+            <div class="chat-tieu-de">
+              <div>
+                <strong id="chat-ten-khach"></strong>
+                <div class="chat-tieu-de__nhan" id="chat-phu"></div>
+              </div>
+              <div>
+                <button type="button" class="btn btn--secondary btn--sm" id="btn-tra-ve">Trả về</button>
+                <button type="button" class="btn btn--primary btn--sm" id="btn-ket-thuc">Kết thúc</button>
+              </div>
+            </div>
+            <div class="chat-danh-sach" id="chat-ds" aria-live="polite"></div>
+            <form class="chat-soan" id="chat-form">
+              <textarea class="textarea" id="chat-noi-dung" rows="1" maxlength="1000" placeholder="Nhập tin nhắn..." aria-label="Tin nhắn"></textarea>
+              <button type="submit" class="btn btn--primary" id="btn-gui">Gửi</button>
+            </form>
+          </div>
+          <p id="chat-chua-chon" class="chat-trong">Chọn một phiên trong danh sách hoặc tiếp nhận phiên đang chờ.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import { checkRole } from "/js/router-guard.js";
+    import { dangXuat } from "/js/auth.js";
+
+    checkRole(["nhan_vien"]);
+
+    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
+      await dangXuat();
+      window.location.href = "/login.html";
+    });
+  </script>
+  <script type="module" src="/js/staff/chat.js"></script>
+  <script type="module" src="/js/staff/chat-badge.js"></script>
+</body>
+</html>

@@ -72,8 +72,15 @@ service cloud.firestore {
 
     match /danhgia/{id} {
       allow read: if true;
-      allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid;
-      allow update, delete: if dangNhap() && resource.data.khachHangId == request.auth.uid;
+      allow create: if dangNhap() && vaiTro() == 'khach_hang'
+        && request.resource.data.khachHangId == request.auth.uid
+        && request.resource.data.soSao in [1, 2, 3, 4, 5]
+        && request.resource.data.noiDung.size() <= 1000;
+      allow update: if dangNhap() && resource.data.khachHangId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['soSao', 'noiDung'])
+        && request.resource.data.soSao in [1, 2, 3, 4, 5]
+        && request.resource.data.noiDung.size() <= 1000;
+      allow delete: if dangNhap() && resource.data.khachHangId == request.auth.uid;
     }
 
     match /chamcong/{id} {

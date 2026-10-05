@@ -188,6 +188,17 @@ p { margin: 0 0 var(--spacing-md); }
   letter-spacing: var(--tracking-tight);
 }
 .site-header__logo:hover { text-decoration: none; }
+.skip-link {
+  position: absolute;
+  left: var(--spacing-md);
+  top: -48px;
+  z-index: 200;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-primary);
+  color: var(--color-text-on-dark);
+  border-radius: var(--radius);
+}
+.skip-link:focus { top: var(--spacing-sm); }
 .site-search { flex: 1 1 200px; max-width: 380px; }
 .site-search .input { padding-block: 7px; }
 .site-header__nav {

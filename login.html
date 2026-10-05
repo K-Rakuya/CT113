@@ -6,6 +6,10 @@
   <!-- Gợi ý trạng thái đăng nhập từ lần trước (xem js/firebase-config.js) -->
   <script>try{(function(d){var n=parseInt(localStorage.getItem("ct113.cart"),10);localStorage.getItem("ct113.auth")==="in"&&(d.dataset.authHint="in");n>0&&(d.dataset.cart=n>99?"99+":n,d.style.setProperty("--cart-n",Math.min(n,99)))})(document.documentElement)}catch(e){}</script>
   <script src="/js/page-transitions.js"></script>
+  <meta name="description" content="Đăng nhập để đặt hàng, theo dõi đơn hàng và nhận tư vấn." />
+  <meta name="theme-color" content="#A6541C" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta name="robots" content="noindex" />
   <title>Đăng nhập — Website bán linh kiện máy tính</title>
   <link rel="expect" href="#main" blocking="render" />
   <script type="speculationrules">{"prerender":[{"where":{"or":[{"href_matches":"/product-detail.html"},{"href_matches":"/product-detail.html\\?*"},{"href_matches":"/product-list.html"},{"href_matches":"/product-list.html\\?*"}]},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
@@ -19,6 +23,7 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
 
   <header class="site-header">
     <a href="/index.html" class="site-header__logo">Tên cửa hàng</a>

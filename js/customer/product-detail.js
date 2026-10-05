@@ -92,6 +92,9 @@ function renderSanPham() {
   const sp = sanPhamHienTai;
   const conHang = (sp.soLuongTon ?? 0) > 0;
 
+  document.title = `${sp.tenSanPham} — Website bán linh kiện máy tính`;
+  document.querySelector('meta[name="description"]')?.setAttribute("content", `${sp.tenSanPham}, giá ${formatCurrency(sp.gia)}. ${conHang ? "Còn hàng" : "Tạm hết hàng"}.`);
+
   elChiTiet.innerHTML = `
     <div class="kh-detail">
       <img class="kh-detail__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" fetchpriority="high" decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'">

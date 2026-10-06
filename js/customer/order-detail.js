@@ -157,7 +157,11 @@ export async function initChiTietDonHang() {
     const don = { id: donSnap.id, ...donSnap.data() };
 
     const ctdhSnap = await getDocs(
-      query(collection(db, "chitietdonhang"), where("donHangId", "==", donHangId))
+      query(
+        collection(db, "chitietdonhang"),
+        where("donHangId", "==", donHangId),
+        where("khachHangId", "==", auth.currentUser.uid) // rules chỉ cho khách đọc dòng của chính mình
+      )
     );
     const chiTiet = ctdhSnap.docs.map((d) => d.data());
 

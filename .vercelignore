@@ -1,0 +1,7 @@
+# Không upload lên Vercel (scripts/ và api/ vẫn được upload vì build cần)
+README.md
+firestore.rules
+.github/
+dev/
+docs/
+*.log

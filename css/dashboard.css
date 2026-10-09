@@ -442,3 +442,8 @@
   line-height: 20px;
   text-align: center;
 }
+
+.lk-dong { display: grid; grid-template-columns: minmax(0, 1fr) 84px auto; gap: var(--spacing-sm); margin-bottom: var(--spacing-sm); }
+.qt-lk-tong { margin-top: var(--spacing-sm); font-weight: 600; }
+.qt-check { display: inline-flex; align-items: center; gap: var(--spacing-sm); font-weight: 400; }
+#form-bo { width: min(680px, 94vw); }

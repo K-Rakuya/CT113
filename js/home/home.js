@@ -3,12 +3,14 @@ import { dangXuat } from "/js/auth.js";
 import { formatCurrency, escapeHtml, layCache, luuCache } from "/js/utils.js";
 import { chonCacNhom, chonDanhGiaNoiBat, bieuTuongDanhMuc, laMoi, nhanTon, catNoiDung } from "/js/home/home-rules.js";
 import { khoiTaoBanner, khoiTaoHang, hienKhiCuonToi } from "/js/home/carousel.js";
+import { veBoPc } from "/js/home/bundle-view.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-const KHOA_CACHE = "home:v1";
+const KHOA_CACHE = "home:v2";
 const TTL_CACHE = 3 * 60 * 1000;
 
+const elBoPc = document.getElementById("bo-pc");
 const elNhom = document.getElementById("home-nhom");
 const elDanhMuc = document.getElementById("home-danh-muc");
 const elDanhGia = document.getElementById("home-danh-gia");
@@ -27,10 +29,11 @@ document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => 
 async function taiDuLieu() {
   const dem = layCache(KHOA_CACHE);
   if (dem) return dem;
-  const [sp, dm, dg] = await Promise.all([
+  const [sp, dm, dg, bo] = await Promise.all([
     getDocs(query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"))),
     getDocs(collection(db, "danhmuc")),
     getDocs(query(collection(db, "danhgia"), orderBy("ngayDanhGia", "desc"), limit(30))).catch(() => ({ docs: [] })),
+    getDocs(query(collection(db, "bopc"), where("hienThi", "==", true))).catch(() => ({ docs: [] })),
   ]);
   const du = {
     sanPham: sp.docs.map((d) => {
@@ -38,6 +41,10 @@ async function taiDuLieu() {
       return { id: d.id, tenSanPham: x.tenSanPham, gia: x.gia, soLuongTon: x.soLuongTon ?? 0, hinhAnh: x.hinhAnh, danhMucId: x.danhMucId, trangThai: x.trangThai, ngayTao: x.ngayTao?.toMillis?.() ?? 0 };
     }),
     danhMuc: dm.docs.map((d) => ({ id: d.id, tenDanhMuc: d.data().tenDanhMuc })),
+    boPc: bo.docs.map((d) => {
+      const x = d.data();
+      return { id: d.id, ten: x.ten, loai: x.loai, moTa: x.moTa, thuTu: x.thuTu ?? 0, linhKien: x.linhKien ?? [] };
+    }),
     danhGia: dg.docs.map((d) => {
       const x = d.data();
       return { sanPhamId: x.sanPhamId, soSao: x.soSao, noiDung: x.noiDung, ngayDanhGia: x.ngayDanhGia?.toMillis?.() ?? 0 };
@@ -116,6 +123,12 @@ async function khoiTao() {
     const bayGio = Date.now();
     const cacNhom = chonCacNhom(du.sanPham, du.danhMuc);
     veDanhMuc(du);
+    const soBo = veBoPc(elBoPc, du);
+    document.querySelectorAll("[data-bo-pc]").forEach((a) => {
+      if (soBo) return;
+      a.setAttribute("href", "/product-list.html");
+      a.firstChild.textContent = "Xem sản phẩm";
+    });
     if (!cacNhom.length) {
       elNhom.innerHTML = '<div class="home-group"><p class="home-empty">Cửa hàng chưa có sản phẩm nào.</p></div>';
     } else {

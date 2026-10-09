@@ -9,7 +9,7 @@
   <meta name="theme-color" content="#A6541C" />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <meta name="robots" content="noindex" />
-  <title>Quản Lý Danh Mục</title>
+  <title>Bộ PC Dựng Sẵn</title>
   <link rel="expect" href="#main" blocking="render" />
   <script type="speculationrules">{"prerender":[{"where":{"href_matches":"/owner/*"},"eagerness":"moderate"}],"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/dev/*"}}]},"eagerness":"moderate"}]}</script>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
@@ -30,8 +30,8 @@
       <nav>
         <a href="/owner/dashboard.html">Tổng quan</a>
         <a href="/owner/products-manage.html">Sản phẩm</a>
-        <a href="/owner/categories.html" class="active" aria-current="page">Danh mục</a>
-        <a href="/owner/pc-bundles.html">Bộ PC dựng sẵn</a>
+        <a href="/owner/categories.html">Danh mục</a>
+        <a href="/owner/pc-bundles.html" class="active" aria-current="page">Bộ PC dựng sẵn</a>
         <a href="/owner/staff-manage.html">Nhân sự</a>
         <a href="/owner/support-overview.html">Tư vấn và hỗ trợ</a>
         <a href="/owner/revenue-report.html">Báo cáo doanh thu</a>
@@ -41,7 +41,7 @@
 
     <main id="main" class="dashboard-layout__main">
       <header class="dashboard-layout__topbar">
-        <h1>Quản Lý Danh Mục</h1>
+        <h1>Bộ PC Dựng Sẵn</h1>
         <div>
           <span id="user-info"></span>
           <button id="btn-dang-xuat" class="btn btn--danger btn--sm">Đăng xuất</button>
@@ -51,29 +51,45 @@
       <section class="dashboard-layout__content">
         <div class="card">
           <div class="qt-toolbar">
-            <span class="qt-toolbar__grow"></span>
-            <button type="button" class="btn btn--primary" id="btn-them">+ Thêm danh mục</button>
+            <p class="qt-sub qt-toolbar__grow">Mỗi bộ gồm nhiều sản phẩm trong kho. Giá và tồn kho lấy trực tiếp từ sản phẩm, khách thêm cả bộ vào giỏ chỉ với một lần bấm.</p>
+            <button type="button" class="btn btn--secondary" id="btn-goi-y">Gợi ý bộ mẫu từ kho</button>
+            <button type="button" class="btn btn--primary" id="btn-them-bo">+ Thêm bộ PC</button>
           </div>
           <div class="qt-scroll">
             <table class="nv-table">
-              <thead><tr><th>Danh mục</th><th class="qt-num">Số sản phẩm</th><th></th></tr></thead>
-              <tbody id="ds-danh-muc"></tbody>
+              <thead><tr><th>Bộ PC</th><th>Loại</th><th>Linh kiện</th><th>Tổng giá</th><th>Tình trạng</th><th>Hiển thị</th><th></th></tr></thead>
+              <tbody id="ds-bo-pc"></tbody>
             </table>
           </div>
+          <p class="qt-sub" id="tong-ket"></p>
         </div>
       </section>
     </main>
   </div>
 
-  <div class="modal" id="modal-danh-muc" hidden>
+  <div class="modal" id="modal-bo" hidden>
     <div class="modal__backdrop" data-dong-modal></div>
-    <form class="modal__dialog" id="form-danh-muc" role="dialog" aria-modal="true" aria-labelledby="tieu-de-form" novalidate>
+    <form class="modal__dialog" id="form-bo" role="dialog" aria-modal="true" aria-labelledby="tieu-de-bo" novalidate>
       <div class="modal__header">
-        <h3 id="tieu-de-form">Thêm danh mục</h3>
+        <h3 id="tieu-de-bo">Bộ PC</h3>
         <button type="button" class="modal__close" data-dong-modal aria-label="Đóng">&times;</button>
       </div>
       <div class="modal__body">
-        <div class="form-group"><label for="f-ten">Tên danh mục</label><input class="input" id="f-ten" maxlength="60" required></div>
+        <div class="qt-form-grid">
+          <div class="form-group"><label for="f-ten">Tên bộ</label><input class="input" id="f-ten" maxlength="80" autocomplete="off"></div>
+          <div class="form-group"><label for="f-loai">Loại</label><select class="select" id="f-loai"></select></div>
+        </div>
+        <div class="form-group"><label for="f-mo-ta">Mô tả ngắn</label><textarea class="textarea" id="f-mo-ta" rows="2" maxlength="300"></textarea></div>
+        <div class="qt-form-grid">
+          <div class="form-group"><label for="f-thu-tu">Thứ tự hiển thị</label><input class="input" id="f-thu-tu" type="number" min="0" step="1" value="0"></div>
+          <div class="form-group"><label>Hiển thị trên trang chủ</label><label class="qt-check"><input type="checkbox" id="f-hien-thi"> Bật hiển thị</label></div>
+        </div>
+        <div class="form-group">
+          <label>Linh kiện</label>
+          <div id="lk-ds"></div>
+          <button type="button" class="btn btn--secondary btn--sm" id="btn-them-lk">+ Thêm linh kiện</button>
+          <p class="qt-lk-tong" id="lk-tong"></p>
+        </div>
         <p class="hint qt-loi" id="f-loi" role="alert" hidden></p>
       </div>
       <div class="modal__footer">
@@ -82,9 +98,10 @@
       </div>
     </form>
   </div>
+
   <script type="module">
     import { khoiTaoTrangQuanTri } from "/js/dashboard-shell.js";
-    import { khoiTao } from "/js/owner/categories.js";
+    import { khoiTao } from "/js/owner/pc-bundles.js";
     khoiTaoTrangQuanTri(["chu_cua_hang"], khoiTao);
   </script>
 </body>

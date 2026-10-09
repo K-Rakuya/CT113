@@ -45,6 +45,14 @@ service cloud.firestore {
     match /cauhinh/{id} { allow read: if true; allow write: if laCH(); }
     match /nhacungcap/{id} { allow read, write: if laCH(); }
 
+    match /bopc/{id} {
+      allow read: if resource.data.hienThi == true || laCH();
+      allow create, update: if laCH()
+        && request.resource.data.ten.size() > 0 && request.resource.data.ten.size() <= 80
+        && request.resource.data.linhKien.size() >= 2 && request.resource.data.linhKien.size() <= 20;
+      allow delete: if laCH();
+    }
+
     match /donhang/{id} {
       allow read: if dangNhap() && (resource.data.khachHangId == request.auth.uid || laBanHang());
       allow create: if dangNhap() && request.resource.data.khachHangId == request.auth.uid

@@ -20,12 +20,16 @@
   <link rel="preload" href="/fonts/ibm-plex-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/ibm-plex-sans-vietnamese-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="modulepreload" href="/js/firebase-config.js" />
+  <link rel="modulepreload" href="/js/home/home.js" />
+  <link rel="preload" href="/images/home/art-pc.svg" as="image" fetchpriority="high" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/product.css" />
+  <link rel="stylesheet" href="/css/home.css" />
 </head>
+
 <body>
   <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
 
@@ -53,99 +57,117 @@
     </nav>
   </header>
 
-  <section class="hero">
-    <div class="container hero__inner">
-      <div>
-        <h1 class="hero__title">Đúng linh kiện, đúng giá, có sẵn hàng</h1>
-        <p class="hero__lead">CPU, mainboard, RAM, SSD và card đồ hoạ chính hãng — chọn theo đúng cấu hình bạn cần, giao nhanh, đổi trả rõ ràng.</p>
-        <a href="/product-list.html" class="btn btn--primary">Xem sản phẩm</a>
-      </div>
-      <ul class="hero__categories" aria-label="Danh mục nổi bật">
-        <li>CPU</li>
-        <li>Mainboard</li>
-        <li>RAM</li>
-        <li>SSD</li>
-        <li>Card đồ hoạ</li>
-        <li>Phụ kiện</li>
-      </ul>
-    </div>
-  </section>
+  <main id="main" class="home">
+    <div class="home-wrap">
+      <section class="home-banner" aria-roledescription="carousel" aria-label="Nổi bật tại cửa hàng" style="--auto-ms: 6000ms">
+        <div class="home-banner__track" tabindex="0" role="group" aria-label="Kéo ngang hoặc dùng phím mũi tên để chuyển slide">
+      <article class="home-slide" role="group" aria-roledescription="slide" aria-label="1 trên 4">
+        <div class="home-slide__body">
+          <span class="home-slide__chip" style="--i:0"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#pc"/></svg>Bộ PC dựng sẵn</span>
+          <h2 class="home-slide__title" style="--i:1">Chọn nguyên bộ, nhận cấu hình sẵn sàng</h2>
+          <p class="home-slide__lead" style="--i:2">Văn phòng, gaming hay đồ hoạ: mỗi bộ gồm đủ linh kiện và bạn có thể thêm cả bộ vào giỏ chỉ với một lần bấm.</p>
+          <div class="home-slide__cta" style="--i:3"><a class="home-btn home-btn--light" href="#bo-pc" data-bo-pc>Xem bộ PC<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#arrow"/></svg></a><a class="home-btn home-btn--glass" href="/customer/chat.html">Chat tư vấn cấu hình</a></div>
+        </div>
+        <img class="home-slide__art" src="/images/home/art-pc.svg" alt="" width="480" height="380" fetchpriority="high" decoding="async" draggable="false">
+      </article>
+      <article class="home-slide home-slide--teal" role="group" aria-roledescription="slide" aria-label="2 trên 4">
+        <div class="home-slide__body">
+          <span class="home-slide__chip" style="--i:0"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#spark"/></svg>Hàng mới về</span>
+          <h2 class="home-slide__title" style="--i:1">Linh kiện mới, xem ngay khi vừa lên kệ</h2>
+          <p class="home-slide__lead" style="--i:2">CPU, RAM, SSD, card đồ hoạ và phụ kiện được cập nhật liên tục. Tìm kiếm không cần gõ dấu, lọc theo giá dễ dàng.</p>
+          <div class="home-slide__cta" style="--i:3"><a class="home-btn home-btn--light" href="/product-list.html?sapxep=moi_nhat">Xem hàng mới<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#arrow"/></svg></a><a class="home-btn home-btn--glass" href="/product-list.html">Tất cả sản phẩm</a></div>
+        </div>
+        <img class="home-slide__art" src="/images/home/art-new.svg" alt="" width="480" height="380" loading="lazy" decoding="async" draggable="false">
+      </article>
+      <article class="home-slide home-slide--blue" role="group" aria-roledescription="slide" aria-label="3 trên 4">
+        <div class="home-slide__body">
+          <span class="home-slide__chip" style="--i:0"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#chat"/></svg>Tư vấn trực tuyến</span>
+          <h2 class="home-slide__title" style="--i:1">Chưa biết chọn gì? Hỏi nhân viên ngay</h2>
+          <p class="home-slide__lead" style="--i:2">Chat trực tiếp để được gợi ý linh kiện phù hợp với nhu cầu và ngân sách của bạn.</p>
+          <div class="home-slide__cta" style="--i:3"><a class="home-btn home-btn--light" href="/customer/chat.html">Chat ngay<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#arrow"/></svg></a><a class="home-btn home-btn--glass" href="/customer/support.html">Hỗ trợ kỹ thuật</a></div>
+        </div>
+        <img class="home-slide__art" src="/images/home/art-chat.svg" alt="" width="480" height="380" loading="lazy" decoding="async" draggable="false">
+      </article>
+      <article class="home-slide home-slide--amber" role="group" aria-roledescription="slide" aria-label="4 trên 4">
+        <div class="home-slide__body">
+          <span class="home-slide__chip" style="--i:0"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#truck"/></svg>Đặt hàng dễ dàng</span>
+          <h2 class="home-slide__title" style="--i:1">Thanh toán khi nhận hàng, theo dõi từng bước</h2>
+          <p class="home-slide__lead" style="--i:2">Đặt hàng chỉ vài bước, thanh toán khi nhận hàng và xem trạng thái đơn theo thời gian thực.</p>
+          <div class="home-slide__cta" style="--i:3"><a class="home-btn home-btn--light" href="/product-list.html">Mua sắm ngay<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#arrow"/></svg></a><a class="home-btn home-btn--glass" href="/customer/orders.html">Đơn hàng của tôi</a></div>
+        </div>
+        <img class="home-slide__art" src="/images/home/art-order.svg" alt="" width="480" height="380" loading="lazy" decoding="async" draggable="false">
+      </article>
+        </div>
+        <button class="home-banner__nav home-banner__nav--prev" type="button" aria-label="Slide trước"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#chev-l"/></svg></button>
+        <button class="home-banner__nav home-banner__nav--next" type="button" aria-label="Slide sau"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#chev-r"/></svg></button>
+        <div class="home-banner__bar">
+          <div role="tablist" aria-label="Chọn slide" style="display:flex"><button class="home-banner__dot" type="button" role="tab" aria-selected="true" aria-label="Slide 1"></button><button class="home-banner__dot" type="button" role="tab" aria-selected="false" aria-label="Slide 2"></button><button class="home-banner__dot" type="button" role="tab" aria-selected="false" aria-label="Slide 3"></button><button class="home-banner__dot" type="button" role="tab" aria-selected="false" aria-label="Slide 4"></button></div>
+          <button class="home-banner__toggle" type="button" aria-pressed="false" aria-label="Tạm dừng tự động chuyển slide"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#pause"/></svg></button>
+        </div>
+      </section>
 
-  <main id="main" class="container" style="padding-bottom: var(--spacing-lg);">
-    <section style="margin-top: var(--spacing-2xl);">
-      <div class="flex-between" style="margin-bottom: var(--spacing-md);">
-        <h2 style="margin:0;">Sản phẩm nổi bật</h2>
-        <a href="/product-list.html">Xem tất cả sản phẩm</a>
-      </div>
-      <div id="san-pham-noi-bat" class="grid" aria-busy="true">
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-        <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span></div>
-      </div>
-    </section>
+      <section class="home-section" aria-labelledby="h-danh-muc">
+        <div class="home-section__head"><div><h2 class="home-section__title" id="h-danh-muc">Mua theo danh mục</h2><p class="home-section__sub">Chọn nhanh loại linh kiện bạn cần</p></div></div>
+        <nav class="home-cats" id="home-danh-muc" aria-label="Danh mục sản phẩm"></nav>
+      </section>
+
+      <section class="home-section" aria-label="Vì sao mua tại cửa hàng"><div class="home-trust"><div class="home-trust__item"><span class="home-trust__icon"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#chat"/></svg></span><div><strong>Tư vấn trực tuyến</strong><span>Chat với nhân viên khi cần</span></div></div><div class="home-trust__item"><span class="home-trust__icon"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#truck"/></svg></span><div><strong>Thanh toán khi nhận hàng</strong><span>Không cần trả trước</span></div></div><div class="home-trust__item"><span class="home-trust__icon"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#receipt"/></svg></span><div><strong>Theo dõi đơn hàng</strong><span>Cập nhật trạng thái theo thời gian thực</span></div></div><div class="home-trust__item"><span class="home-trust__icon"><svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#shield"/></svg></span><div><strong>Hỗ trợ sau khi mua</strong><span>Gửi yêu cầu ngay trong tài khoản</span></div></div></div></section>
+
+      <section class="home-bopc" id="bo-pc" aria-labelledby="h-bo-pc" hidden></section>
+
+      <div id="home-nhom" aria-busy="true"><div class="home-group" aria-hidden="true"><div class="home-group__head"><div class="home-group__title"><span class="home-group__icon"></span><div><div class="home-group__name">&nbsp;</div></div></div></div><div class="home-row"><div class="home-row__track"><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div></div></div></div><div class="home-group" aria-hidden="true"><div class="home-group__head"><div class="home-group__title"><span class="home-group__icon"></span><div><div class="home-group__name">&nbsp;</div></div></div></div><div class="home-row"><div class="home-row__track"><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div><div class="home-skel"></div></div></div></div></div>
+
+      <section class="home-section" id="home-danh-gia" aria-labelledby="h-danh-gia" hidden>
+        <div class="home-section__head"><div><h2 class="home-section__title" id="h-danh-gia">Khách hàng nói gì</h2><p class="home-section__sub">Những đánh giá mới từ người đã mua hàng</p></div></div>
+        <div class="home-reviews"></div>
+      </section>
+
+      <section class="home-cta" aria-labelledby="h-cta">
+        <div><h2 class="home-cta__title" id="h-cta">Cần một cấu hình riêng cho nhu cầu của bạn?</h2><p class="home-cta__text">Cho nhân viên biết ngân sách và mục đích sử dụng, bạn sẽ nhận được gợi ý linh kiện phù hợp.</p></div>
+        <div class="home-cta__actions"><a class="home-btn home-btn--light" href="/customer/chat.html">Chat với nhân viên <svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#arrow"/></svg></a><a class="home-btn home-btn--glass" href="/product-list.html">Xem tất cả sản phẩm</a></div>
+      </section>
+    </div>
   </main>
 
-  <footer class="site-footer">© 2026 — Đồ án CT113</footer>
+  <footer class="site-footer">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <strong data-cua-hang="ten">Tên cửa hàng</strong>
+        <p data-cua-hang="slogan">Cửa hàng linh kiện và máy tính.</p>
+      </div>
+      <nav aria-label="Mua sắm">
+        <h3>Mua sắm</h3>
+        <ul>
+          <li><a href="/product-list.html">Tất cả sản phẩm</a></li>
+          <li><a href="/product-list.html?sapxep=moi_nhat">Hàng mới về</a></li>
+          <li><a href="/index.html#bo-pc">Bộ PC dựng sẵn</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Hỗ trợ">
+        <h3>Hỗ trợ</h3>
+        <ul>
+          <li><a href="/customer/chat.html">Tư vấn trực tuyến</a></li>
+          <li><a href="/customer/support.html">Hỗ trợ kỹ thuật</a></li>
+          <li><a href="/customer/orders.html">Đơn hàng của tôi</a></li>
+          <li><a href="/forgot-password.html">Quên mật khẩu</a></li>
+        </ul>
+      </nav>
+      <div class="site-footer__contact" hidden>
+        <h3>Liên hệ</h3>
+        <ul>
+          <li data-cua-hang-khoi="diaChi" hidden><svg class="ic" aria-hidden="true"><use href="/images/home/icons.svg#pin"/></svg><span data-cua-hang="diaChi"></span></li>
+          <li data-cua-hang-khoi="hotline" hidden><svg class="ic" aria-hidden="true"><use href="/images/home/icons.svg#phone"/></svg><a data-cua-hang="hotline" href="#"></a></li>
+          <li data-cua-hang-khoi="email" hidden><svg class="ic" aria-hidden="true"><use href="/images/home/icons.svg#mail"/></svg><a data-cua-hang="email" href="#"></a></li>
+          <li data-cua-hang-khoi="gioMoCua" hidden><svg class="ic" aria-hidden="true"><use href="/images/home/icons.svg#clock"/></svg><span data-cua-hang="gioMoCua"></span></li>
+        </ul>
+      </div>
+    </div>
+    <p class="site-footer__bottom">© 2026 <span data-cua-hang="ten">Tên cửa hàng</span> — Đồ án CT113</p>
+  </footer>
 
-  <script type="module">
-    import { auth } from "/js/firebase-config.js";
-    import { dangXuat } from "/js/auth.js";
-    import { formatCurrency, escapeHtml } from "/js/utils.js";
-    import { swapContent } from "/js/motion.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-    import { collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-    import { db } from "/js/firebase-config.js";
+  <dialog class="home-dialog" id="home-bo-dialog" aria-labelledby="home-dialog-ten"></dialog>
 
-    // Header: hiện/ẩn theo trạng thái đăng nhập (mẫu chung — copy y hệt sang mọi trang).
-    onAuthStateChanged(auth, (user) => {
-      document.querySelector('[data-auth="in"]').hidden = !user;
-      document.querySelector('[data-auth="out"]').hidden = !!user;
-    });
-    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
-      await dangXuat();
-      window.location.href = "/index.html";
-    });
-
-    // Sản phẩm nổi bật: 8 sản phẩm đang bán mới nhất.
-    const khungHienThi = document.getElementById("san-pham-noi-bat");
-    try {
-      const q = query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"), limit(8));
-      const snap = await getDocs(q);
-      swapContent(khungHienThi, () => {
-      if (snap.empty) {
-        khungHienThi.innerHTML = '<p class="text-muted">Chưa có sản phẩm nào.</p>';
-      } else {
-        khungHienThi.innerHTML = "";
-        let i = 0;
-        snap.forEach((docSnap) => {
-          const sp = docSnap.data();
-          const stt = i++;
-          const uuTien = stt < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
-          const a = document.createElement("a");
-          a.href = `/product-detail.html?id=${docSnap.id}`;
-          a.className = "card kh-product-card motion-enter"; // hiện lần lượt khi dữ liệu về
-          a.style.setProperty("--i", stt);
-          a.innerHTML = `
-            <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
-            <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
-            <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
-          `;
-          khungHienThi.appendChild(a);
-        });
-      }
-      });
-    } catch (err) {
-      khungHienThi.innerHTML = '<p class="text-muted">Không tải được sản phẩm nổi bật.</p>';
-      console.error(err);
-    } finally {
-      khungHienThi.removeAttribute("aria-busy");
-    }
-  </script>
+  <script type="module" src="/js/home/home.js"></script>
+  <script type="module" src="/js/store-info.js"></script>
 </body>
 </html>
-  

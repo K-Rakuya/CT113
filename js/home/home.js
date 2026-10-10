@@ -1,11 +1,11 @@
 import { db } from "/js/firebase-config.js";
 import { formatCurrency, escapeHtml, layCache, luuCache } from "/js/utils.js";
+import { KHOA_CACHE_TRANG_CHU } from "/js/home/home-cache.js";
 import { chonCacNhom, chonDanhGiaNoiBat, bieuTuongDanhMuc, laMoi, nhanTon, catNoiDung } from "/js/home/home-rules.js";
 import { khoiTaoBanner, khoiTaoHang, hienKhiCuonToi } from "/js/home/carousel.js";
 import { veBoPc } from "/js/home/bundle-view.js";
 import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
-const KHOA_CACHE = "home:v2";
 const TTL_CACHE = 3 * 60 * 1000;
 
 const elBoPc = document.getElementById("bo-pc");
@@ -18,7 +18,7 @@ const elFooterBoPc = document.querySelector('.site-footer a[href="/index.html#bo
 const icon = (ma) => `<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#${ma}"/></svg>`;
 
 async function taiDuLieu() {
-  const dem = layCache(KHOA_CACHE);
+  const dem = layCache(KHOA_CACHE_TRANG_CHU);
   if (dem) return dem;
   const [sp, dm, dg, bo] = await Promise.all([
     getDocs(query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"))),
@@ -41,7 +41,7 @@ async function taiDuLieu() {
       return { sanPhamId: x.sanPhamId, soSao: x.soSao, noiDung: x.noiDung, ngayDanhGia: x.ngayDanhGia?.toMillis?.() ?? 0 };
     }),
   };
-  luuCache(KHOA_CACHE, du, TTL_CACHE);
+  luuCache(KHOA_CACHE_TRANG_CHU, du, TTL_CACHE);
   return du;
 }
 

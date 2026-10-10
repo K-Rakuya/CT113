@@ -57,8 +57,13 @@
 }
 
 .home-btn:hover {
-  transform: translateY(-2px);
   text-decoration: none;
+}
+
+@media (hover: hover) {
+  .home-btn:hover {
+    transform: translateY(-2px);
+  }
 }
 
 .home-btn:active {
@@ -152,7 +157,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: radial-gradient(circle at 82% 28%, var(--s-glow), transparent 56%), radial-gradient(rgba(255, 255, 255, .075) 1px, transparent 1.6px) 0 0 / 22px 22px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, .28), transparent 60%);
 }
 
 .home-slide--teal {
@@ -168,6 +173,10 @@
 .home-slide--amber {
   --s-bg: linear-gradient(125deg, #1f1d19, #3b3324 58%, #8a6d1f 140%);
   --s-glow: rgba(243, 220, 154, .32);
+}
+
+.home-slide:has(.home-slide__art[hidden]) {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .home-slide__body {
@@ -219,10 +228,16 @@
 }
 
 .home-slide__art {
-  justify-self: end;
-  width: 100%;
-  max-width: 450px;
-  max-height: 100%;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 56%;
+  height: 100%;
+  object-fit: cover;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 38%);
+  mask-image: linear-gradient(90deg, transparent, #000 38%);
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
@@ -340,13 +355,18 @@
   background: rgba(255, 255, 255, .24);
 }
 
-.home-slide.is-active .home-slide__body>* {
+.home-slide.is-pre .home-slide__body>*,
+.home-slide.is-pre .home-slide__art {
+  opacity: 0;
+}
+
+.home-slide.is-enter .home-slide__body>* {
   animation: home-rise .7s var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 90ms);
 }
 
-.home-slide.is-active .home-slide__art {
-  animation: home-float 7s ease-in-out infinite, home-art-in .9s var(--ease-out) both;
+.home-slide.is-enter .home-slide__art {
+  animation: home-art-in 1.1s var(--ease-out) both;
 }
 
 /* danh mục */
@@ -442,16 +462,31 @@
 }
 
 .home-cat:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--c) 45%, var(--color-border));
-  box-shadow: var(--shadow-md);
   text-decoration: none;
 }
 
-.home-cat:hover .home-cat__icon {
-  background: var(--c);
-  color: #fff;
-  transform: scale(1.06) rotate(-4deg);
+@media (hover: hover) {
+  .home-cat:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--c) 45%, var(--color-border));
+    box-shadow: var(--shadow-md);
+  }
+
+  .home-cat:hover .home-cat__icon {
+    background: var(--c);
+    color: #fff;
+    transform: scale(1.06) rotate(-4deg);
+  }
+}
+
+.home-cat:active {
+  transform: translateY(-1px) scale(.98);
+}
+
+.home-cat--skel {
+  height: 132px;
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-border) 55%, var(--color-surface));
 }
 
 /* cam kết */
@@ -606,13 +641,22 @@
   font-size: var(--text-sm);
   font-weight: 600;
   text-decoration: none;
-  transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
 }
 
 .home-group__more:hover {
-  background: #fff;
-  color: color-mix(in srgb, var(--g) 70%, #000);
   text-decoration: none;
+}
+
+@media (hover: hover) {
+  .home-group__more:hover {
+    background: #fff;
+    color: color-mix(in srgb, var(--g) 70%, #000);
+  }
+}
+
+.home-group__more:active {
+  transform: scale(.97);
 }
 
 .home-group__more .home-icon {
@@ -734,8 +778,14 @@
   right: 10px;
 }
 
-.home-row__nav:hover:not(:disabled) {
-  transform: scale(1.08);
+@media (hover: hover) {
+  .home-row__nav:hover:not(:disabled) {
+    transform: scale(1.08);
+  }
+}
+
+.home-row__nav:active:not(:disabled) {
+  transform: scale(.94);
 }
 
 .home-row__nav:disabled {
@@ -775,11 +825,59 @@
 }
 
 .home-skel {
-  height: 268px;
+  height: 276px;
   flex: 0 0 clamp(158px, 17.4%, 214px);
-  border-radius: 20px;
-  background: linear-gradient(100deg, rgba(28, 27, 25, .05) 30%, rgba(28, 27, 25, .1) 50%, rgba(28, 27, 25, .05) 70%) 0 0 / 220% 100%;
-  animation: home-shimmer 1.4s linear infinite;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--color-border) 55%, var(--color-surface));
+}
+
+.home-skel-line {
+  display: block;
+  width: min(220px, 50%);
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-border) 70%, var(--color-surface));
+}
+
+.home-group--skel .home-group__head,
+.home-bopc--skel .home-bopc__head {
+  min-height: 84px;
+}
+
+.home-group--skel {
+  --g: var(--color-border);
+}
+
+.home-group--skel .home-group__head {
+  background: color-mix(in srgb, var(--color-border) 55%, var(--color-surface));
+}
+
+.home-group--skel .home-group__head::before,
+.home-group--skel .home-group__head::after {
+  display: none;
+}
+
+.home-group--skel .home-group__icon {
+  background: color-mix(in srgb, var(--color-border) 70%, var(--color-surface));
+  box-shadow: none;
+}
+
+.home-bo-skel {
+  height: 596px;
+  flex: 0 0 clamp(250px, 26%, 300px);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, .08);
+}
+
+.home-bopc .skeleton::after {
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .12) 50%, transparent 80%);
+}
+
+.home-group-slot {
+  height: 428px;
+  margin-top: var(--home-gap);
+  border-radius: var(--home-r);
+  background: color-mix(in srgb, var(--color-border) 35%, var(--color-surface));
 }
 
 /* đánh giá */
@@ -906,7 +1004,7 @@
 .home-reveal {
   opacity: 0;
   transform: translateY(22px);
-  transition: opacity .6s var(--ease-out), transform .6s var(--ease-out);
+  transition: opacity var(--dur-slow) var(--ease-out), transform var(--dur-slow) var(--ease-out);
 }
 
 .home-reveal.is-in {
@@ -924,25 +1022,13 @@
 @keyframes home-art-in {
   from {
     opacity: 0;
-    scale: .92;
-  }
-}
-
-@keyframes home-float {
-  50% {
-    translate: 0 -8px;
+    scale: 1.15;
   }
 }
 
 @keyframes home-fill {
   to {
     transform: scaleX(1);
-  }
-}
-
-@keyframes home-shimmer {
-  to {
-    background-position: -220% 0;
   }
 }
 
@@ -968,13 +1054,10 @@
   }
 
   .home-slide__art {
-    position: absolute;
-    right: -6%;
-    bottom: 3%;
-    width: 50%;
-    max-width: 220px;
-    opacity: .22;
-    z-index: -1;
+    width: 100%;
+    opacity: .3;
+    -webkit-mask-image: none;
+    mask-image: none;
   }
 
   .home-slide__title {
@@ -1010,6 +1093,22 @@
     flex-basis: min(44vw, 188px);
   }
 
+  .home-skel {
+    height: 256px;
+  }
+
+  .home-group-slot {
+    height: 472px;
+  }
+
+  .home-group--skel .home-group__head {
+    min-height: 123px;
+  }
+
+  .home-bopc--skel .home-bopc__head {
+    min-height: 198px;
+  }
+
   .home-cats {
     grid-auto-columns: 98px;
   }
@@ -1043,9 +1142,12 @@
     transition: none;
   }
 
-  .home-slide.is-active .home-slide__body>*,
-  .home-slide.is-active .home-slide__art,
-  .home-skel {
+  .home-slide.is-enter .home-slide__body>*,
+  .home-slide.is-enter .home-slide__art,
+  .home .skeleton::after,
+  .home-row .kh-product-card__media:not(.is-error):not(:has(.is-loaded))::before,
+  .home-dialog[open],
+  .home-dialog[open]::backdrop {
     animation: none;
   }
 
@@ -1064,6 +1166,26 @@
 
 .home-row .kh-product-card__media {
   position: relative;
+  background: color-mix(in srgb, var(--color-border) 45%, var(--color-surface));
+}
+
+.home-row .kh-product-card__media:not(.is-error):not(:has(.is-loaded))::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, .6) 50%, transparent 80%);
+  transform: translateX(-100%);
+  animation: sk-sweep 1.6s var(--ease-move) infinite;
+}
+
+.home-row .kh-product-card__media.is-error::after {
+  content: "Chưa có ảnh";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
 }
 
 .home-review__stars .is-off {
@@ -1098,6 +1220,12 @@
   transform: none;
 }
 
+.home-btn.is-success,
+.home-btn.is-success:hover {
+  background: var(--color-success);
+  color: #fff;
+}
+
 .home-btn--ghost {
   background: transparent;
   color: var(--color-text);
@@ -1125,6 +1253,14 @@
 
 .home-bopc[hidden] {
   display: none;
+}
+
+.home-bopc--skel {
+  display: none;
+}
+
+html[data-bo-pc="1"] .home-bopc--skel {
+  display: block;
 }
 
 .home-bopc::before {
@@ -1178,11 +1314,17 @@
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background var(--dur-fast), color var(--dur-fast);
+  transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast) var(--ease-out);
 }
 
-.home-bopc__tabs button:hover {
-  background: rgba(255, 255, 255, .2);
+@media (hover: hover) {
+  .home-bopc__tabs button:hover {
+    background: rgba(255, 255, 255, .2);
+  }
+}
+
+.home-bopc__tabs button:active {
+  transform: scale(.96);
 }
 
 .home-bopc__tabs button[aria-selected="true"] {
@@ -1357,6 +1499,18 @@
   animation: home-dialog-in .28s var(--ease-out);
 }
 
+.home-dialog[open]::backdrop {
+  animation: home-backdrop-in var(--dur-base) var(--ease-out);
+}
+
+.home-dialog.is-closing {
+  animation: home-dialog-out var(--dur-leave) var(--ease-in) forwards;
+}
+
+.home-dialog.is-closing::backdrop {
+  animation: home-backdrop-out var(--dur-leave) var(--ease-in) forwards;
+}
+
 .home-dialog::backdrop {
   background: rgba(20, 16, 12, .6);
   backdrop-filter: blur(3px);
@@ -1482,6 +1636,25 @@
   from {
     opacity: 0;
     transform: translateY(14px) scale(.98);
+  }
+}
+
+@keyframes home-dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(.98);
+  }
+}
+
+@keyframes home-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes home-backdrop-out {
+  to {
+    opacity: 0;
   }
 }
 

@@ -1,11 +1,11 @@
 import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, escapeHtml, showToast } from "/js/utils.js";
-import { setBusy } from "/js/motion.js";
+import { setBusy, swapContent, staggerIn, confirmButton, flyToCart, prefersReducedMotion, collapseAndRemove } from "/js/motion.js";
 import { getCartCount, setCartCount } from "/js/cart-badge.js";
 import { duongDanDangNhap } from "/js/redirect-rules.js";
 import { LOAI_BO_PC, tinhBoPc, keHoachThemGio } from "/js/home/bundles.js";
 import { bieuTuongDanhMuc } from "/js/home/home-rules.js";
-import { khoiTaoHang, hienKhiCuonToi } from "/js/home/carousel.js";
+import { khoiTaoHang } from "/js/home/carousel.js";
 import { collection, query, where, getDocs, addDoc, updateDoc, doc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const MINH_HOA = { van_phong: "van-phong", gaming: "gaming", do_hoa: "do-hoa", khac: "khac" };
@@ -43,6 +43,7 @@ function htmlChiTiet({ bo, t }) {
 
 async function themBoVaoGio(muc, nut) {
   if (!muc || nut.getAttribute("aria-busy") === "true") return;
+  let daThem = false;
   setBusy(nut, true);
   try {
     await auth.authStateReady(); // auth.currentUser còn null trong lúc Firebase đang khôi phục phiên đăng nhập
@@ -60,6 +61,8 @@ async function themBoVaoGio(muc, nut) {
       ? updateDoc(doc(db, "giohang", v.docId), { soLuong: v.soLuongMoi })
       : addDoc(collection(db, "giohang"), { khachHangId: user.uid, sanPhamId: v.sanPhamId, soLuong: v.soLuongMoi }))));
     setCartCount(getCartCount() + kh.tongThem);
+    daThem = true;
+    flyToCart(nut.closest(".home-bo")?.querySelector(".home-bo__art img"));
     showToast(kh.duDu ? `Đã thêm bộ "${muc.bo.ten}" vào giỏ hàng.` : `Chỉ thêm được một phần bộ "${muc.bo.ten}" do giới hạn tồn kho. Hãy kiểm tra lại giỏ hàng.`, kh.duDu ? "success" : "info");
   } catch (err) {
     console.error("Lỗi thêm bộ PC vào giỏ:", err);
@@ -67,6 +70,7 @@ async function themBoVaoGio(muc, nut) {
   } finally {
     setBusy(nut, false);
   }
+  if (daThem) confirmButton(nut, "Đã thêm");
 }
 
 /** @returns {number} số bộ đã hiển thị */
@@ -74,15 +78,24 @@ export function veBoPc(goc, du) {
   theoId = new Map(du.sanPham.map((sp) => [sp.id, sp]));
   tenDanhMuc = new Map(du.danhMuc.map((dm) => [dm.id, dm.tenDanhMuc]));
   dsBo = [...(du.boPc ?? [])].sort((a, b) => (a.thuTu ?? 0) - (b.thuTu ?? 0)).map((bo) => ({ bo, t: tinhBoPc(bo, theoId) })).filter((m) => m.t.hopLe);
+  const dangHien = getComputedStyle(goc).display !== "none";
+  goc.removeAttribute("aria-busy");
+  goc.classList.remove("home-bopc--skel");
   if (!dsBo.length) {
-    goc.hidden = true;
+    if (dangHien) {
+      goc.hidden = false;
+      collapseAndRemove(goc);
+    } else {
+      goc.hidden = true;
+    }
     return 0;
   }
   const cacLoai = [...new Set(dsBo.map((m) => m.bo.loai))];
   const tab = cacLoai.length > 1
     ? `<div class="home-bopc__tabs" role="tablist" aria-label="Lọc theo loại">${[["", "Tất cả"], ...cacLoai.map((l) => [l, LOAI_BO_PC[l] ?? "Khác"])].map(([l, ten], i) => `<button type="button" role="tab" data-loai="${escapeHtml(l)}" aria-selected="${i === 0}">${ten}</button>`).join("")}</div>`
     : "";
-  goc.innerHTML = `<header class="home-bopc__head">
+  const ve = () => {
+    goc.innerHTML = `<header class="home-bopc__head">
       <div class="home-bopc__title"><span class="home-group__icon" aria-hidden="true">${icon("pc")}</span><div><h2 id="h-bo-pc">Bộ PC dựng sẵn</h2><p>Chọn nguyên bộ theo nhu cầu, thêm cả bộ vào giỏ chỉ với một lần bấm</p></div></div>${tab}
     </header>
     <div class="home-row">
@@ -90,11 +103,14 @@ export function veBoPc(goc, du) {
       <div class="home-row__track" role="group" aria-label="Bộ PC dựng sẵn">${dsBo.map(htmlThe).join("")}</div>
       <button class="home-row__nav home-row__nav--next" type="button" data-huong="sau" aria-label="Cuộn sang phải">${icon("chev-r")}</button>
     </div>`;
+  };
+  if (dangHien) swapContent(goc, ve);
+  else ve();
   goc.hidden = false;
+  if (!dangHien && !prefersReducedMotion()) goc.animate?.({ opacity: [0, 1] }, { duration: 360, easing: "cubic-bezier(.22, 1, .36, 1)" }); // = --ease-out
   const hang = goc.querySelector(".home-row");
   const track = hang.querySelector(".home-row__track");
   khoiTaoHang(hang);
-  hienKhiCuonToi(goc);
 
   goc.querySelector(".home-bopc__tabs")?.addEventListener("click", (e) => {
     const nut = e.target.closest("[data-loai]");
@@ -103,6 +119,7 @@ export function veBoPc(goc, du) {
     track.querySelectorAll(".home-bo").forEach((c) => (c.hidden = !!nut.dataset.loai && c.dataset.loai !== nut.dataset.loai));
     track.scrollTo({ left: 0, behavior: "auto" });
     track.dispatchEvent(new Event("scroll"));
+    staggerIn(track.querySelectorAll(".home-bo:not([hidden])"));
   });
 
   const hop = document.getElementById("home-bo-dialog");
@@ -118,8 +135,22 @@ export function veBoPc(goc, du) {
     document.body.style.overflow = "hidden";
     hop.showModal();
   });
+  const dongHop = () => {
+    if (!hop.open || hop.classList.contains("is-closing")) return;
+    if (prefersReducedMotion()) return hop.close();
+    hop.classList.add("is-closing");
+  };
+  hop.addEventListener("animationend", (e) => {
+    if (e.target !== hop || e.animationName !== "home-dialog-out") return;
+    hop.classList.remove("is-closing");
+    hop.close();
+  });
+  hop.addEventListener("cancel", (e) => {
+    e.preventDefault();
+    dongHop();
+  });
   hop.addEventListener("click", (e) => {
-    if (e.target === hop || e.target.closest("[data-dong]")) return hop.close();
+    if (e.target === hop || e.target.closest("[data-dong]")) return dongHop();
     const nut = e.target.closest("[data-them]");
     if (nut) themBoVaoGio(timMuc(hop.dataset.id), nut);
   });

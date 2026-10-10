@@ -180,6 +180,21 @@ export function swapContent(el, render) {
   }
 }
 
+/**
+ * Cho các phần tử hiện lần lượt, lệch nhau một nhịp ngắn (đổi tab, lọc danh sách).
+ * Tối đa 8 phần tử đầu được lệch nhịp để tổng thời gian không kéo dài.
+ * @param {Iterable<HTMLElement>} dsPhanTu
+ */
+export function staggerIn(dsPhanTu, { delay = 40, duration = 280 } = {}) {
+  if (prefersReducedMotion()) return;
+  [...dsPhanTu].forEach((el, i) => {
+    el.animate?.(
+      [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "none" }],
+      { duration, delay: Math.min(i, 8) * delay, easing: "cubic-bezier(.22, 1, .36, 1)", fill: "backwards" } // = --ease-out
+    );
+  });
+}
+
 /** Nhịp nhỏ khi một dòng trạng thái đổi chữ (co nhẹ rồi về chỗ cũ). */
 export function pulse(el) {
   if (!el || prefersReducedMotion() || typeof el.animate !== "function") return;

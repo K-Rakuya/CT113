@@ -59,23 +59,29 @@
           <nav class="tk-nav" aria-label="Tài khoản"></nav>
         </aside>
         <div class="tk-content">
-          <div id="chat-bat-dau" class="card chat-bat-dau" hidden>
-            <h3>Tư vấn trực tuyến</h3>
-            <p class="text-muted">Trao đổi trực tiếp với nhân viên để được tư vấn cấu hình, linh kiện và đơn hàng.</p>
-            <button type="button" class="btn btn--primary" id="btn-bat-dau">Bắt đầu tư vấn</button>
+          <div id="chat-tai" class="tk-skel tk-skel--chat skeleton" aria-hidden="true"></div>
+
+          <div id="chat-bat-dau" class="tk-empty" hidden>
+            <span class="tk-empty__icon"><svg class="tk-ic" aria-hidden="true"><use href="/images/home/icons.svg#chat"/></svg></span>
+            <h2 class="tk-empty__title">Bắt đầu cuộc trò chuyện</h2>
+            <p class="tk-empty__text">Trao đổi trực tiếp với nhân viên để được tư vấn cấu hình, linh kiện và đơn hàng.</p>
+            <button type="button" class="btn btn--primary tk-empty__action" id="btn-bat-dau">Bắt đầu tư vấn</button>
           </div>
 
-          <div id="chat-khung" class="chat-khung" hidden>
+          <div id="chat-khung" class="chat-khung tk-chat" hidden>
             <div class="chat-tieu-de">
-              <span class="chat-tieu-de__nhan" id="chat-trang-thai"></span>
-              <button type="button" class="btn btn--secondary btn--sm" id="btn-ket-thuc">Kết thúc</button>
+              <div class="tk-chat__who">
+                <span class="tk-chat__dot" aria-hidden="true"></span>
+                <span class="chat-tieu-de__nhan" id="chat-trang-thai" role="status"></span>
+              </div>
+              <button type="button" class="btn btn--secondary tk-chat__end" id="btn-ket-thuc">Kết thúc</button>
             </div>
-            <div class="chat-danh-sach" id="chat-ds" aria-live="polite"></div>
+            <div class="chat-danh-sach" id="chat-ds" role="log" aria-label="Nội dung trao đổi"></div>
             <form class="chat-soan" id="chat-form">
               <textarea class="textarea" id="chat-noi-dung" rows="1" maxlength="1000" placeholder="Nhập tin nhắn..." aria-label="Tin nhắn"></textarea>
-              <button type="submit" class="btn btn--primary" id="btn-gui">Gửi</button>
+              <button type="submit" class="btn btn--primary tk-chat__send" id="btn-gui" aria-label="Gửi tin nhắn"><svg class="tk-ic" aria-hidden="true"><use href="/images/home/icons.svg#send"/></svg></button>
             </form>
-            <p class="chat-ket-thuc" id="chat-da-dong" hidden>Phiên tư vấn đã kết thúc.</p>
+            <p class="chat-ket-thuc" id="chat-da-dong" hidden>Phiên tư vấn đã kết thúc. Bạn có thể bắt đầu phiên mới bất cứ lúc nào.</p>
           </div>
         </div>
       </div>

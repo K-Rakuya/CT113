@@ -1,6 +1,6 @@
 /* css/account.css
  * Khung và thành phần của khu "Tài khoản" (customer/*.html). Tiền tố "tk-".
- * Nạp sau css/style.css và css/product.css. */
+ * Chỉ phụ thuộc css/style.css; trang chat nạp thêm css/chat.css phía sau. */
 
 .tk {
   --tk-w: 1120px;
@@ -10,6 +10,18 @@
 .tk-wrap {
   width: min(var(--tk-w), 100% - 2 * var(--spacing-md));
   margin-inline: auto;
+}
+
+.tk-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .tk-ic {
@@ -660,16 +672,26 @@
   font-weight: 600;
 }
 
-.tk-order-side .kh-summary__row {
+.tk-sum__row {
+  display: flex;
+  justify-content: space-between;
   gap: var(--spacing-sm);
+  padding: 6px 0;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
 }
 
-.tk-order-side .kh-summary__row span:last-child {
+.tk-sum__row span:last-child {
   white-space: nowrap;
 }
 
-.tk-order-side .kh-summary__total {
+.tk-sum__total {
+  margin-top: var(--spacing-sm);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-family-mono);
   font-size: var(--text-md);
+  font-weight: 600;
 }
 
 .tk-order-actions {
@@ -781,6 +803,10 @@
 
 .tk .chat-tin__ten {
   margin-bottom: 3px;
+}
+
+.tk .chat-tin--toi .chat-tin__ten {
+  opacity: 1;
 }
 
 .tk .chat-soan {

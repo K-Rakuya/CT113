@@ -228,8 +228,8 @@ function render(don, chiTiet, laDonMoi) {
       <div class="tk-order-side">
         <section class="card" aria-labelledby="h-thanh-toan">
           <h2 class="tk-section__title" id="h-thanh-toan">Thanh toán</h2>
-          <div class="kh-summary__row"><span>Phương thức</span><span>Khi nhận hàng</span></div>
-          <div class="kh-summary__row kh-summary__total"><span>Tổng cộng</span><span>${formatCurrency(don.tongTien)}</span></div>
+          <div class="tk-sum__row"><span>Phương thức</span><span>Khi nhận hàng</span></div>
+          <div class="tk-sum__row tk-sum__total"><span>Tổng cộng</span><span>${formatCurrency(don.tongTien)}</span></div>
           <div class="tk-order-actions" id="hanh-dong-don"></div>
         </section>
         <section class="card" aria-labelledby="h-giao-hang">

@@ -5,19 +5,20 @@
 //     => cho phép cache 1 năm "immutable"; mỗi lần code đổi, URL đổi theo.
 //  2. Tự thêm <link rel="modulepreload"> cho toàn bộ module tĩnh của từng trang
 //     (tính từ cây import thật, nên không bao giờ lỗi thời).
-//  3. Chỉ chép file cần phục vụ web (bỏ README, firestore.rules, scripts, api...).
+//  3. Chèn sẵn HTML footer (js/footer-rules.js) vào từng trang, để footer có ngay cả khi chưa chạy JS.
+//  4. Chỉ chép file cần phục vụ web (bỏ README, firestore.rules, scripts, api...).
 //
 // Chạy thử trên máy:  node scripts/build.mjs   rồi mở thư mục dist/ bằng 1 static server.
 
 import { createHash } from "node:crypto";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "dist");
 
-const BO_QUA_THU_MUC = new Set([".git", ".github", ".vercel", ".firebase", "node_modules", "dist", "scripts", "api", "dev", "docs"]);
+const BO_QUA_THU_MUC = new Set([".git", ".github", ".vercel", ".firebase", "node_modules", "dist", "scripts", "api", "dev", "docs", "tests"]);
 const BO_QUA_FILE = /^(README\.md|firestore\.rules|vercel\.json|\.vercelignore|\.gitignore|package(-lock)?\.json|\.DS_Store|Thumbs\.db|.*\.log|\.env.*)$/;
 
 function duyet(thuMuc, loc = () => true) {
@@ -40,6 +41,15 @@ for (const ten of readdirSync(ROOT)) {
     recursive: true,
     filter: (src) => !(statSync(src).isFile() && BO_QUA_FILE.test(src.split(/[\\/]/).pop())),
   });
+}
+
+// ---- 0b. Chèn sẵn HTML footer vào các trang ------------------------------------
+const { dungFooter } = await import(pathToFileURL(join(ROOT, "js", "footer-rules.js")).href);
+const CHO_FOOTER = /<footer class="site-footer"(?: data-variant="(\w+)")?><\/footer>/;
+for (const p of duyet(OUT, (f) => f.endsWith(".html"))) {
+  const goc = readFileSync(p, "utf8");
+  const moi = goc.replace(CHO_FOOTER, (m, bienThe) => m.replace("></footer>", `>${dungFooter(bienThe)}\n  </footer>`));
+  if (moi !== goc) writeFileSync(p, moi);
 }
 
 // ---- 1. Mã phiên bản = băm toàn bộ js/ và css/ --------------------------------

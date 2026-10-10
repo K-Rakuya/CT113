@@ -5,3 +5,4 @@ firestore.rules
 dev/
 docs/
 *.log
+tests/

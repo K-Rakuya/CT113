@@ -1,0 +1,202 @@
+/* css/account.css
+ * Khung và thành phần của khu "Tài khoản" (customer/*.html). Tiền tố "tk-".
+ * Nạp sau css/style.css và css/product.css. */
+
+.tk {
+  --tk-w: 1120px;
+  padding-block: var(--spacing-lg) var(--spacing-2xl);
+}
+
+.tk-wrap {
+  width: min(var(--tk-w), 100% - 2 * var(--spacing-md));
+  margin-inline: auto;
+}
+
+.tk-ic {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tk-head {
+  margin-bottom: var(--spacing-lg);
+}
+
+.tk-head .breadcrumb {
+  margin-bottom: var(--spacing-sm);
+}
+
+.tk-head__title {
+  margin: 0;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  letter-spacing: -.01em;
+}
+
+.tk-head__sub {
+  margin: 4px 0 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.tk-layout {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+.tk-content {
+  min-width: 0;
+}
+
+.tk-side {
+  position: sticky;
+  top: calc(var(--header-h) + var(--spacing-md));
+  display: grid;
+  gap: var(--spacing-sm);
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+}
+
+.tk-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 8px 14px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tk-user__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.tk-user__text {
+  display: grid;
+  min-width: 0;
+}
+
+.tk-user__name {
+  overflow: hidden;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tk-user__name:empty {
+  width: 120px;
+  height: 1em;
+  margin-block: 3px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-border) 70%, var(--color-surface));
+}
+
+.tk-user__role {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.tk-nav {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tk-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+
+.tk-nav a:hover {
+  background: var(--color-hover);
+  text-decoration: none;
+}
+
+.tk-nav a[aria-current="page"] {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  color: var(--color-primary-dark);
+  font-weight: 600;
+}
+
+.tk-nav a:focus-visible {
+  outline-offset: -2px;
+}
+
+.tk-stack {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.tk-section__title {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--text-lg);
+}
+
+.tk .card {
+  padding: clamp(18px, 3vw, 28px);
+  border-radius: var(--radius-xl);
+}
+
+.tk .btn {
+  border-radius: var(--radius-pill);
+}
+
+.tk-filter {
+  max-width: 240px;
+  margin-bottom: var(--spacing-md);
+}
+
+@media (max-width: 860px) {
+  .tk-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--spacing-md);
+  }
+
+  .tk-side {
+    top: calc(var(--header-h) + var(--spacing-sm));
+    z-index: 5;
+    padding: 6px;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .tk-user {
+    display: none;
+  }
+
+  .tk-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tk-nav a {
+    flex: none;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    white-space: nowrap;
+  }
+}

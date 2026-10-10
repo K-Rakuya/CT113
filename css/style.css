@@ -152,6 +152,8 @@
   --radius-pill: 999px;
   --radius-lg: 20px;
   /* mảng lớn: hero, panel nổi bật */
+  --radius-xl: 24px;
+  /* khối nội dung lớn: panel tài khoản */
 
   /* Khoảng cách — mở rộng thang đo, vẫn giữ 3 biến gốc để tương thích ngược */
   --spacing-xs: 4px;
@@ -1777,7 +1779,7 @@ img.img-fade.is-loaded {
   view-transition-name: site-header;
 }
 
-.kh-account-layout__nav {
+.tk-side {
   view-transition-name: account-nav;
 }
 
@@ -1807,7 +1809,7 @@ html[data-auth-hint="in"] body[hidden]> :not(.site-header):not(.site-footer) {
 @media (prefers-reduced-motion: no-preference) {
 
   /* :where() giữ độ ưu tiên thấp để các quy tắc tạm dừng (body[hidden]) bên dưới vẫn thắng */
-  main:where(:not(.dashboard-layout__main))> :where(:not(.kh-account-layout)),
+  main:where(:not(.dashboard-layout__main))> :where(:not(.tk-wrap)),
   .dashboard-layout__content>* {
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
     animation-delay: calc(var(--enter-delay) + min(var(--i, 0), 5) * var(--stagger));
@@ -1844,19 +1846,22 @@ html[data-auth-hint="in"] body[hidden]> :not(.site-header):not(.site-footer) {
   }
 
   /* Khu "Tài khoản": nav là phần chung (đứng yên cùng header), chỉ vùng nội dung bên cạnh nhích lên */
-  .kh-account-layout> :where(:not(.kh-account-layout__nav)) {
+  .tk-wrap>.tk-head,
+  .tk-content {
     animation: rise-in var(--dur-slow) var(--ease-out) backwards;
     animation-delay: calc(var(--enter-delay) + min(var(--i, 0), 5) * var(--stagger));
   }
 
   body[hidden] main>*,
-  body[hidden] .kh-account-layout>*,
+  body[hidden] .tk-head,
+  body[hidden] .tk-content,
   body[hidden] .dashboard-layout__content>* {
     animation-play-state: paused;
   }
 
   html[data-auth-hint="in"] body[hidden] main>*,
-  html[data-auth-hint="in"] body[hidden] .kh-account-layout>* {
+  html[data-auth-hint="in"] body[hidden] .tk-head,
+  html[data-auth-hint="in"] body[hidden] .tk-content {
     animation-play-state: running;
   }
 
@@ -2097,7 +2102,8 @@ html.vt-loc::view-transition-new(root) {
 
 /* ---- Quay lại (Back/Forward): trang hiện ngay, không chạy lại dàn cảnh vào ---- */
 html[data-dieu-huong="traverse"] main>*,
-html[data-dieu-huong="traverse"] .kh-account-layout>*,
+html[data-dieu-huong="traverse"] .tk-head,
+html[data-dieu-huong="traverse"] .tk-content,
 html[data-dieu-huong="traverse"] .dashboard-layout__content>*,
 html[data-dieu-huong="traverse"] .hero,
 html[data-dieu-huong="traverse"] .hero__title,

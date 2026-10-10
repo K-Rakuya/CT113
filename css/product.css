@@ -50,58 +50,6 @@
   }
 }
 
-/* ---- Bố cục khu vực "Tài khoản của tôi": sidebar điều hướng + nội dung ---- *
- * Dùng chung cho customer/profile.html, orders.html, support.html 
- * order-detail.html nên KHÔNG dùng layout này, dùng breadcrumb riêng (style.css).
- * ---------------------------------------------------------------------------*/
-.kh-account-layout {
-  display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: var(--spacing-xl);
-  align-items: start;
-}
-
-.kh-account-layout__nav {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  position: sticky;
-  top: calc(var(--header-h) + var(--spacing-md));
-}
-
-.kh-account-layout__nav a {
-  padding: 10px var(--spacing-md);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-weight: 500;
-  font-size: var(--text-sm);
-  transition: background-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-}
-
-.kh-account-layout__nav a:hover {
-  background: var(--color-bg);
-  text-decoration: none;
-}
-
-.kh-account-layout__nav a[aria-current="page"] {
-  background: var(--color-bg);
-  color: var(--color-primary);
-  font-weight: 600;
-}
-
-@media (max-width: 720px) {
-  .kh-account-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .kh-account-layout__nav {
-    flex-direction: row;
-    overflow-x: auto;
-    position: static;
-    gap: var(--spacing-xs);
-  }
-}
-
 /* ---- Thẻ sản phẩm (dùng .grid ở style.css làm khung lưới) ---- */
 .kh-product-card {
   position: relative;

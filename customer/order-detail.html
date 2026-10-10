@@ -21,6 +21,7 @@
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/product.css" />
+  <link rel="stylesheet" href="/css/account.css" />
 </head>
 <body hidden>
   <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
@@ -42,16 +43,32 @@
     </nav>
   </header>
 
-  <main id="main" class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg); max-width: 720px;">
-    <nav class="breadcrumb" aria-label="Breadcrumb">
-      <a href="/index.html">Trang chủ</a>
-      <span class="breadcrumb__sep">/</span>
-      <a href="/customer/orders.html">Đơn hàng của tôi</a>
-      <span class="breadcrumb__sep">/</span>
-      <span aria-current="page" id="breadcrumb-ma-don">Chi tiết đơn hàng</span>
-    </nav>
-    <div id="noi-dung-chi-tiet-don">
-      <p class="text-muted">Đang tải...</p>
+  <main id="main" class="tk">
+    <div class="tk-wrap">
+      <div class="tk-head">
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="/index.html">Trang chủ</a>
+          <span class="breadcrumb__sep">/</span>
+          <a href="/customer/orders.html">Đơn hàng của tôi</a>
+          <span class="breadcrumb__sep">/</span>
+          <span aria-current="page" id="breadcrumb-ma-don">Chi tiết đơn hàng</span>
+        </nav>
+        <h1 class="tk-head__title">Chi tiết đơn hàng</h1>
+      </div>
+      <div class="tk-layout">
+        <aside class="tk-side">
+          <div class="tk-user">
+            <span class="tk-user__avatar" aria-hidden="true"></span>
+            <div class="tk-user__text"><strong class="tk-user__name" id="user-info"></strong><span class="tk-user__role">Khách hàng</span></div>
+          </div>
+          <nav class="tk-nav" aria-label="Tài khoản"></nav>
+        </aside>
+        <div class="tk-content">
+          <div id="noi-dung-chi-tiet-don">
+            <p class="text-muted">Đang tải...</p>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -66,6 +83,7 @@
       initChiTietDonHang();
     });
   </script>
+  <script type="module" src="/js/customer/account-shell.js"></script>
   <script type="module" src="/js/header-ui.js"></script>
   <script type="module" src="/js/site-header.js"></script>
   <script type="module" src="/js/site-footer.js"></script>

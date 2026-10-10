@@ -149,21 +149,8 @@
     <p class="site-footer__bottom">© 2026 <span data-cua-hang="ten">Tên cửa hàng</span> — Đồ án CT113</p>
   </footer>
 
-  <script type="module">
-    import { auth } from "/js/firebase-config.js";
-    import { dangXuat } from "/js/auth.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-
-    onAuthStateChanged(auth, (user) => {
-      document.querySelector('[data-auth="in"]').hidden = !user;
-      document.querySelector('[data-auth="out"]').hidden = !!user;
-    });
-    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
-      await dangXuat();
-      window.location.href = "/index.html";
-    });
-  </script>
   <script type="module" src="/js/customer/product-list.js"></script>
+  <script type="module" src="/js/site-header.js"></script>
   <script type="module" src="/js/store-info.js"></script>
 </body>
 </html>

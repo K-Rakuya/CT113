@@ -1,10 +1,8 @@
-import { auth, db } from "/js/firebase-config.js";
-import { dangXuat } from "/js/auth.js";
+import { db } from "/js/firebase-config.js";
 import { formatCurrency, escapeHtml, layCache, luuCache } from "/js/utils.js";
 import { chonCacNhom, chonDanhGiaNoiBat, bieuTuongDanhMuc, laMoi, nhanTon, catNoiDung } from "/js/home/home-rules.js";
 import { khoiTaoBanner, khoiTaoHang, hienKhiCuonToi } from "/js/home/carousel.js";
 import { veBoPc } from "/js/home/bundle-view.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { collection, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const KHOA_CACHE = "home:v2";
@@ -16,15 +14,6 @@ const elDanhMuc = document.getElementById("home-danh-muc");
 const elDanhGia = document.getElementById("home-danh-gia");
 
 const icon = (ma) => `<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#${ma}"/></svg>`;
-
-onAuthStateChanged(auth, (user) => {
-  document.querySelector('[data-auth="in"]').hidden = !user;
-  document.querySelector('[data-auth="out"]').hidden = !!user;
-});
-document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
-  await dangXuat();
-  window.location.href = "/index.html";
-});
 
 async function taiDuLieu() {
   const dem = layCache(KHOA_CACHE);

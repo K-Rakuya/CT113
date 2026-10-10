@@ -112,24 +112,13 @@
 
   <script type="module">
     import { checkRole } from "/js/router-guard.js";
-    import { auth } from "/js/firebase-config.js";
-    import { dangXuat } from "/js/auth.js";
     import { initGioHang } from "/js/customer/cart.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
     checkRole(["khach_hang"], () => {
       document.body.hidden = false;
       initGioHang();
     });
-
-    onAuthStateChanged(auth, (user) => {
-      document.querySelector('[data-auth="in"]').hidden = !user;
-      document.querySelector('[data-auth="out"]').hidden = !!user;
-    });
-    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
-      await dangXuat();
-      window.location.href = "/index.html";
-    });
   </script>
+  <script type="module" src="/js/site-header.js"></script>
   <script type="module" src="/js/store-info.js"></script>
 </body>
 </html>

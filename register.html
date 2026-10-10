@@ -120,22 +120,11 @@
   </footer>
 
   <script type="module">
-    import { auth } from "/js/firebase-config.js";
-    import { dangKy, dangXuat, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
+    import { dangKy, layVaiTroHienTai, duongDanTheoVaiTro } from "/js/auth.js";
     import { showToast } from "/js/utils.js";
     import { diemDenSauDangNhap, giuNext } from "/js/redirect-rules.js";
     import { thongBaoLoiXacThuc } from "/js/auth-messages.js";
     import { setBusy, shake } from "/js/motion.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-
-    onAuthStateChanged(auth, (user) => {
-      document.querySelector('[data-auth="in"]').hidden = !user;
-      document.querySelector('[data-auth="out"]').hidden = !!user;
-    });
-    document.getElementById("btn-dang-xuat")?.addEventListener("click", async () => {
-      await dangXuat();
-      window.location.href = "/index.html";
-    });
 
     const next = new URLSearchParams(window.location.search).get("next");
     document.querySelector('main a[href="/login.html"]').href = giuNext("/login.html", next);
@@ -173,6 +162,7 @@
       }
     });
   </script>
+  <script type="module" src="/js/site-header.js"></script>
   <script type="module" src="/js/store-info.js"></script>
 </body>
 </html>

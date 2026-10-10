@@ -4,52 +4,6 @@
  * Nạp sau css/style.css. Giá tiền & mã sản phẩm dùng --font-family-mono
  * ---------------------------------------------------------------------------*/
 
-/* ---- Bố cục trang danh sách sản phẩm: sidebar lọc + lưới kết quả ---- *
- * ---------------------------------------------------------------------------*/
-.kh-catalog-layout {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  gap: var(--spacing-xl);
-  align-items: start;
-}
-
-.kh-catalog-layout__filters {
-  position: sticky;
-  top: calc(var(--header-h) + var(--spacing-md));
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: var(--spacing-md);
-}
-
-.kh-catalog-layout__filters .form-group {
-  margin-bottom: var(--spacing-md);
-}
-
-.kh-catalog-layout__filters .form-group:last-of-type {
-  margin-bottom: 0;
-}
-
-.kh-catalog-layout__filters h2 {
-  font-size: var(--text-md);
-  margin-bottom: var(--spacing-md);
-}
-
-.kh-catalog-layout__filters button[type="submit"] {
-  width: 100%;
-  margin-top: var(--spacing-md);
-}
-
-@media (max-width: 860px) {
-  .kh-catalog-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .kh-catalog-layout__filters {
-    position: static;
-  }
-}
-
 /* ---- Thẻ sản phẩm (dùng .grid ở style.css làm khung lưới) ---- */
 .kh-product-card {
   position: relative;
@@ -142,47 +96,6 @@
 
 .kh-product-card__stock--out {
   color: var(--color-danger);
-}
-
-/* ---- Skeleton (khung chờ) ----
- * Dùng cùng lớp .skeleton/.sk ở style.css. Kích thước khớp thẻ thật
- * để lúc dữ liệu về, bố cục không bị đẩy xuống (CLS ≈ 0). Đặt aria-hidden="true"
- * cho khung chờ và aria-busy="true" cho vùng chứa; JS gỡ aria-busy sau khi render. */
-.kh-skeleton {
-  display: flex;
-  flex-direction: column;
-}
-
-.kh-skeleton__img {
-  aspect-ratio: 4 / 3;
-  margin-bottom: var(--spacing-sm);
-}
-
-.kh-skeleton__line {
-  height: 17px;
-  margin-bottom: 12px;
-}
-
-.kh-skeleton__line--short {
-  width: 62%;
-  margin-bottom: var(--spacing-sm);
-}
-
-.kh-skeleton__price {
-  width: 46%;
-  height: 18px;
-  margin-block: 5px 13px;
-}
-
-.kh-skeleton__price:last-child {
-  margin-bottom: 5px;
-}
-
-/* thẻ ở trang chủ không có dòng tồn kho */
-.kh-skeleton__meta {
-  width: 34%;
-  height: 12px;
-  margin-block: 4px;
 }
 
 .kh-skeleton-detail__img {

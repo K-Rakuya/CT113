@@ -25,6 +25,7 @@
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/product.css" />
+  <link rel="stylesheet" href="/css/catalog.css" />
 </head>
 <body>
   <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
@@ -46,63 +47,89 @@
     </nav>
   </header>
 
-  <main id="main" class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
-    <h1>Sản phẩm</h1>
-
-    <div class="kh-catalog-layout">
-      <aside class="kh-catalog-layout__filters">
-        <h2>Bộ lọc</h2>
-        <form id="form-loc">
-          <div class="form-group">
-            <label for="tu-khoa">Tìm kiếm</label>
-            <input class="input" type="search" id="tu-khoa" placeholder="Tên sản phẩm..." />
+  <main id="main" class="sp">
+    <div class="sp-wrap">
+      <header class="sp-head">
+        <nav class="breadcrumb" aria-label="Breadcrumb" id="sp-breadcrumb">
+          <a href="/index.html">Trang chủ</a>
+          <span class="breadcrumb__sep">/</span>
+          <span aria-current="page">Sản phẩm</span>
+        </nav>
+        <div class="sp-head__row">
+          <div class="sp-head__text">
+            <h1 class="sp-head__title" id="sp-tieu-de" tabindex="-1">Sản phẩm</h1>
+            <p class="sp-head__count" id="ket-qua-dem" role="status"></p>
           </div>
-          <div class="form-group">
-            <label for="danh-muc">Danh mục</label>
-            <select class="select" id="danh-muc">
-              <option value="">Tất cả</option>
-            </select>
+          <div class="sp-tools">
+            <button type="button" class="sp-btn-loc" id="btn-mo-loc" aria-haspopup="dialog" aria-controls="sp-loc">
+              <svg class="sp-ic" aria-hidden="true"><use href="/images/home/icons.svg#filter"/></svg>Bộ lọc<span class="sp-btn-loc__so" id="sp-so-loc" hidden></span>
+            </button>
+            <label class="sp-sort" for="sap-xep">
+              <span class="sp-sort__nhan">Sắp xếp</span>
+              <select class="sp-sort__chon" id="sap-xep">
+                <option value="mac_dinh">Mặc định</option>
+                <option value="moi_nhat">Mới nhất</option>
+                <option value="gia_tang">Giá thấp đến cao</option>
+                <option value="gia_giam">Giá cao đến thấp</option>
+                <option value="ten_az">Tên A đến Z</option>
+              </select>
+            </label>
           </div>
-          <div class="form-group">
-            <label for="gia-tu">Giá từ</label>
-            <input class="input" type="number" id="gia-tu" min="0" step="1000" placeholder="0" />
-          </div>
-          <div class="form-group">
-            <label for="gia-den">Giá đến</label>
-            <input class="input" type="number" id="gia-den" min="0" step="1000" placeholder="Không giới hạn" />
-          </div>
-          <button type="submit" class="btn btn--primary">Lọc</button>
-        </form>
-      </aside>
-
-      <div class="kh-catalog-layout__results">
-        <div class="flex-between" style="margin-bottom: var(--spacing-md); gap: var(--spacing-md); flex-wrap: wrap;">
-          <div id="ket-qua-dem" class="text-muted" style="min-height: 1.55em;"></div>
-          <select class="select" id="sap-xep" aria-label="Sắp xếp sản phẩm" style="width: auto;">
-            <option value="mac_dinh">Sắp xếp: Mặc định</option>
-            <option value="moi_nhat">Mới nhất</option>
-            <option value="gia_tang">Giá thấp đến cao</option>
-            <option value="gia_giam">Giá cao đến thấp</option>
-            <option value="ten_az">Tên A đến Z</option>
-          </select>
-        </div> <!-- giữ chỗ 1 dòng: chữ điền vào sau không đẩy lưới xuống -->
-        <div id="danh-sach-san-pham" class="grid" aria-busy="true">
-          <!-- Khung chờ: hiện ngay khung hình đầu, kích thước khớp thẻ thật (không xô lệch bố cục).
-               product-list.js thay bằng thẻ thật và gỡ aria-busy. -->
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
-          <div class="card kh-skeleton skeleton" aria-hidden="true"><span class="sk kh-skeleton__img"></span><span class="sk kh-skeleton__line"></span><span class="sk kh-skeleton__line kh-skeleton__line--short"></span><span class="sk kh-skeleton__price"></span><span class="sk kh-skeleton__meta"></span></div>
         </div>
-        <div id="phan-trang" class="pagination"></div>
+      </header>
+
+      <div class="sp-layout">
+        <dialog class="sp-filter" id="sp-loc" open aria-labelledby="sp-loc-ten">
+          <form id="form-loc" class="sp-filter__form" novalidate>
+            <div class="sp-filter__head">
+              <h2 id="sp-loc-ten">Bộ lọc</h2>
+              <button type="button" class="sp-iconbtn" data-dong aria-label="Đóng bộ lọc"><svg class="sp-ic" aria-hidden="true"><use href="/images/home/icons.svg#close"/></svg></button>
+            </div>
+            <div class="sp-filter__body">
+              <div class="sp-group">
+                <label class="sp-group__nhan" for="tu-khoa">Tìm kiếm</label>
+                <div class="sp-search">
+                  <svg class="sp-ic" aria-hidden="true"><use href="/images/home/icons.svg#search"/></svg>
+                  <input class="sp-search__o" type="search" id="tu-khoa" placeholder="Tên sản phẩm" autocomplete="off" enterkeyhint="search" maxlength="100">
+                  <kbd class="sp-search__phim" aria-hidden="true">/</kbd>
+                </div>
+              </div>
+              <fieldset class="sp-group">
+                <legend class="sp-group__nhan">Danh mục</legend>
+                <div class="sp-opts" id="sp-danh-muc" aria-busy="true"><span class="sp-opt-skel skeleton"></span><span class="sp-opt-skel skeleton"></span><span class="sp-opt-skel skeleton"></span><span class="sp-opt-skel skeleton"></span><span class="sp-opt-skel skeleton"></span></div>
+              </fieldset>
+              <fieldset class="sp-group">
+                <legend class="sp-group__nhan">Mức giá</legend>
+                <div class="sp-pills" id="sp-muc-gia" hidden></div>
+                <div class="sp-range">
+                  <label class="sr-only" for="gia-tu">Giá từ</label>
+                  <input class="sp-range__o" type="number" id="gia-tu" min="0" step="1000" inputmode="numeric" placeholder="Từ">
+                  <span class="sp-range__noi" aria-hidden="true">–</span>
+                  <label class="sr-only" for="gia-den">Giá đến</label>
+                  <input class="sp-range__o" type="number" id="gia-den" min="0" step="1000" inputmode="numeric" placeholder="Đến">
+                  <span class="sp-range__dv" aria-hidden="true">₫</span>
+                </div>
+              </fieldset>
+              <label class="sp-switch">
+                <input type="checkbox" id="con-hang" role="switch">
+                <span class="sp-switch__ui" aria-hidden="true"></span>
+                <span>Chỉ hiện sản phẩm còn hàng</span>
+              </label>
+            </div>
+            <div class="sp-filter__foot">
+              <button type="button" class="sp-link" id="btn-xoa-loc">Xoá bộ lọc</button>
+              <button type="button" class="btn btn--primary sp-filter__xem" data-dong>Xem kết quả</button>
+            </div>
+          </form>
+        </dialog>
+
+        <section class="sp-results" aria-label="Kết quả">
+          <div class="sp-chips" id="sp-chips" hidden></div>
+          <div id="danh-sach-san-pham" class="sp-grid" aria-busy="true">
+            <div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div><div class="sp-skel skeleton" aria-hidden="true"><span class="sk"></span><span class="sk"></span><span class="sk"></span></div>
+          </div>
+          <nav id="phan-trang" class="pagination" aria-label="Phân trang"></nav>
+        </section>
       </div>
     </div>
   </main>

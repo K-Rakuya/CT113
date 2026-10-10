@@ -20,18 +20,22 @@ const soKhongAm = (chuoi) => {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : null;
 };
 
+/** @returns {{giaTu: number|null, giaDen: number|null}} giá không hợp lệ thành null, hai đầu ngược nhau được đổi chỗ */
+export function chuanHoaKhoangGia(tu, den) {
+  let giaTu = soKhongAm(tu);
+  let giaDen = soKhongAm(den);
+  if (giaTu !== null && giaDen !== null && giaTu > giaDen) [giaTu, giaDen] = [giaDen, giaTu];
+  return { giaTu, giaDen };
+}
+
 /** @returns {typeof BO_LOC_MAC_DINH} bộ lọc đã chuẩn hoá từ query string; giá trị sai được thay bằng mặc định */
 export function docBoLoc(search) {
   const tham = new URLSearchParams(search);
-  let giaTu = soKhongAm(tham.get("giatu"));
-  let giaDen = soKhongAm(tham.get("giaden"));
-  if (giaTu !== null && giaDen !== null && giaTu > giaDen) [giaTu, giaDen] = [giaDen, giaTu];
   const sapXep = tham.get("sapxep");
   return {
     tuKhoa: (tham.get("tukhoa") ?? "").trim().slice(0, 100),
     danhMuc: tham.get("danhmuc") ?? "",
-    giaTu,
-    giaDen,
+    ...chuanHoaKhoangGia(tham.get("giatu"), tham.get("giaden")),
     sapXep: Object.hasOwn(KIEU_SAP_XEP, sapXep) ? sapXep : BO_LOC_MAC_DINH.sapXep,
     conHang: tham.get("conhang") === "1",
     trang: Math.max(1, parseInt(tham.get("trang"), 10) || 1),
@@ -167,3 +171,17 @@ export function nhanSanPham(sp, bayGio = Date.now()) {
 
 /** chuỗi đổi khi giá hoặc tồn kho của bất kỳ sản phẩm nào đổi; dùng để biết bản tải mới có khác bản cache không */
 export const chuKyDanhSach = (dsSanPham) => dsSanPham.map((sp) => `${sp.id}:${sp.gia}:${sp.soLuongTon}:${sp.trangThai}`).join("|");
+
+export function tieuDeTrang(boLoc, tenDanhMuc) {
+  if (boLoc.tuKhoa) return `Kết quả cho “${boLoc.tuKhoa}”`;
+  if (boLoc.danhMuc && tenDanhMuc) return tenDanhMuc;
+  return "Sản phẩm";
+}
+
+export const mucGiaDangChon = (muc, boLoc) => muc.tu === boLoc.giaTu && muc.den === boLoc.giaDen;
+
+/** @returns {{tu: number, den: number}} thứ tự sản phẩm đang hiển thị trên trang, tính từ 1 */
+export function khoangHienThi(trang, kichThuoc, tong) {
+  const tu = (trang - 1) * kichThuoc + 1;
+  return { tu, den: Math.min(trang * kichThuoc, tong) };
+}

@@ -5,6 +5,7 @@ import "./setup.mjs";
 const {
   docBoLoc, ghiBoLoc, locSanPham, demTheoDanhMuc, phanTrang, cuaSoTrang, chiaMucGia, dinhDangGiaGon,
   chipBoLoc, boLocKhiGo, boLocKhiXoaHet, nhanSanPham, chuKyDanhSach, BO_LOC_MAC_DINH,
+  chuanHoaKhoangGia, tieuDeTrang, mucGiaDangChon, khoangHienThi,
 } = await import("../js/catalog/catalog-rules.js");
 
 const NGAY = 86400000;
@@ -122,4 +123,29 @@ test("chuKyDanhSach: đổi khi giá hoặc tồn kho đổi", () => {
   const a = chuKyDanhSach(MAU);
   assert.equal(a, chuKyDanhSach([...MAU]));
   assert.notEqual(a, chuKyDanhSach(MAU.map((x) => (x.id === "a" ? { ...x, soLuongTon: 9 } : x))));
+});
+
+test("chuanHoaKhoangGia: bỏ giá sai, đổi chỗ hai đầu ngược nhau", () => {
+  assert.deepEqual(chuanHoaKhoangGia("", "abc"), { giaTu: null, giaDen: null });
+  assert.deepEqual(chuanHoaKhoangGia("0", "2500.9"), { giaTu: 0, giaDen: 2500 });
+  assert.deepEqual(chuanHoaKhoangGia("9", "3"), { giaTu: 3, giaDen: 9 });
+});
+
+test("tieuDeTrang: từ khoá thắng danh mục, mặc định là Sản phẩm", () => {
+  assert.equal(tieuDeTrang({ ...BO_LOC_MAC_DINH, tuKhoa: "ram", danhMuc: "ram" }, "RAM"), "Kết quả cho “ram”");
+  assert.equal(tieuDeTrang({ ...BO_LOC_MAC_DINH, danhMuc: "ram" }, "RAM"), "RAM");
+  assert.equal(tieuDeTrang({ ...BO_LOC_MAC_DINH, danhMuc: "xoa" }, undefined), "Sản phẩm");
+  assert.equal(tieuDeTrang(BO_LOC_MAC_DINH, undefined), "Sản phẩm");
+});
+
+test("mucGiaDangChon: khớp đúng cả hai đầu", () => {
+  const muc = { tu: 1000000, den: 3000000, nhan: "" };
+  assert.equal(mucGiaDangChon(muc, { ...BO_LOC_MAC_DINH, giaTu: 1000000, giaDen: 3000000 }), true);
+  assert.equal(mucGiaDangChon(muc, { ...BO_LOC_MAC_DINH, giaTu: 1000000, giaDen: null }), false);
+  assert.equal(mucGiaDangChon({ tu: null, den: 5, nhan: "" }, BO_LOC_MAC_DINH), false);
+});
+
+test("khoangHienThi: trang cuối chỉ đếm tới tổng", () => {
+  assert.deepEqual(khoangHienThi(1, 12, 30), { tu: 1, den: 12 });
+  assert.deepEqual(khoangHienThi(3, 12, 30), { tu: 25, den: 30 });
 });

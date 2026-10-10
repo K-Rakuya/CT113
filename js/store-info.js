@@ -1,6 +1,6 @@
 import { db } from "/js/firebase-config.js";
 import { layCache, luuCache } from "/js/utils.js";
-import { laEmailHopLe, laHotlineHopLe, lienKetDienThoai } from "/js/store-rules.js";
+import { laEmailHopLe, laHotlineHopLe, lienKetBanDo, lienKetDienThoai } from "/js/store-rules.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const KHOA_CACHE = "cuahang:v1";
@@ -36,6 +36,8 @@ function ap(thongTin) {
   document.querySelectorAll("[data-cua-hang-khoi]").forEach((el) => (el.hidden = !thongTin[el.dataset.cuaHangKhoi]));
   const dienThoai = document.querySelector('[data-cua-hang="hotline"]');
   if (dienThoai?.tagName === "A" && thongTin.hotline) dienThoai.href = lienKetDienThoai(thongTin.hotline);
+  const diaChi = document.querySelector('[data-cua-hang="diaChi"]');
+  if (diaChi?.tagName === "A" && thongTin.diaChi) diaChi.href = lienKetBanDo(thongTin.diaChi);
   const thu = document.querySelector('[data-cua-hang="email"]');
   if (thu?.tagName === "A" && thongTin.email) thu.href = `mailto:${thongTin.email}`;
   const lienHe = document.querySelector(".site-footer__contact");

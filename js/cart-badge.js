@@ -48,7 +48,19 @@ function nayHuyHieu(cu) {
   lienKet.animate(khung, { duration: 380, easing: "cubic-bezier(.34, 1.56, .64, 1)", pseudoElement: "::before" }); // = --ease-spring
 }
 
-/** Đặt số lượng hiển thị; huy hiệu nảy khi giá trị đổi. */
+let dangThoat = null; // animation thoát của huy hiệu (khi giỏ về 0) đang chạy
+
+/** Thu nhỏ + mờ huy hiệu rồi mới gỡ (trả về null nếu không animate được → gỡ ngay). */
+function thoatHuyHieu() {
+  const lienKet = lienKetGio();
+  if (!lienKet || prefersReducedMotion() || typeof lienKet.animate !== "function") return null;
+  return lienKet.animate(
+    [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.5)" }],
+    { duration: 140, easing: "cubic-bezier(.4, 0, 1, 1)", fill: "forwards", pseudoElement: "::before" } // = --ease-in
+  );
+}
+
+/** Đặt số lượng hiển thị; huy hiệu nảy khi giá trị đổi, thu nhỏ rồi mờ khi về 0. */
 export function setCartCount(n) {
   const moi = Math.max(0, Math.trunc(Number(n)) || 0);
   const cu = getCartCount();
@@ -57,6 +69,19 @@ export function setCartCount(n) {
     else localStorage.removeItem(KHOA);
   } catch {
     /* chế độ riêng tư có thể chặn localStorage */
+  }
+  dangThoat?.cancel(); // có số mới/đặt lại giữa chừng → huỷ lượt thoát cũ
+  dangThoat = null;
+  if (moi === 0 && cu > 0 && (dangThoat = thoatHuyHieu())) {
+    const luot = dangThoat;
+    luot.finished.then(
+      () => {
+        if (dangThoat === luot) dangThoat = null;
+        if (getCartCount() === 0) phanAnh(0);
+      },
+      () => {} // bị huỷ bởi lần gọi sau
+    );
+    return;
   }
   phanAnh(moi);
   if (moi !== cu) nayHuyHieu(cu);

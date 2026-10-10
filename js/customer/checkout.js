@@ -5,6 +5,7 @@ import { auth, db } from "/js/firebase-config.js";
 import { formatCurrency, showToast, ghiNhatKy, escapeHtml } from "/js/utils.js";
 import { setBusy, swapContent, confirmButton, prefersReducedMotion } from "/js/motion.js";
 import { setCartCount } from "/js/cart-badge.js";
+import { xoaCacheTrangChu } from "/js/home/home-cache.js";
 import {
   doc,
   getDoc,
@@ -167,6 +168,8 @@ async function xuLyDatHang(dongGioHang, diaChiGiao) {
         transaction.update(spRef, { soLuongTon: spData.soLuongTon - dong.soLuong });
       }
     });
+
+    xoaCacheTrangChu(); // tồn kho vừa đổi, trang chủ không được hiện số lượng cũ
 
     // Xoá giỏ hàng SAU khi đơn đã tạo thành công
     try {

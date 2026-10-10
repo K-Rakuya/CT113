@@ -23,3 +23,5 @@ export function kiemTraThongTinCuaHang(f) {
 }
 
 export const lienKetDienThoai = (hotline) => `tel:${hotline.replace(/[^\d+]/g, "")}`;
+
+export const lienKetBanDo = (diaChi) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(diaChi)}`;

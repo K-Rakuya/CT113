@@ -58,8 +58,13 @@
           <nav class="tk-nav" aria-label="Tài khoản"></nav>
         </aside>
         <div class="tk-content">
-          <div id="noi-dung-ho-so" class="card">
-            <p class="text-muted">Đang tải...</p>
+          <div id="noi-dung-ho-so" class="card" aria-busy="true">
+            <div aria-hidden="true">
+              <span class="tk-skel tk-skel--field skeleton"></span>
+              <div class="tk-form__row"><span class="tk-skel tk-skel--field skeleton"></span><span class="tk-skel tk-skel--field skeleton"></span></div>
+              <span class="tk-skel tk-skel--area skeleton"></span>
+              <span class="tk-skel tk-skel--btn skeleton"></span>
+            </div>
           </div>
         </div>
       </div>

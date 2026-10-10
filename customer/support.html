@@ -59,23 +59,30 @@
         </aside>
         <div class="tk-content">
           <div class="tk-stack">
-            <form id="form-gui-yeu-cau" class="card">
+            <form id="form-gui-yeu-cau" class="card tk-form" novalidate>
               <h2 class="tk-section__title">Gửi yêu cầu mới</h2>
               <div class="form-group">
                 <label for="tieu-de">Tiêu đề</label>
-                <input class="input" type="text" id="tieu-de" required>
+                <input class="input" type="text" id="tieu-de" maxlength="120" autocomplete="off" required data-loi="loi-tieu-de" aria-describedby="loi-tieu-de">
+                <span class="error-text" id="loi-tieu-de" hidden></span>
               </div>
               <div class="form-group">
                 <label for="noi-dung">Nội dung</label>
-                <textarea class="textarea" id="noi-dung" required placeholder="Mô tả vấn đề bạn đang gặp phải..."></textarea>
+                <textarea class="textarea" id="noi-dung" rows="5" maxlength="2000" required placeholder="Mô tả vấn đề bạn đang gặp phải..." data-loi="loi-noi-dung" aria-describedby="loi-noi-dung"></textarea>
+                <div class="tk-form__meta"><span class="error-text" id="loi-noi-dung" hidden></span><span class="tk-counter" id="dem-noi-dung" aria-hidden="true">0/2000</span></div>
               </div>
-              <button type="submit" class="btn btn--primary" id="btn-gui">Gửi yêu cầu</button>
+              <div class="tk-form__actions">
+                <button type="submit" class="btn btn--primary" id="btn-gui">Gửi yêu cầu</button>
+              </div>
             </form>
 
             <section aria-labelledby="h-yeu-cau">
               <h2 class="tk-section__title" id="h-yeu-cau">Yêu cầu của bạn</h2>
-              <div id="danh-sach-yeu-cau">
-                <p class="text-muted">Đang tải...</p>
+              <div id="danh-sach-yeu-cau" aria-busy="true">
+                <div aria-hidden="true">
+                  <span class="tk-skel tk-skel--ticket skeleton"></span>
+                  <span class="tk-skel tk-skel--ticket skeleton"></span>
+                </div>
               </div>
             </section>
           </div>

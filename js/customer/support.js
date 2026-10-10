@@ -1,10 +1,12 @@
-// js/customer/support.js
-// Trang customer/support.html: gửi yêu cầu hỗ trợ, theo dõi realtime bằng
-// onSnapshot. Collection: yeucauhotro.
+// Trang customer/support.html: gửi yêu cầu hỗ trợ và theo dõi phản hồi theo thời gian thực
+// bằng onSnapshot (collection yeucauhotro).
 
 import { auth, db } from "/js/firebase-config.js";
 import { formatDate, showToast, escapeHtml } from "/js/utils.js";
 import { setBusy, swapContent } from "/js/motion.js";
+import { GIOI_HAN_YEU_CAU, NHAN_TRANG_THAI_HO_TRO, kiemTraYeuCau } from "/js/customer/support-rules.js";
+import { datLoiTruong } from "/js/customer/field-error.js";
+import { veTrong, veLoi } from "/js/customer/account-view.js";
 import {
   collection,
   query,
@@ -16,19 +18,17 @@ import {
 
 const elDanhSach = document.getElementById("danh-sach-yeu-cau");
 const elForm = document.getElementById("form-gui-yeu-cau");
+const oTieuDe = document.getElementById("tieu-de");
+const oNoiDung = document.getElementById("noi-dung");
+const elDem = document.getElementById("dem-noi-dung");
+const nutGui = document.getElementById("btn-gui");
 
-const NHAN_TRANG_THAI = {
-  cho_xu_ly: "Chờ xử lý",
-  dang_xu_ly: "Đang xử lý",
-  da_xong: "Đã xong",
-};
-
-let huyDangKy = null; // hàm unsubscribe của onSnapshot hiện tại
+let huyDangKy = null;
+let daCoDuLieu = false;
 
 export function initHoTro() {
   const q = query(collection(db, "yeucauhotro"), where("khachHangId", "==", auth.currentUser.uid));
 
-  // lưu hàm huỷ đăng ký onSnapshot và gọi khirời trang, tránh rò rỉ listener khi người dùng chuyển trang liên tục.
   huyDangKy = onSnapshot(
     q,
     (snap) => {
@@ -38,68 +38,72 @@ export function initHoTro() {
       render(danhSach);
     },
     (err) => {
-      elDanhSach.innerHTML = '<p class="empty-state">Không tải được yêu cầu hỗ trợ.</p>';
+      elDanhSach.innerHTML = veLoi("Không tải được yêu cầu hỗ trợ.");
+      elDanhSach.removeAttribute("aria-busy");
       console.error(err);
     }
   );
 
-  window.addEventListener("beforeunload", huyKhiRoiTrang);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") huyKhiRoiTrang();
-  });
+  window.addEventListener("pagehide", () => huyDangKy?.(), { once: true });
 }
 
-function huyKhiRoiTrang() {
-  huyDangKy?.();
-  huyDangKy = null;
-}
-
-let daCoDuLieu = false; // onSnapshot render lại liên tục: chỉ lần đầu mới có hiệu ứng
 function render(danhSach) {
-  if (!daCoDuLieu) {
-    daCoDuLieu = true;
-    swapContent(elDanhSach, () => renderNoiDung(danhSach, true));
-  } else {
-    renderNoiDung(danhSach, false);
-  }
+  if (daCoDuLieu) return renderNoiDung(danhSach, false);
+  daCoDuLieu = true;
+  swapContent(elDanhSach, () => renderNoiDung(danhSach, true));
+  elDanhSach.removeAttribute("aria-busy");
 }
 
 function renderNoiDung(danhSach, hieuUng) {
   if (danhSach.length === 0) {
-    elDanhSach.innerHTML = '<p class="empty-state">Bạn chưa gửi yêu cầu hỗ trợ nào.</p>';
+    elDanhSach.innerHTML = veTrong({
+      bieuTuong: "wrench",
+      tieuDe: "Bạn chưa gửi yêu cầu hỗ trợ nào",
+      moTa: "Mô tả vấn đề ở biểu mẫu phía trên, nhân viên sẽ phản hồi tại đây.",
+    });
     return;
   }
 
   elDanhSach.innerHTML = danhSach
     .map(
       (yc, i) => `
-    <div class="kh-ticket kh-ticket--${yc.trangThai}${hieuUng ? " motion-enter" : ""}" style="--i:${i}">
-      <div class="flex-between">
-        <strong>${escapeHtml(yc.tieuDe)}</strong>
-        <span class="badge badge--${yc.trangThai}">${NHAN_TRANG_THAI[yc.trangThai] || yc.trangThai}</span>
+    <article class="tk-ticket${hieuUng ? " motion-enter" : ""}" style="--i:${i}">
+      <div class="tk-ticket__head">
+        <h3 class="tk-ticket__title">${escapeHtml(yc.tieuDe)}</h3>
+        <span class="badge badge--${escapeHtml(yc.trangThai)}">${escapeHtml(NHAN_TRANG_THAI_HO_TRO[yc.trangThai] || yc.trangThai)}</span>
       </div>
-      <p class="text-muted" style="font-size:.85em; margin: 2px 0;">${formatDate(yc.ngayTao)}</p>
-      <p>${escapeHtml(yc.noiDung)}</p>
-      ${yc.phanHoi ? `<div class="kh-ticket__phanhoi"><strong>Phản hồi từ nhân viên:</strong> ${escapeHtml(yc.phanHoi)}</div>` : ""}
-    </div>`
+      <p class="tk-ticket__time">${formatDate(yc.ngayTao)}</p>
+      <p class="tk-ticket__body">${escapeHtml(yc.noiDung)}</p>
+      ${yc.phanHoi ? `<div class="tk-ticket__reply"><strong>Phản hồi từ nhân viên</strong><p>${escapeHtml(yc.phanHoi)}</p></div>` : ""}
+    </article>`
     )
     .join("");
 }
 
+oNoiDung.addEventListener("input", () => {
+  elDem.textContent = `${oNoiDung.value.length}/${GIOI_HAN_YEU_CAU.noiDung}`;
+});
+
+elForm.addEventListener("input", (e) => {
+  if (e.target.dataset.loi) datLoiTruong(e.target, "");
+});
+
 elForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const btn = document.getElementById("btn-gui");
-  const tieuDe = document.getElementById("tieu-de").value.trim();
-  const noiDung = document.getElementById("noi-dung").value.trim();
-  if (!tieuDe || !noiDung) return;
+  const kq = kiemTraYeuCau({ tieuDe: oTieuDe.value, noiDung: oNoiDung.value });
+  datLoiTruong(oTieuDe, kq.loi.tieuDe);
+  datLoiTruong(oNoiDung, kq.loi.noiDung);
+  if (!kq.hopLe) {
+    (kq.loi.tieuDe ? oTieuDe : oNoiDung).focus();
+    return;
+  }
 
-  setBusy(btn, true);
-  btn.textContent = "Đang gửi...";
+  setBusy(nutGui, true);
   try {
     await addDoc(collection(db, "yeucauhotro"), {
       khachHangId: auth.currentUser.uid,
-      tieuDe,
-      noiDung,
+      tieuDe: kq.giaTri.tieuDe,
+      noiDung: kq.giaTri.noiDung,
       trangThai: "cho_xu_ly",
       ngayTao: serverTimestamp(),
       nhanVienXuLyId: null,
@@ -107,10 +111,10 @@ elForm.addEventListener("submit", async (e) => {
     });
     showToast("Đã gửi yêu cầu hỗ trợ.", "success");
     elForm.reset();
+    elDem.textContent = `0/${GIOI_HAN_YEU_CAU.noiDung}`;
   } catch (err) {
     showToast("Gửi yêu cầu thất bại: " + err.message, "error");
   } finally {
-    setBusy(btn, false);
-    btn.textContent = "Gửi yêu cầu";
+    setBusy(nutGui, false);
   }
 });

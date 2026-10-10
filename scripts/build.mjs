@@ -5,7 +5,8 @@
 //     => cho phép cache 1 năm "immutable"; mỗi lần code đổi, URL đổi theo.
 //  2. Tự thêm <link rel="modulepreload"> cho toàn bộ module tĩnh của từng trang
 //     (tính từ cây import thật, nên không bao giờ lỗi thời).
-//  3. Chèn sẵn HTML footer (js/footer-rules.js) vào từng trang, để footer có ngay cả khi chưa chạy JS.
+//  3. Chèn sẵn HTML footer (js/footer-rules.js) và menu tài khoản (js/customer/account-rules.js) vào từng trang,
+//     để hai khối này có ngay cả khi chưa chạy JS.
 //  4. Chỉ chép file cần phục vụ web (bỏ README, firestore.rules, scripts, api...).
 //
 // Chạy thử trên máy:  node scripts/build.mjs   rồi mở thư mục dist/ bằng 1 static server.
@@ -43,12 +44,17 @@ for (const ten of readdirSync(ROOT)) {
   });
 }
 
-// ---- 0b. Chèn sẵn HTML footer vào các trang ------------------------------------
+// ---- 0b. Chèn sẵn HTML footer và menu tài khoản vào các trang ------------------
 const { dungFooter } = await import(pathToFileURL(join(ROOT, "js", "footer-rules.js")).href);
+const { dungMenuTaiKhoan } = await import(pathToFileURL(join(ROOT, "js", "customer", "account-rules.js")).href);
 const CHO_FOOTER = /<footer class="site-footer"(?: data-variant="(\w+)")?><\/footer>/;
+const CHO_MENU_TAI_KHOAN = /(<nav class="tk-nav" aria-label="Tài khoản">)<\/nav>/;
 for (const p of duyet(OUT, (f) => f.endsWith(".html"))) {
   const goc = readFileSync(p, "utf8");
-  const moi = goc.replace(CHO_FOOTER, (m, bienThe) => m.replace("></footer>", `>${dungFooter(bienThe)}\n  </footer>`));
+  const duongDan = "/" + relative(OUT, p).replace(/\\/g, "/");
+  const moi = goc
+    .replace(CHO_FOOTER, (m, bienThe) => m.replace("></footer>", `>${dungFooter(bienThe)}\n  </footer>`))
+    .replace(CHO_MENU_TAI_KHOAN, (m, mo) => `${mo}${dungMenuTaiKhoan(duongDan)}</nav>`);
   if (moi !== goc) writeFileSync(p, moi);
 }
 

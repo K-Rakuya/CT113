@@ -20,7 +20,7 @@
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js" />
   <link rel="modulepreload" href="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js" />
   <link rel="stylesheet" href="/css/style.css" />
-  <link rel="stylesheet" href="/css/product.css" />
+  <link rel="stylesheet" href="/css/account.css" />
 </head>
 <body hidden>
   <a class="skip-link" href="#main">Bỏ qua điều hướng</a>
@@ -42,28 +42,34 @@
     </nav>
   </header>
 
-  <main id="main" class="container" style="padding-top: var(--spacing-lg); padding-bottom: var(--spacing-lg);">
-    <h1>Tài khoản của tôi</h1>
-    <div class="kh-account-layout">
-      <nav class="kh-account-layout__nav" aria-label="Tài khoản">
-        <a href="/customer/profile.html">Thông tin cá nhân</a>
-        <a href="/customer/orders.html" aria-current="page">Đơn hàng của tôi</a>
-        <a href="/customer/support.html">Hỗ trợ kỹ thuật</a>
-        <a href="/customer/chat.html">Tư vấn trực tuyến</a>
-      </nav>
-      <div>
-        <div class="form-group" style="max-width:240px;">
-          <label for="loc-trang-thai">Lọc theo trạng thái</label>
-          <select class="select" id="loc-trang-thai">
-            <option value="">Tất cả</option>
-            <option value="cho_duyet">Chờ duyệt</option>
-            <option value="dang_giao">Đang giao</option>
-            <option value="hoan_thanh">Hoàn thành</option>
-            <option value="huy">Đã huỷ</option>
-          </select>
-        </div>
-        <div id="danh-sach-don-hang" style="margin-top: var(--spacing-md);">
-          <p class="text-muted">Đang tải đơn hàng...</p>
+  <main id="main" class="tk">
+    <div class="tk-wrap">
+      <div class="tk-head">
+        <h1 class="tk-head__title">Đơn hàng của tôi</h1>
+        <p class="tk-head__sub">Theo dõi trạng thái và xem lại các đơn đã đặt.</p>
+      </div>
+      <div class="tk-layout">
+        <aside class="tk-side">
+          <div class="tk-user">
+            <span class="tk-user__avatar" aria-hidden="true"></span>
+            <div class="tk-user__text"><strong class="tk-user__name" id="user-info"></strong><span class="tk-user__role">Khách hàng</span></div>
+          </div>
+          <nav class="tk-nav" aria-label="Tài khoản"></nav>
+        </aside>
+        <div class="tk-content">
+          <h2 class="tk-sr">Danh sách đơn hàng</h2>
+          <div class="tk-filters" id="bo-loc-don" role="group" aria-label="Lọc theo trạng thái" aria-busy="true">
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
+          </div>
+          <div id="danh-sach-don-hang" aria-busy="true">
+            <div aria-hidden="true">
+              <span class="tk-skel tk-skel--order skeleton"></span>
+              <span class="tk-skel tk-skel--order skeleton"></span>
+              <span class="tk-skel tk-skel--order skeleton"></span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -80,6 +86,7 @@
       initDonHang();
     });
   </script>
+  <script type="module" src="/js/customer/account-shell.js"></script>
   <script type="module" src="/js/header-ui.js"></script>
   <script type="module" src="/js/site-header.js"></script>
   <script type="module" src="/js/site-footer.js"></script>

@@ -11,6 +11,15 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.19.0/f
 
 const nutDangXuat = document.getElementById("btn-dang-xuat");
 
+document.querySelectorAll(".site-header__nav a[href]").forEach((a) => {
+  const url = new URL(a.href, location.href);
+  if (url.origin === location.origin && url.pathname === location.pathname) a.setAttribute("aria-current", "page");
+});
+
+document.querySelectorAll(".site-header__nav a[href]").forEach((a) => {
+  if (new URL(a.href).pathname === location.pathname) a.setAttribute("aria-current", "page");
+});
+
 onAuthStateChanged(auth, (user) => {
   document.querySelectorAll('.site-header [data-auth="in"]').forEach((el) => (el.hidden = !user));
   document.querySelectorAll('.site-header [data-auth="out"]').forEach((el) => (el.hidden = !!user));

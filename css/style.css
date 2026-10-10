@@ -130,6 +130,10 @@
   --color-text: #1C1B19;
   --color-text-muted: #6B6459;
   --color-border: #E4E0D7;
+  --color-primary-light: #BA672F;
+  --color-field: rgba(28, 27, 25, .05);
+  --color-hover: rgba(28, 27, 25, .06);
+  --color-ring: rgba(166, 84, 28, .14);
   --color-success: #2F7A4D;
   --color-danger: #B3261E;
   --color-warning: #C9A227;
@@ -144,6 +148,7 @@
   /* input, badge, chip nhỏ */
   --radius: 12px;
   /* card, button, modal */
+  --radius-pill: 999px;
   --radius-lg: 20px;
   /* mảng lớn: hero, panel nổi bật */
 
@@ -209,6 +214,7 @@
   /* độ trễ giữa các phần tử cùng đợt */
   --rise: 10px;
   /* quãng nhích lên khi xuất hiện — một giá trị cho cả site */
+  --control-h: 40px;
   --header-h: 64px;
   /* chiều cao header cố định ở mọi trạng thái đăng nhập, offset sticky dùng chung */
 }
@@ -324,7 +330,17 @@ p {
   height: var(--header-h);
   padding-inline: max(var(--spacing-md), calc((100% - 1200px) / 2));
   background: var(--color-surface);
+}
+
+/* Viền + bóng chân header nằm ở lớp riêng để khi cuộn chỉ cần đổi opacity (compositor),
+   không phải vẽ lại box-shadow/border dưới lớp backdrop-filter ở mỗi khung hình. */
+.site-header::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 8px 24px -12px rgba(28, 27, 25, .2);
+  pointer-events: none;
 }
 
 @supports (backdrop-filter: blur(1px)) {
@@ -353,8 +369,8 @@ p {
   height: 28px;
   flex: none;
   border-radius: 9px;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='12' height='12' rx='2'/%3E%3Cpath d='M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5'/%3E%3C/svg%3E") center / 17px no-repeat, linear-gradient(150deg, #BA672F, #8A4416);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 2px 6px rgba(138, 68, 22, .28);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='6' y='6' width='12' height='12' rx='2'/%3E%3Cpath d='M9.5 2.5V6M14.5 2.5V6M9.5 18v3.5M14.5 18v3.5M2.5 9.5H6M2.5 14.5H6M18 9.5h3.5M18 14.5h3.5'/%3E%3C/svg%3E") center / 17px no-repeat, linear-gradient(150deg, var(--color-primary-light), var(--color-primary-dark));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 25%, transparent), 0 2px 6px color-mix(in srgb, var(--color-primary-dark) 28%, transparent);
   transition: transform var(--dur-base) var(--ease-spring);
 }
 
@@ -415,11 +431,11 @@ p {
 }
 
 .site-search .input {
-  height: 40px;
+  height: var(--control-h);
   padding: 0 16px 0 42px;
   border-color: transparent;
-  border-radius: 999px;
-  background: rgba(28, 27, 25, .05);
+  border-radius: var(--radius-pill);
+  background: var(--color-field);
   font-size: var(--text-sm);
   transition: background-color var(--dur-base) var(--ease-out), border-color var(--dur-base) var(--ease-out), box-shadow var(--dur-base) var(--ease-out);
 }
@@ -429,26 +445,61 @@ p {
 }
 
 .site-search .input:hover:not(:focus) {
-  background: rgba(28, 27, 25, .075);
+  background: color-mix(in srgb, var(--color-text) 8%, transparent);
 }
 
 .site-search .input:focus {
   background: var(--color-surface);
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px rgba(166, 84, 28, .14), var(--shadow-sm);
+  box-shadow: 0 0 0 4px var(--color-ring), var(--shadow-sm);
 }
 
+/* Lưới 1 hàng: các mục nav tự xếp thành cột; hai khối [data-auth] chiếm CÙNG một ô nên
+   chiều rộng nav luôn bằng khối rộng hơn → đổi Đăng nhập ↔ Tài khoản không làm ô tìm kiếm xê dịch. */
 .site-header__nav {
-  display: flex;
+  --nav-items: 3; /* số mục đứng trước khối đăng nhập (Sản phẩm, Tư vấn, Giỏ hàng) */
+  display: grid;
+  grid-auto-flow: column;
   align-items: center;
   flex: none;
   gap: var(--spacing-xs);
 }
 
+/* Hai trạng thái xếp chồng, đổi bằng crossfade (opacity/visibility), không bật tắt display.
+   Trạng thái do html[data-auth-hint] quyết định (js/firebase-config.js); chưa biết → coi như chưa đăng nhập.
+   Thuộc tính hidden trong HTML bị bỏ qua có chủ ý (display: flex !important). */
 .site-header__nav [data-auth] {
-  display: flex;
+  grid-area: 1 / calc(var(--nav-items) + 1);
+  display: flex !important;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--spacing-xs);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  /* đi ra: nhanh, biến mất hẳn (visibility) sau khi mờ xong */
+  transition: opacity var(--dur-leave) var(--ease-in), visibility 0s linear var(--dur-leave);
+}
+
+html:not([data-auth-hint="in"]) .site-header__nav [data-auth="out"],
+html[data-auth-hint="in"] .site-header__nav [data-auth="in"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  /* đi vào: bắt đầu khi khối cũ mới mờ một phần → hai khối giao nhau nhẹ, không có khoảng trống giữa chừng */
+  transition: opacity var(--dur-base) var(--ease-out) calc(var(--dur-leave) / 3), visibility 0s;
+}
+
+/* Đang đăng xuất (js/site-header.js): giữ nguyên khối Tài khoản dù auth đã đổi, tới khi chuyển trang */
+.site-header[data-auth-lock="in"] .site-header__nav [data-auth="in"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.site-header[data-auth-lock="in"] .site-header__nav [data-auth="out"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .site-header__nav a {
@@ -475,9 +526,9 @@ p {
 }
 
 .site-header__link {
-  height: 40px;
+  height: var(--control-h);
   padding-inline: 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--color-text-muted);
 }
 
@@ -515,8 +566,8 @@ p {
 }
 
 .site-header__icon {
-  width: 40px;
-  height: 40px;
+  width: var(--control-h);
+  height: var(--control-h);
   border-radius: 50%;
 }
 
@@ -531,35 +582,42 @@ p {
 
 .site-header__icon:hover,
 .site-header__icon[aria-current="page"] {
-  background: rgba(28, 27, 25, .06);
+  background: var(--color-hover);
 }
 
 .site-header__icon:active {
   transform: scale(.92);
 }
 
-.site-header__cta {
-  height: 40px;
+.site-header__nav .site-header__cta {
+  height: var(--control-h);
   padding-inline: 20px;
   margin-left: var(--spacing-xs);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-surface-dark);
-  color: var(--color-text-on-dark) !important;
+  color: var(--color-text-on-dark);
 }
 
-.site-header__cta:hover {
+.site-header__nav .site-header__cta:hover {
   background: var(--color-primary);
 }
 
-.site-header__cta:active {
+/* Desktop: nút Đăng nhập giãn đúng bằng bề rộng khối Tài khoản + Đăng xuất (cùng ô lưới) */
+@media (min-width: 761px) {
+  .site-header__nav .site-header__cta {
+    flex: 1 1 auto;
+  }
+}
+
+.site-header__nav .site-header__cta:active {
   transform: scale(.96);
 }
 
-.site-header .btn {
-  height: 40px;
+.site-header .site-header__logout {
+  height: var(--control-h);
   padding: 0 16px;
   margin-left: var(--spacing-xs);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 html[data-cart] .site-header__nav a[href="/cart.html"]::before {
@@ -575,7 +633,7 @@ html[data-cart] .site-header__nav a[href="/cart.html"]::before {
   border-radius: 9px;
   background: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-bg);
-  color: #fff;
+  color: var(--color-surface);
   font: 600 11px/18px var(--font-family-mono);
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -1468,18 +1526,7 @@ img.img-fade.is-loaded {
   animation: sk-sweep 1.6s var(--ease-move) infinite;
 }
 
-/* ---- Header: khối Đăng nhập / Tài khoản (xem data-auth-hint trong js/firebase-config.js) ---- */
-html[data-auth-hint="in"] .site-header__nav [data-auth="out"] {
-  display: none !important;
-}
-
-html[data-auth-hint="in"] .site-header__nav [data-auth="in"][hidden] {
-  display: flex !important;
-}
-
-html:not([data-auth-hint]) .site-header__nav [data-auth="out"]:not([hidden]) {
-  animation: fade-in var(--dur-base) var(--ease-out) 260ms backwards;
-}
+/* ---- Header: khối Đăng nhập / Tài khoản → xem mục 3 (.site-header__nav [data-auth]) ---- */
 
 /* ---- Tên chuyển trang: phần chung của nhiều trang đứng yên, chỉ nền cross-fade ---- */
 .site-header {
@@ -1615,13 +1662,7 @@ html[data-auth-hint="in"] body[hidden]> :not(.site-header):not(.site-footer) {
 /* ==============================  TINH CHỈNH ========================= */
 @keyframes header-edge {
   from {
-    border-bottom-color: transparent;
-    box-shadow: 0 8px 24px -12px rgba(28, 27, 25, 0);
-  }
-
-  to {
-    border-bottom-color: var(--color-border);
-    box-shadow: 0 8px 24px -12px rgba(28, 27, 25, .2);
+    opacity: 0;
   }
 }
 
@@ -1639,7 +1680,7 @@ html[data-auth-hint="in"] body[hidden]> :not(.site-header):not(.site-footer) {
 
 @supports (animation-timeline: scroll()) {
   @media (prefers-reduced-motion: no-preference) {
-    .site-header {
+    .site-header::after {
       animation: header-edge linear both;
       animation-timeline: scroll(root);
       animation-range: 0 72px;
@@ -1833,26 +1874,41 @@ html:not([data-auth-hint="in"]).is-guarded body:not([hidden])>main {
 
 @media (max-width: 760px) {
   :root {
-    --header-h: 108px;
+    --control-h: 36px;
+    --header-h: 104px;
   }
 
   .site-header {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: 40px 40px;
+    grid-template-rows: var(--control-h) var(--control-h);
     align-content: center;
     gap: 10px var(--spacing-sm);
     padding-inline: var(--spacing-md);
   }
 
-  .site-header__logo {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   .site-header__nav {
     justify-self: end;
     gap: 2px;
+  }
+
+  /* Mobile không xếp chồng: nav luôn rộng bằng khối đang hiện để logo không bị cắt chữ khi đã đăng nhập.
+     Đổi trạng thái ở đây là hiếm (gợi ý đăng nhập sai) nên đổi tức thì như cũ. */
+  .site-header__nav [data-auth] {
+    grid-area: auto;
+  }
+
+  html[data-auth-hint="in"] .site-header__nav [data-auth="out"],
+  html:not([data-auth-hint="in"]) .site-header__nav [data-auth="in"] {
+    display: none !important;
+  }
+
+  .site-header[data-auth-lock="in"] .site-header__nav [data-auth="in"] {
+    display: flex !important;
+  }
+
+  .site-header[data-auth-lock="in"] .site-header__nav [data-auth="out"] {
+    display: none !important;
   }
 
   .site-search {
@@ -1865,9 +1921,32 @@ html:not([data-auth-hint="in"]).is-guarded body:not([hidden])>main {
 
   .site-header__link,
   .site-header__icon,
-  .site-header .btn {
-    width: 36px;
-    height: 36px;
+  .site-header .site-header__logout {
+    width: 34px;
+  }
+
+  .site-header__logo {
+    display: block;
+    overflow: hidden;
+    font-size: var(--text-base);
+    line-height: var(--control-h);
+    text-overflow: ellipsis;
+  }
+
+  .site-header__logo::before {
+    display: inline-block;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  html[data-cart] .site-header__nav a[href="/cart.html"]::before {
+    top: 0;
+    right: -4px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
   }
 
   .site-header__link {
@@ -1901,7 +1980,7 @@ html:not([data-auth-hint="in"]).is-guarded body:not([hidden])>main {
     padding-inline: 16px;
   }
 
-  .site-header .btn {
+  .site-header .site-header__logout {
     margin-left: 0;
     padding: 0;
     overflow: hidden;
@@ -1910,12 +1989,21 @@ html:not([data-auth-hint="in"]).is-guarded body:not([hidden])>main {
     font-size: 0;
   }
 
-  .site-header .btn::before {
+  .site-header .site-header__logout::after {
     content: "";
     width: 20px;
     height: 20px;
     background: var(--color-text);
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4'/%3E%3Cpath d='M10 8l-4 4 4 4M6 12h10'/%3E%3C/svg%3E") center / contain no-repeat;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4'/%3E%3Cpath d='M10 8l-4 4 4 4M6 12h10'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  .site-header .site-header__logout[aria-busy="true"]::before {
+    width: 18px;
+    height: 18px;
+  }
+
+  .site-header .site-header__logout[aria-busy="true"]::after {
+    display: none;
   }
 }

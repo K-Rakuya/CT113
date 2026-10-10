@@ -74,4 +74,24 @@
   addEventListener("pageshow", function (e) {
     if (e.persisted) go();
   });
+
+  // Đánh dấu mục nav của trang hiện tại NGAY khi trình duyệt dựng xong header (trước khung hình đầu).
+  // Trước đây việc này nằm trong module site-header.js, chạy sau khi tải xong Firebase từ CDN → gạch chân
+  // và màu chữ chạy transition ở mỗi lần chuyển trang, trong khi header vốn phải đứng yên.
+  function danhDauMucHienTai() {
+    var cacLienKet = document.querySelectorAll(".site-header__nav a[href]");
+    for (var i = 0; i < cacLienKet.length; i++) {
+      var url = new URL(cacLienKet[i].href, location.href);
+      if (url.origin === location.origin && url.pathname === location.pathname) {
+        cacLienKet[i].setAttribute("aria-current", "page");
+      }
+    }
+  }
+
+  var theoDoi = new MutationObserver(danhDauMucHienTai);
+  theoDoi.observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", function () {
+    danhDauMucHienTai();
+    theoDoi.disconnect();
+  });
 })();

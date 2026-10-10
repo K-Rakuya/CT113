@@ -1401,6 +1401,12 @@ html[data-auth-hint="in"] .site-footer [data-auth="out"] {
   border-color: var(--color-text);
 }
 
+.pagination__gap {
+  min-width: 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
 .pagination button:disabled {
   opacity: .45;
   cursor: not-allowed;

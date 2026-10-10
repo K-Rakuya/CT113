@@ -138,6 +138,8 @@
   --color-danger: #B3261E;
   --color-warning: #C9A227;
   --color-info: #2E6F95;
+  --color-success-bg: #DEEEE2;
+  --color-success-text: #1F5C3A;
 
   /* nền tối cho các mảng nhấn — hero, sidebar dashboard */
   --color-surface-dark: #211F1B;

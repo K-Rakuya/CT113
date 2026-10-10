@@ -29,6 +29,12 @@ test("veTrong: chỉ có đoạn mô tả khi được truyền vào", () => {
   assert.match(veTrong({ bieuTuong: "box", tieuDe: "Trống", moTa: "Thử lại" }), /tk-empty__text">Thử lại/);
 });
 
+test("veTrong: có nút hành động khi được truyền vào", () => {
+  const html = veTrong({ bieuTuong: "box", tieuDe: "Trống", hanhDong: { href: "/product-list.html", nhan: "Mua sắm" } });
+  assert.match(html, /<a class="btn btn--primary tk-empty__action" href="\/product-list\.html">Mua sắm<\/a>/);
+  assert.doesNotMatch(veTrong({ bieuTuong: "box", tieuDe: "Trống" }), /tk-empty__action/);
+});
+
 test("veLoi: dùng chung bố cục trạng thái rỗng", () => {
   assert.match(veLoi("Không tải được."), /tk-empty__title">Không tải được\./);
 });

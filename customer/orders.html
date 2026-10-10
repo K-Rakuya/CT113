@@ -58,18 +58,17 @@
           <nav class="tk-nav" aria-label="Tài khoản"></nav>
         </aside>
         <div class="tk-content">
-          <div class="form-group tk-filter">
-            <label for="loc-trang-thai">Lọc theo trạng thái</label>
-            <select class="select" id="loc-trang-thai">
-              <option value="">Tất cả</option>
-              <option value="cho_duyet">Chờ duyệt</option>
-              <option value="dang_giao">Đang giao</option>
-              <option value="hoan_thanh">Hoàn thành</option>
-              <option value="huy">Đã huỷ</option>
-            </select>
+          <div class="tk-filters" id="bo-loc-don" role="group" aria-label="Lọc theo trạng thái" aria-busy="true">
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
+            <span class="tk-skel tk-skel--chip skeleton" aria-hidden="true"></span>
           </div>
-          <div id="danh-sach-don-hang">
-            <p class="text-muted">Đang tải đơn hàng...</p>
+          <div id="danh-sach-don-hang" aria-busy="true">
+            <div aria-hidden="true">
+              <span class="tk-skel tk-skel--order skeleton"></span>
+              <span class="tk-skel tk-skel--order skeleton"></span>
+              <span class="tk-skel tk-skel--order skeleton"></span>
+            </div>
           </div>
         </div>
       </div>

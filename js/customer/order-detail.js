@@ -2,9 +2,11 @@
 // Trang customer/order-detail.html: chi tiết 1 đơn. Collection: donhang, chitietdonhang.
 
 import { auth, db } from "/js/firebase-config.js";
-import { formatCurrency, formatDate, showToast, escapeHtml } from "/js/utils.js";
+import { formatCurrency, formatDateTime, showToast, escapeHtml } from "/js/utils.js";
 import { confirmDialog } from "/js/dialog.js";
 import { muaLaiDon } from "/js/customer/reorder.js";
+import { NHAN_TRANG_THAI_DON, buocTienTrinh, hanhDongCuaDon, maDon, tongSoLuong } from "/js/customer/order-rules.js";
+import { veLoi } from "/js/customer/account-view.js";
 import { swapContent, pulse, setBusy, confirmButton, prefersReducedMotion } from "/js/motion.js";
 import {
   doc,
@@ -20,19 +22,10 @@ import {
 
 const elNoiDung = document.getElementById("noi-dung-chi-tiet-don");
 
-const NHAN_TRANG_THAI = {
-  cho_duyet: "Chờ duyệt",
-  dang_giao: "Đang giao",
-  hoan_thanh: "Hoàn thành",
-  huy: "Đã huỷ",
-};
-
-const THU_TU_TRANG_THAI = ["cho_duyet", "dang_giao", "hoan_thanh"];
-
 function capNhatTienTrinh(trangThai) {
   const ol = document.getElementById("tien-trinh-don");
   if (!ol) return;
-  const buoc = THU_TU_TRANG_THAI.indexOf(trangThai);
+  const buoc = buocTienTrinh(trangThai);
   ol.classList.toggle("is-cancelled", buoc < 0);
   ol.style.setProperty("--buoc", Math.max(0, buoc));
   ol.querySelectorAll("li").forEach((li, i) => {
@@ -45,24 +38,17 @@ function capNhatTienTrinh(trangThai) {
 function veHanhDong(don, chiTiet) {
   const el = document.getElementById("hanh-dong-don");
   if (!el) return;
-  const nutMuaLai = '<button type="button" class="btn btn--secondary" data-hanh-dong="mua-lai">Mua lại</button>';
-  let html = "";
-  if (don.trangThai === "cho_duyet") {
-    html = don.yeuCauHuy
-      ? '<p class="kh-order-note" role="status">Đã gửi yêu cầu huỷ, đang chờ cửa hàng xác nhận.</p>'
-      : '<button type="button" class="btn btn--danger" data-hanh-dong="yeu-cau-huy">Yêu cầu huỷ đơn</button>';
-  } else if (don.trangThai === "dang_giao") {
-    html = '<p class="kh-order-note">Đơn hàng đang được giao.</p>';
-  } else {
-    html = nutMuaLai;
-    if (don.trangThai === "huy") html = '<p class="kh-order-note">Đơn hàng đã được huỷ.</p>' + html;
-  }
-  el.innerHTML = html;
+  const { ghiChu, nut } = hanhDongCuaDon(don);
+  const nutHtml = {
+    "yeu-cau-huy": '<button type="button" class="btn btn--danger" data-hanh-dong="yeu-cau-huy">Yêu cầu huỷ đơn</button>',
+    "mua-lai": '<button type="button" class="btn btn--primary" data-hanh-dong="mua-lai">Mua lại</button>',
+  }[nut] ?? "";
+  el.innerHTML = (ghiChu ? `<p class="tk-order-note" role="status">${ghiChu}</p>` : "") + nutHtml;
   el.onclick = async (e) => {
-    const nut = e.target.closest("[data-hanh-dong]");
-    if (!nut) return;
-    if (nut.dataset.hanhDong === "yeu-cau-huy") await yeuCauHuy(don, chiTiet, nut);
-    else await muaLai(chiTiet, nut);
+    const nutBam = e.target.closest("[data-hanh-dong]");
+    if (!nutBam) return;
+    if (nutBam.dataset.hanhDong === "yeu-cau-huy") await yeuCauHuy(don, chiTiet, nutBam);
+    else await muaLai(chiTiet, nutBam);
   };
 }
 
@@ -126,7 +112,7 @@ function theoDoiTrangThai(donHangId, don, chiTiet) {
         const badge = elNoiDung.querySelector(".badge");
         if (badge) {
           badge.className = `badge badge--${moi.trangThai}`;
-          badge.textContent = NHAN_TRANG_THAI[moi.trangThai] || moi.trangThai;
+          badge.textContent = NHAN_TRANG_THAI_DON[moi.trangThai] || moi.trangThai;
           pulse(badge);
         }
         capNhatTienTrinh(moi.trangThai);
@@ -143,15 +129,15 @@ export async function initChiTietDonHang() {
   const donHangId = thamSo.get("id");
   const laDonMoi = thamSo.get("moi") === "1";
   if (!donHangId) {
-    elNoiDung.innerHTML = '<p class="empty-state">Thiếu mã đơn hàng.</p>';
+    hienLoi("Thiếu mã đơn hàng.");
     return;
   }
 
   try {
     const donSnap = await getDoc(doc(db, "donhang", donHangId));
     if (!donSnap.exists() || donSnap.data().khachHangId !== auth.currentUser.uid) {
-      // thông báo thay vì để lỗi permission-denied thô hiện ra.
-      elNoiDung.innerHTML = '<p class="empty-state">Không tìm thấy đơn hàng.</p>';
+      // Thông báo thân thiện thay vì để lỗi permission-denied hiện ra.
+      hienLoi("Không tìm thấy đơn hàng.");
       return;
     }
     const don = { id: donSnap.id, ...donSnap.data() };
@@ -165,74 +151,96 @@ export async function initChiTietDonHang() {
     );
     const chiTiet = ctdhSnap.docs.map((d) => d.data());
 
-    // Lấy thêm tên/ảnh sản phẩm để hiển thị đẹp hơn.
+    // Bổ sung tên và ảnh sản phẩm để hiển thị.
     const chiTietDayDu = await Promise.all(
       chiTiet.map(async (ct) => {
         const spSnap = await getDoc(doc(db, "sanpham", ct.sanPhamId));
-        return { ...ct, tenSanPham: spSnap.exists() ? spSnap.data().tenSanPham : "(Sản phẩm đã bị xoá)" };
+        const sp = spSnap.exists() ? spSnap.data() : null;
+        return { ...ct, tenSanPham: sp ? sp.tenSanPham : "(Sản phẩm đã bị xoá)", hinhAnh: sp?.hinhAnh ?? "", conSanPham: Boolean(sp) };
       })
     );
 
     swapContent(elNoiDung, () => render(don, chiTietDayDu, laDonMoi));
+    elNoiDung.removeAttribute("aria-busy");
     capNhatTienTrinh(don.trangThai);
     theoDoiTrangThai(donHangId, don, chiTietDayDu);
     if (laDonMoi) history.replaceState(null, "", `${window.location.pathname}?id=${encodeURIComponent(donHangId)}`);
   } catch (err) {
-    elNoiDung.innerHTML = '<p class="empty-state">Không tải được đơn hàng.</p>';
+    hienLoi("Không tải được đơn hàng.");
     showToast(err.message, "error");
   }
 }
 
-function render(don, chiTiet, laDonMoi) {
-  const maDon = "Đơn #" + don.id.slice(0, 8).toUpperCase();
-  const elBreadcrumb = document.getElementById("breadcrumb-ma-don");
-  if (elBreadcrumb) elBreadcrumb.textContent = maDon;
+function hienLoi(thongDiep) {
+  elNoiDung.innerHTML = veLoi(thongDiep);
+  elNoiDung.removeAttribute("aria-busy");
+}
 
-  const bannerThanhCong = laDonMoi
-    ? `<div class="kh-order-success" role="status">
-        <svg class="kh-order-success__tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
+function dongSanPham(ct) {
+  const anh = ct.hinhAnh ? `<img src="${escapeHtml(ct.hinhAnh)}" alt="" loading="lazy" decoding="async">` : "";
+  const ten = escapeHtml(ct.tenSanPham);
+  const tenHtml = ct.conSanPham
+    ? `<a class="tk-line__name" href="/product-detail.html?id=${encodeURIComponent(ct.sanPhamId)}">${ten}</a>`
+    : `<span class="tk-line__name">${ten}</span>`;
+  return `
+    <li class="tk-line">
+      <span class="tk-line__thumb">${anh}</span>
+      <div class="tk-line__main">${tenHtml}<span class="tk-line__meta">${formatCurrency(ct.donGia)} × ${ct.soLuong}</span></div>
+      <span class="tk-line__total">${formatCurrency(ct.thanhTien)}</span>
+    </li>`;
+}
+
+function render(don, chiTiet, laDonMoi) {
+  const ma = `Đơn ${maDon(don.id)}`;
+  const elBreadcrumb = document.getElementById("breadcrumb-ma-don");
+  if (elBreadcrumb) elBreadcrumb.textContent = ma;
+
+  const thongBao = laDonMoi
+    ? `<div class="tk-notice" role="status">
+        <svg class="tk-notice__tick" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7 12.5l3.2 3.2L17 9"/></svg>
         <div><strong>Đặt hàng thành công</strong><div>Đơn hàng đang chờ cửa hàng duyệt.</div></div>
       </div>`
     : "";
 
   elNoiDung.innerHTML = `
-    ${bannerThanhCong}
-    <div class="card">
-      <div class="flex-between">
-        <h2 style="margin:0;">${maDon}</h2>
-        <span class="badge badge--${don.trangThai}">${NHAN_TRANG_THAI[don.trangThai] || don.trangThai}</span>
+    ${thongBao}
+    <section class="card" aria-labelledby="h-ma-don">
+      <div class="tk-order-top">
+        <div>
+          <h2 class="tk-order-top__code" id="h-ma-don">${ma}</h2>
+          <p class="tk-order-top__date">Đặt lúc ${formatDateTime(don.ngayDat)}</p>
+        </div>
+        <span class="badge badge--${don.trangThai}">${NHAN_TRANG_THAI_DON[don.trangThai] || don.trangThai}</span>
       </div>
-      <ol class="kh-progress" id="tien-trinh-don" aria-label="Tiến trình đơn hàng">
-        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.cho_duyet}</li>
-        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.dang_giao}</li>
-        <li><span class="kh-progress__dot"></span>${NHAN_TRANG_THAI.hoan_thanh}</li>
+      <ol class="tk-steps" id="tien-trinh-don" aria-label="Tiến trình đơn hàng">
+        <li><span class="tk-steps__dot"></span>${NHAN_TRANG_THAI_DON.cho_duyet}</li>
+        <li><span class="tk-steps__dot"></span>${NHAN_TRANG_THAI_DON.dang_giao}</li>
+        <li><span class="tk-steps__dot"></span>${NHAN_TRANG_THAI_DON.hoan_thanh}</li>
       </ol>
-      <p class="text-muted">Ngày đặt: ${formatDate(don.ngayDat)}</p>
-      <p><strong>Địa chỉ giao hàng:</strong> ${escapeHtml(don.diaChiGiao)}</p>
+    </section>
 
-      <div class="table-responsive" style="margin-top: var(--spacing-md);">
-        <table class="table">
-          <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
-          <tbody>
-            ${chiTiet
-              .map(
-                (ct) => `
-              <tr>
-                <td>${escapeHtml(ct.tenSanPham)}</td>
-                <td>${ct.soLuong}</td>
-                <td>${formatCurrency(ct.donGia)}</td>
-                <td>${formatCurrency(ct.thanhTien)}</td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-        </table>
-      </div>
+    <div class="tk-order-grid">
+      <section class="card" aria-labelledby="h-san-pham">
+        <h2 class="tk-section__title" id="h-san-pham">Sản phẩm (${tongSoLuong(chiTiet)})</h2>
+        <ul class="tk-lines">${chiTiet.map(dongSanPham).join("")}</ul>
+      </section>
 
-      <div class="kh-summary__row kh-summary__total" style="margin-top: var(--spacing-md);">
-        <span>Tổng cộng</span><span>${formatCurrency(don.tongTien)}</span>
+      <div class="tk-order-side">
+        <section class="card" aria-labelledby="h-thanh-toan">
+          <h2 class="tk-section__title" id="h-thanh-toan">Thanh toán</h2>
+          <div class="kh-summary__row"><span>Phương thức</span><span>Khi nhận hàng</span></div>
+          <div class="kh-summary__row kh-summary__total"><span>Tổng cộng</span><span>${formatCurrency(don.tongTien)}</span></div>
+          <div class="tk-order-actions" id="hanh-dong-don"></div>
+        </section>
+        <section class="card" aria-labelledby="h-giao-hang">
+          <h2 class="tk-section__title" id="h-giao-hang">Giao hàng</h2>
+          <p class="tk-order-address">${escapeHtml(don.diaChiGiao)}</p>
+        </section>
       </div>
-      <div class="kh-order-actions" id="hanh-dong-don"></div>
     </div>
   `;
+
+  elNoiDung.querySelectorAll(".tk-line__thumb img").forEach((img) => {
+    img.addEventListener("error", () => img.remove(), { once: true });
+  });
 }

@@ -12,6 +12,8 @@ const elBoPc = document.getElementById("bo-pc");
 const elNhom = document.getElementById("home-nhom");
 const elDanhMuc = document.getElementById("home-danh-muc");
 const elDanhGia = document.getElementById("home-danh-gia");
+const elMucDanhMuc = elDanhMuc.closest("section");
+const elFooterBoPc = document.querySelector('.site-footer a[href="/index.html#bo-pc"]');
 
 const icon = (ma) => `<svg class="home-icon" aria-hidden="true"><use href="/images/home/icons.svg#${ma}"/></svg>`;
 
@@ -77,7 +79,8 @@ function htmlNhom(n, bayGio) {
 function veDanhMuc(du) {
   const coHang = new Set(du.sanPham.map((sp) => sp.danhMucId));
   const o = du.danhMuc.filter((dm) => coHang.has(dm.id)).map((dm) => `<a class="home-cat" href="/product-list.html?danhmuc=${encodeURIComponent(dm.id)}"><span class="home-cat__icon">${icon(bieuTuongDanhMuc(dm.tenDanhMuc))}</span>${escapeHtml(dm.tenDanhMuc)}</a>`);
-  if (!o.length) return elDanhMuc.closest("section").remove();
+  if (!o.length) return void (elMucDanhMuc.hidden = true);
+  elMucDanhMuc.hidden = false;
   elDanhMuc.innerHTML = `<a class="home-cat" href="/product-list.html"><span class="home-cat__icon">${icon("box")}</span>Tất cả sản phẩm</a>${o.join("")}`;
 }
 
@@ -100,24 +103,43 @@ function veDanhGia(du) {
 }
 
 function veLoi() {
-  elNhom.innerHTML = '<div class="home-group"><p class="home-empty">Không tải được sản phẩm. <button type="button" class="home-btn home-btn--light" id="home-thu-lai">Thử lại</button></p></div>';
-  document.getElementById("home-thu-lai").addEventListener("click", () => window.location.reload());
+  elMucDanhMuc.hidden = true;
+  elNhom.innerHTML = '<div class="home-group"><p class="home-empty" role="alert">Không tải được sản phẩm. <button type="button" class="home-btn home-btn--solid" id="home-thu-lai">Thử lại</button></p></div>';
+  document.getElementById("home-thu-lai").addEventListener("click", taiVaVe);
 }
 
-async function khoiTao() {
-  khoiTaoBanner(document.querySelector(".home-banner"));
-  document.querySelectorAll(".home-trust, .home-cta").forEach(hienKhiCuonToi);
+let nguoiDungDaCuon = false;
+["wheel", "touchstart", "keydown"].forEach((ten) => addEventListener(ten, () => (nguoiDungDaCuon = true), { once: true, passive: true }));
+
+/** #bo-pc và các nhóm sản phẩm chỉ có sau khi tải dữ liệu nên trình duyệt chưa tự cuộn tới được neo */
+function cuonToiNeo() {
+  if (nguoiDungDaCuon || !location.hash) return;
+  let id = "";
+  try {
+    id = decodeURIComponent(location.hash.slice(1));
+  } catch {
+    return;
+  }
+  const dich = document.getElementById(id);
+  if (!dich || dich.hidden || !(dich === elBoPc || elNhom.contains(dich))) return;
+  requestAnimationFrame(() => dich.scrollIntoView({ block: "start" }));
+}
+
+async function taiVaVe() {
+  elNhom.setAttribute("aria-busy", "true");
   try {
     const du = await taiDuLieu();
     const bayGio = Date.now();
     const cacNhom = chonCacNhom(du.sanPham, du.danhMuc);
     veDanhMuc(du);
     const soBo = veBoPc(elBoPc, du);
-    document.querySelectorAll("[data-bo-pc]").forEach((a) => {
-      if (soBo) return;
-      a.setAttribute("href", "/product-list.html");
-      a.firstChild.textContent = "Xem sản phẩm";
-    });
+    if (!soBo) {
+      elFooterBoPc?.closest("li")?.setAttribute("hidden", "");
+      document.querySelectorAll("[data-bo-pc]").forEach((a) => {
+        a.setAttribute("href", "/product-list.html");
+        a.firstChild.textContent = "Xem sản phẩm";
+      });
+    }
     if (!cacNhom.length) {
       elNhom.innerHTML = '<div class="home-group"><p class="home-empty">Cửa hàng chưa có sản phẩm nào.</p></div>';
     } else {
@@ -126,6 +148,7 @@ async function khoiTao() {
       elNhom.querySelectorAll(".home-row").forEach(khoiTaoHang);
     }
     veDanhGia(du);
+    cuonToiNeo();
   } catch (err) {
     console.error("Không tải được dữ liệu trang chủ:", err);
     veLoi();
@@ -134,4 +157,6 @@ async function khoiTao() {
   }
 }
 
-khoiTao();
+khoiTaoBanner(document.querySelector(".home-banner"));
+document.querySelectorAll(".home-trust, .home-cta").forEach(hienKhiCuonToi);
+taiVaVe();

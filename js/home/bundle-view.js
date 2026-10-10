@@ -42,14 +42,16 @@ function htmlChiTiet({ bo, t }) {
 }
 
 async function themBoVaoGio(muc, nut) {
-  const user = auth.currentUser;
-  if (!user) {
-    showToast("Vui lòng đăng nhập để thêm vào giỏ hàng.", "info");
-    setTimeout(() => (window.location.href = duongDanDangNhap("/index.html#bo-pc")), 1200);
-    return;
-  }
+  if (!muc || nut.getAttribute("aria-busy") === "true") return;
   setBusy(nut, true);
   try {
+    await auth.authStateReady(); // auth.currentUser còn null trong lúc Firebase đang khôi phục phiên đăng nhập
+    const user = auth.currentUser;
+    if (!user) {
+      showToast("Vui lòng đăng nhập để thêm vào giỏ hàng.", "info");
+      setTimeout(() => (window.location.href = duongDanDangNhap("/index.html#bo-pc")), 1200);
+      return;
+    }
     const snap = await getDocs(query(collection(db, "giohang"), where("khachHangId", "==", user.uid)));
     const gioHang = new Map(snap.docs.map((d) => [d.data().sanPhamId, { id: d.id, soLuong: d.data().soLuong }]));
     const kh = keHoachThemGio(tinhBoPc(muc.bo, theoId), gioHang);

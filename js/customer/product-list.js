@@ -1,127 +1,123 @@
-// js/customer/product-list.js
-// Trang product-list.html: danh sách sp, tìm theo tên, lọc danh mục + khoảng
-// giá, sắp xếp, phân trang. Collection dùng: sanpham, danhmuc.
+// Trang product-list.html: tìm theo tên, lọc theo danh mục, mức giá và tình trạng còn hàng, sắp xếp, phân trang.
+// Dữ liệu và quy tắc lọc nằm trong js/catalog/.
 
-import { db } from "/js/firebase-config.js";
-import { formatCurrency, showToast, escapeHtml } from "/js/utils.js";
+import { showToast } from "/js/utils.js";
 import { swapContent, prefersReducedMotion } from "/js/motion.js";
-import { khopTuKhoa, sapXepSanPham, KIEU_SAP_XEP } from "/js/search-rules.js";
+import { taiCatalog } from "/js/catalog/catalog-data.js";
+import { taoTheSanPham } from "/js/catalog/product-card.js";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
-} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  SO_SP_MOI_TRANG,
+  docBoLoc,
+  ghiBoLoc,
+  locSanPham,
+  phanTrang,
+  cuaSoTrang,
+  chuKyDanhSach,
+  demTheoDanhMuc,
+  chiaMucGia,
+  chipBoLoc,
+  boLocKhiGo,
+  boLocKhiXoaHet,
+  chuanHoaKhoangGia,
+  tieuDeTrang,
+  khoangHienThi,
+} from "/js/catalog/catalog-rules.js";
+import { dungDanhMuc, capNhatDanhMuc, dungMucGia, capNhatMucGia, veChip, veTrangThai } from "/js/catalog/filter-view.js";
 
-const SO_SP_MOI_TRANG = 12;
+const SO_THE_UU_TIEN = 4;
+const TEN_CUA_HANG = "Website bán linh kiện máy tính";
 
-const elDanhSach = document.getElementById("danh-sach-san-pham");
-const elDem = document.getElementById("ket-qua-dem");
-const elPhanTrang = document.getElementById("phan-trang");
-const elDanhMuc = document.getElementById("danh-muc");
-const elTuKhoa = document.getElementById("tu-khoa");
-const elGiaTu = document.getElementById("gia-tu");
-const elGiaDen = document.getElementById("gia-den");
-const elSapXep = document.getElementById("sap-xep");
+const lay = (id) => document.getElementById(id);
+const el = {
+  luoi: lay("danh-sach-san-pham"),
+  dem: lay("ket-qua-dem"),
+  phanTrang: lay("phan-trang"),
+  tieuDe: lay("sp-tieu-de"),
+  duongDan: lay("sp-breadcrumb"),
+  chip: lay("sp-chips"),
+  loc: lay("sp-loc"),
+  moLoc: lay("btn-mo-loc"),
+  soLoc: lay("sp-so-loc"),
+  xoaLoc: lay("btn-xoa-loc"),
+  tuKhoa: lay("tu-khoa"),
+  danhMuc: lay("sp-danh-muc"),
+  mucGia: lay("sp-muc-gia"),
+  giaTu: lay("gia-tu"),
+  giaDen: lay("gia-den"),
+  conHang: lay("con-hang"),
+  sapXep: lay("sap-xep"),
+  oTimTrenDau: document.querySelector(".site-search input"),
+};
 
-let tatCaSanPham = []; // toàn bộ sp đang bán
-let danhSachSauLoc = [];
-let trangHienTai = 1;
-let daTaiXong = false;
-let daRenderLanDau = false;
-let khoaLocCuoi = null;
+let boLoc = docBoLoc(window.location.search);
+let tatCa = [];
+let tenDanhMuc = new Map();
+let mucGia = [];
+let ketQua = [];
+let daTai = false;
+let daVe = false;
+let chuKyDaVe = null;
 let soLanChuyen = 0;
-const cacheThe = new Map(); // giữ thẻ đã dựng để ảnh không tải lại và các thẻ còn lại trượt đúng chỗ khi lọc
+const cacheThe = new Map();
 
-// Bộ lọc nằm trên query string (tukhoa, danhmuc, giatu, giaden, sapxep, trang): trang chủ / breadcrumb lọc sẵn, bấm Back quay về đúng kết quả.
-const thamSoUrl = new URLSearchParams(window.location.search);
-
-function docBoLocTuUrl() {
-  elTuKhoa.value = thamSoUrl.get("tukhoa") ?? "";
-  elGiaTu.value = thamSoUrl.get("giatu") ?? "";
-  elGiaDen.value = thamSoUrl.get("giaden") ?? "";
-  elSapXep.value = thamSoUrl.get("sapxep") in KIEU_SAP_XEP ? thamSoUrl.get("sapxep") : "mac_dinh";
-  trangHienTai = Math.max(1, parseInt(thamSoUrl.get("trang"), 10) || 1);
-}
+const coChuyenCanh = () => typeof document.startViewTransition === "function" && !prefersReducedMotion();
 
 function dongBoUrl() {
-  const tham = new URLSearchParams();
-  if (elTuKhoa.value.trim()) tham.set("tukhoa", elTuKhoa.value.trim());
-  if (elDanhMuc.value) tham.set("danhmuc", elDanhMuc.value);
-  if (elGiaTu.value) tham.set("giatu", elGiaTu.value);
-  if (elGiaDen.value) tham.set("giaden", elGiaDen.value);
-  if (elSapXep.value !== "mac_dinh") tham.set("sapxep", elSapXep.value);
-  if (trangHienTai > 1) tham.set("trang", trangHienTai);
-  const chuoi = tham.toString();
+  const chuoi = ghiBoLoc(boLoc);
   history.replaceState(null, "", window.location.pathname + (chuoi ? `?${chuoi}` : ""));
 }
 
-function coChuyenCanh() {
-  return typeof document.startViewTransition === "function" && !prefersReducedMotion();
+function veDuongDan(ten) {
+  const dm = ten ? `<a href="/product-list.html">Sản phẩm</a><span class="breadcrumb__sep">/</span><span aria-current="page"></span>` : '<span aria-current="page">Sản phẩm</span>';
+  el.duongDan.innerHTML = `<a href="/index.html">Trang chủ</a><span class="breadcrumb__sep">/</span>${dm}`;
+  if (ten) el.duongDan.lastElementChild.textContent = ten;
 }
 
-async function taiDanhMuc() {
-  try {
-    const snap = await getDocs(collection(db, "danhmuc"));
-    snap.forEach((docSnap) => {
-      const dm = docSnap.data();
-      const opt = document.createElement("option");
-      opt.value = docSnap.id;
-      opt.textContent = dm.tenDanhMuc;
-      elDanhMuc.appendChild(opt);
-    });
-    const dmTuUrl = thamSoUrl.get("danhmuc");
-    if (dmTuUrl) elDanhMuc.value = dmTuUrl;
-  } catch (err) {
-    console.error("Không tải được danh mục:", err);
-  }
+function dongBoDieuKhien() {
+  const dem = demTheoDanhMuc(tatCa, boLoc);
+  const tong = [...dem.values()].reduce((a, b) => a + b, 0);
+  capNhatDanhMuc(el.danhMuc, dem, tong, boLoc.danhMuc);
+  capNhatMucGia(el.mucGia, mucGia, boLoc);
+
+  const dangNhap = document.activeElement;
+  if (dangNhap !== el.tuKhoa) el.tuKhoa.value = boLoc.tuKhoa;
+  if (dangNhap !== el.giaTu) el.giaTu.value = boLoc.giaTu ?? "";
+  if (dangNhap !== el.giaDen) el.giaDen.value = boLoc.giaDen ?? "";
+  if (el.oTimTrenDau && dangNhap !== el.oTimTrenDau) el.oTimTrenDau.value = boLoc.tuKhoa;
+  el.conHang.checked = boLoc.conHang;
+  el.sapXep.value = boLoc.sapXep;
+
+  const tenDm = tenDanhMuc.get(boLoc.danhMuc);
+  const dsChip = chipBoLoc(boLoc, tenDm);
+  veChip(el.chip, dsChip);
+  el.soLoc.textContent = dsChip.length;
+  el.soLoc.hidden = !dsChip.length;
+  el.xoaLoc.disabled = !dsChip.length;
+
+  const tieuDe = tieuDeTrang(boLoc, tenDm);
+  el.tieuDe.textContent = tieuDe;
+  document.title = `${tieuDe} — ${TEN_CUA_HANG}`;
+  veDuongDan(boLoc.danhMuc && !boLoc.tuKhoa ? tenDm : "");
 }
 
-async function taiSanPham() {
-  // Khung chờ (skeleton) nằm sẵn trong product-list.html → hiện ngay từ khung hình đầu tiên.
-  elDanhSach.setAttribute("aria-busy", "true");
-  try {
-    // Chỉ hiển thị sp đang bán.
-    const q = query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"));
-    const snap = await getDocs(q);
-    tatCaSanPham = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-    daTaiXong = true;
-    apDungBoLoc({ giuTrang: true });
-  } catch (err) {
-    elDanhSach.innerHTML = '<p class="text-muted">Không tải được sản phẩm.</p>';
-    elDanhSach.removeAttribute("aria-busy");
-    showToast("Lỗi tải sản phẩm: " + err.message, "error");
-  }
-}
-
-function apDungBoLoc({ giuTrang = false } = {}) {
-  const tuKhoa = elTuKhoa.value.trim();
-  const danhMucId = elDanhMuc.value;
-  const giaTu = elGiaTu.value ? Number(elGiaTu.value) : null;
-  const giaDen = elGiaDen.value ? Number(elGiaDen.value) : null;
-
-  const kieuSapXep = elSapXep.value;
-
-  const khoaLoc = JSON.stringify([tuKhoa, danhMucId, giaTu, giaDen, kieuSapXep]);
-  if (!giuTrang && khoaLoc === khoaLocCuoi) return;
-  khoaLocCuoi = khoaLoc;
-
-  danhSachSauLoc = sapXepSanPham(tatCaSanPham, kieuSapXep).filter((sp) => {
-    if (tuKhoa && !khopTuKhoa(sp.tenSanPham, tuKhoa)) return false;
-    if (danhMucId && sp.danhMucId !== danhMucId) return false;
-    if (giaTu !== null && sp.gia < giaTu) return false;
-    if (giaDen !== null && sp.gia > giaDen) return false;
-    return true;
-  });
-
-  if (!giuTrang) trangHienTai = 1;
+function capNhat() {
+  ketQua = locSanPham(tatCa, boLoc);
+  dongBoDieuKhien();
   render();
 }
 
+function datBoLoc(moi) {
+  if (ghiBoLoc(moi) === ghiBoLoc(boLoc)) return;
+  boLoc = moi;
+  if (daTai) capNhat();
+}
+
+const doiLoc = (phan) => datBoLoc({ ...boLoc, ...phan, trang: 1 });
+
 function render() {
-  if (!daRenderLanDau || !coChuyenCanh()) {
-    daRenderLanDau = true;
-    swapContent(elDanhSach, renderNoiDung); // cross-fade + co giãn chiều cao: khung chờ → dữ liệu, hoặc khi trình duyệt không có View Transitions
+  if (!daVe || !coChuyenCanh()) {
+    daVe = true;
+    swapContent(el.luoi, renderNoiDung);
     return;
   }
 
@@ -139,99 +135,198 @@ function render() {
     });
 }
 
-function taoThe(sp, i) {
-  const a = document.createElement("a");
-  a.href = `/product-detail.html?id=${sp.id}`;
-  a.className = "card kh-product-card";
-  const conHang = (sp.soLuongTon ?? 0) > 0;
-  const uuTien = i < 4 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"';
-  a.innerHTML = `
-        <span class="kh-product-card__media"><img class="kh-product-card__img img-fade" src="${escapeHtml(sp.hinhAnh)}" alt="${escapeHtml(sp.tenSanPham)}" ${uuTien} decoding="async" onload="this.classList.add('is-loaded')" onerror="this.style.visibility='hidden'"></span>
-        <div class="kh-product-card__name">${escapeHtml(sp.tenSanPham)}</div>
-        <div class="kh-product-card__price">${formatCurrency(sp.gia)}</div>
-        <div class="kh-product-card__stock ${conHang ? '' : 'kh-product-card__stock--out'}">
-          ${conHang ? `Còn ${sp.soLuongTon} sản phẩm` : 'Tạm hết hàng'}
-        </div>
-      `;
-  return a;
+function veTrangThaiLuoi() {
+  if (!tatCa.length) {
+    return veTrangThai({ bieuTuong: "box", tieuDe: "Cửa hàng chưa có sản phẩm nào", moTa: "Vui lòng quay lại sau." });
+  }
+  return veTrangThai({
+    bieuTuong: "search",
+    tieuDe: "Không tìm thấy sản phẩm phù hợp",
+    moTa: "Thử bỏ bớt bộ lọc hoặc dùng từ khoá ngắn hơn.",
+    nut: { nhan: "Xoá bộ lọc", thuocTinh: "data-xoa-het" },
+  });
 }
 
 function renderNoiDung(dungChuyenCanh = false) {
-  const tongSo = danhSachSauLoc.length;
-  elDem.textContent = tongSo > 0 ? `Tìm thấy ${tongSo} sản phẩm` : "Không có sản phẩm phù hợp";
+  const trang = phanTrang(ketQua, boLoc.trang);
+  boLoc = { ...boLoc, trang: trang.trang };
 
-  const tongSoTrang = Math.max(1, Math.ceil(tongSo / SO_SP_MOI_TRANG));
-  if (trangHienTai > tongSoTrang) trangHienTai = tongSoTrang;
-
-  const batDau = (trangHienTai - 1) * SO_SP_MOI_TRANG;
-  const trang = danhSachSauLoc.slice(batDau, batDau + SO_SP_MOI_TRANG);
-
-  elDanhSach.removeAttribute("aria-busy");
-  if (trang.length === 0) {
-    elDanhSach.innerHTML = '<p class="empty-state">Không tìm thấy sản phẩm nào phù hợp bộ lọc.</p>';
+  if (!trang.tong) {
+    el.dem.textContent = "Không có sản phẩm phù hợp";
+  } else if (trang.tongTrang > 1) {
+    const { tu, den } = khoangHienThi(trang.trang, SO_SP_MOI_TRANG, trang.tong);
+    el.dem.textContent = `Hiển thị ${tu}–${den} trên ${trang.tong} sản phẩm`;
   } else {
-    elDanhSach.innerHTML = "";
-    trang.forEach((sp, i) => {
-      let a = cacheThe.get(sp.id);
-      if (!a) {
-        a = taoThe(sp, i);
-        cacheThe.set(sp.id, a);
+    el.dem.textContent = `${trang.tong} sản phẩm`;
+  }
+
+  el.luoi.removeAttribute("aria-busy");
+  if (!trang.muc.length) {
+    el.luoi.innerHTML = veTrangThaiLuoi();
+  } else {
+    el.luoi.replaceChildren();
+    const bayGio = Date.now();
+    trang.muc.forEach((sp, i) => {
+      let the = cacheThe.get(sp.id);
+      if (!the) {
+        the = taoTheSanPham(sp, { uuTien: i < SO_THE_UU_TIEN, bayGio });
+        cacheThe.set(sp.id, the);
       }
-      // Chuyển cảnh: mỗi thẻ có tên riêng để tự trượt về chỗ mới. Không chuyển cảnh: thẻ hiện lần lượt (motion-enter + --i, xếp lớp 32ms).
-      a.classList.toggle("motion-enter", !dungChuyenCanh);
-      a.style.setProperty("--i", i);
-      a.style.viewTransitionName = dungChuyenCanh ? `sp-${sp.id.replace(/[^\w-]/g, "_")}` : "";
-      elDanhSach.appendChild(a);
+      the.classList.toggle("motion-enter", !dungChuyenCanh);
+      the.style.setProperty("--i", i);
+      the.style.viewTransitionName = dungChuyenCanh ? `sp-${sp.id.replace(/[^\w-]/g, "_")}` : "";
+      el.luoi.append(the);
     });
   }
 
-  renderPhanTrang(tongSoTrang);
+  renderPhanTrang(trang.tongTrang);
   dongBoUrl();
 }
 
-function renderPhanTrang(tongSoTrang) {
-  elPhanTrang.innerHTML = "";
-  if (tongSoTrang <= 1) return;
-
-  const taoNut = (nhan, trang, disabled = false, active = false) => {
-    const btn = document.createElement("button");
-    btn.textContent = nhan;
-    btn.disabled = disabled;
-    if (active) btn.classList.add("is-active");
-    btn.addEventListener("click", () => {
-      const dungChuyenCanh = coChuyenCanh();
-      trangHienTai = trang;
-      if (dungChuyenCanh) window.scrollTo(0, 0);
-      render();
-      if (!dungChuyenCanh) window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
-    });
-    return btn;
-  };
-
-  elPhanTrang.appendChild(taoNut("‹", trangHienTai - 1, trangHienTai === 1));
-  for (let i = 1; i <= tongSoTrang; i++) {
-    elPhanTrang.appendChild(taoNut(String(i), i, false, i === trangHienTai));
-  }
-  elPhanTrang.appendChild(taoNut("›", trangHienTai + 1, trangHienTai === tongSoTrang));
+function cuonToiKetQua(hanhVi) {
+  document.querySelector(".sp-layout").scrollIntoView({ block: "start", behavior: hanhVi });
 }
 
-const locTheoNguoiDung = () => {
-  if (daTaiXong) apDungBoLoc();
-};
+function datTrang(so) {
+  const dungChuyenCanh = coChuyenCanh();
+  boLoc = { ...boLoc, trang: so };
+  if (dungChuyenCanh) cuonToiKetQua("auto");
+  render();
+  if (!dungChuyenCanh) cuonToiKetQua(prefersReducedMotion() ? "auto" : "smooth");
+  el.tieuDe.focus({ preventScroll: true });
+}
+
+function renderPhanTrang(tongTrang) {
+  el.phanTrang.replaceChildren();
+  if (tongTrang <= 1) return;
+
+  const taoNut = (nhan, so, { voHieu = false, hienTai = false, tenDayDu } = {}) => {
+    const nut = document.createElement("button");
+    nut.type = "button";
+    nut.textContent = nhan;
+    nut.disabled = voHieu;
+    if (tenDayDu) nut.setAttribute("aria-label", tenDayDu);
+    if (hienTai) {
+      nut.classList.add("is-active");
+      nut.setAttribute("aria-current", "page");
+    }
+    nut.addEventListener("click", () => datTrang(so));
+    return nut;
+  };
+
+  el.phanTrang.append(taoNut("‹", boLoc.trang - 1, { voHieu: boLoc.trang === 1, tenDayDu: "Trang trước" }));
+  for (const muc of cuaSoTrang(boLoc.trang, tongTrang)) {
+    if (muc === "…") {
+      const dau = document.createElement("span");
+      dau.className = "pagination__gap";
+      dau.textContent = "…";
+      dau.setAttribute("aria-hidden", "true");
+      el.phanTrang.append(dau);
+    } else {
+      el.phanTrang.append(taoNut(String(muc), muc, { hienTai: muc === boLoc.trang, tenDayDu: `Trang ${muc}` }));
+    }
+  }
+  el.phanTrang.append(taoNut("›", boLoc.trang + 1, { voHieu: boLoc.trang === tongTrang, tenDayDu: "Trang sau" }));
+}
+
+function nhanDuLieu(du) {
+  const chuKy = chuKyDanhSach(du.sanPham);
+  if (daTai && chuKy === chuKyDaVe) return;
+  chuKyDaVe = chuKy;
+  tatCa = du.sanPham;
+  tenDanhMuc = new Map(du.danhMuc.map((dm) => [dm.id, dm.tenDanhMuc]));
+  const coHang = new Set(tatCa.map((sp) => sp.danhMucId));
+  const dsDanhMuc = du.danhMuc.filter((dm) => coHang.has(dm.id)).sort((a, b) => String(a.tenDanhMuc).localeCompare(String(b.tenDanhMuc), "vi"));
+  dungDanhMuc(el.danhMuc, dsDanhMuc);
+  mucGia = chiaMucGia(tatCa.map((sp) => sp.gia));
+  dungMucGia(el.mucGia, mucGia);
+  cacheThe.clear();
+  daTai = true;
+  capNhat();
+}
+
+async function taiDuLieu() {
+  el.luoi.setAttribute("aria-busy", "true");
+  try {
+    nhanDuLieu(await taiCatalog({ khiCoBanCu: nhanDuLieu }));
+  } catch (loi) {
+    console.error("Không tải được sản phẩm:", loi);
+    el.luoi.innerHTML = veTrangThai({
+      bieuTuong: "shield",
+      tieuDe: "Không tải được sản phẩm",
+      moTa: "Kiểm tra kết nối mạng rồi thử lại.",
+      nut: { nhan: "Thử lại", thuocTinh: "data-thu-lai" },
+    });
+    el.luoi.removeAttribute("aria-busy");
+    showToast("Không tải được sản phẩm.", "error");
+  }
+}
+
+const kieuMobile = window.matchMedia("(max-width: 900px)");
+
+function dongBoKieuLoc() {
+  if (kieuMobile.matches) return;
+  if (el.loc.matches(":modal")) el.loc.close();
+  el.loc.setAttribute("open", "");
+}
+
+function moNganKeoLoc() {
+  el.loc.removeAttribute("open");
+  el.loc.showModal();
+  el.loc.querySelector("[data-dong]").focus();
+}
+
 let henGio = 0;
-document.getElementById("form-loc").addEventListener("submit", (e) => {
-  e.preventDefault();
-  locTheoNguoiDung();
-});
-elDanhMuc.addEventListener("change", locTheoNguoiDung);
-elGiaTu.addEventListener("change", locTheoNguoiDung);
-elGiaDen.addEventListener("change", locTheoNguoiDung);
-elSapXep.addEventListener("change", locTheoNguoiDung);
-elTuKhoa.addEventListener("input", () => {
+el.tuKhoa.addEventListener("input", () => {
   clearTimeout(henGio);
-  henGio = setTimeout(locTheoNguoiDung, 250);
+  henGio = setTimeout(() => doiLoc({ tuKhoa: el.tuKhoa.value.trim() }), 250);
+});
+el.danhMuc.addEventListener("change", (e) => doiLoc({ danhMuc: e.target.value }));
+el.mucGia.addEventListener("click", (e) => {
+  const nut = e.target.closest("[data-muc]");
+  if (!nut) return;
+  const muc = mucGia[nut.dataset.muc];
+  const dangChon = nut.getAttribute("aria-pressed") === "true";
+  doiLoc(dangChon ? { giaTu: null, giaDen: null } : { giaTu: muc.tu, giaDen: muc.den });
+});
+const doiKhoangGia = () => doiLoc(chuanHoaKhoangGia(el.giaTu.value, el.giaDen.value));
+el.giaTu.addEventListener("change", doiKhoangGia);
+el.giaDen.addEventListener("change", doiKhoangGia);
+el.conHang.addEventListener("change", () => doiLoc({ conHang: el.conHang.checked }));
+el.sapXep.addEventListener("change", () => doiLoc({ sapXep: el.sapXep.value }));
+lay("form-loc").addEventListener("submit", (e) => e.preventDefault());
+el.xoaLoc.addEventListener("click", () => datBoLoc(boLocKhiXoaHet(boLoc)));
+
+el.chip.addEventListener("click", (e) => {
+  if (e.target.closest("[data-xoa-het]")) return datBoLoc(boLocKhiXoaHet(boLoc));
+  const nut = e.target.closest("[data-go]");
+  if (!nut) return;
+  datBoLoc(boLocKhiGo(boLoc, nut.dataset.go));
+  (el.chip.querySelector(".sp-chip") ?? el.tieuDe).focus({ preventScroll: true });
 });
 
-docBoLocTuUrl();
-await taiDanhMuc();
-await taiSanPham();
+el.luoi.addEventListener("click", (e) => {
+  if (e.target.closest("[data-xoa-het]")) datBoLoc(boLocKhiXoaHet(boLoc));
+  else if (e.target.closest("[data-thu-lai]")) taiDuLieu();
+});
+
+el.moLoc.addEventListener("click", moNganKeoLoc);
+el.loc.addEventListener("click", (e) => {
+  if (e.target === el.loc || e.target.closest("[data-dong]")) el.loc.close();
+});
+kieuMobile.addEventListener("change", dongBoKieuLoc);
+
+el.oTimTrenDau?.closest("form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  doiLoc({ tuKhoa: el.oTimTrenDau.value.trim() });
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || kieuMobile.matches) return;
+  e.preventDefault();
+  el.tuKhoa.focus();
+});
+
+dongBoKieuLoc();
+await taiDuLieu();

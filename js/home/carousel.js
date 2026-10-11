@@ -250,7 +250,7 @@ export function khoiTaoHang(hang) {
 let quanSat = null;
 
 /** thêm lớp is-in khi phần tử cuộn tới, chỉ một lần; phần tử đã nằm trong khung nhìn thì giữ nguyên, không mờ đi rồi hiện lại */
-export function hienKhiCuonToi(el) {
+export function hienKhiCuonToi(el, lop = "home-reveal") {
   if (giamChuyenDong() || !("IntersectionObserver" in window)) return el.classList.add("is-in");
   if (el.getBoundingClientRect().top < innerHeight) return;
   quanSat ??= new IntersectionObserver((ds) => {
@@ -260,6 +260,6 @@ export function hienKhiCuonToi(el) {
       quanSat.unobserve(m.target);
     }
   }, { rootMargin: "0px 0px -8% 0px", threshold: 0.05 });
-  el.classList.add("home-reveal");
+  el.classList.add(lop);
   quanSat.observe(el);
 }

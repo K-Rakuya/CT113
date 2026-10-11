@@ -2,26 +2,28 @@ import { db } from "/js/firebase-config.js";
 import { docCatalogCache, luuCatalogCache, catalogConTuoi } from "/js/catalog/catalog-cache.js";
 import { collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
+/** @returns {object} bản rút gọn của một tài liệu sanpham, cùng dạng với phần tử trong cache catalog */
+export function rutGonSanPham(id, x) {
+  return {
+    id,
+    tenSanPham: x.tenSanPham,
+    gia: x.gia,
+    soLuongTon: x.soLuongTon ?? 0,
+    hinhAnh: x.hinhAnh,
+    moTa: x.moTa,
+    danhMucId: x.danhMucId,
+    trangThai: x.trangThai,
+    ngayTao: x.ngayTao?.toMillis?.() ?? 0,
+  };
+}
+
 async function taiTuMang() {
   const [sp, dm] = await Promise.all([
     getDocs(query(collection(db, "sanpham"), where("trangThai", "==", "dang_ban"))),
     getDocs(collection(db, "danhmuc")),
   ]);
   const du = {
-    sanPham: sp.docs.map((d) => {
-      const x = d.data();
-      return {
-        id: d.id,
-        tenSanPham: x.tenSanPham,
-        gia: x.gia,
-        soLuongTon: x.soLuongTon ?? 0,
-        hinhAnh: x.hinhAnh,
-        moTa: x.moTa,
-        danhMucId: x.danhMucId,
-        trangThai: x.trangThai,
-        ngayTao: x.ngayTao?.toMillis?.() ?? 0,
-      };
-    }),
+    sanPham: sp.docs.map((d) => rutGonSanPham(d.id, d.data())),
     danhMuc: dm.docs.map((d) => ({ id: d.id, tenDanhMuc: d.data().tenDanhMuc })),
   };
   luuCatalogCache(du);

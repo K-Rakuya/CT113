@@ -42,6 +42,6 @@ export function veTrangThai({ bieuTuong: ma, tieuDe, moTa, nut }) {
     <span class="sp-empty__icon">${bieuTuong(ma)}</span>
     <p class="sp-empty__title">${escapeHtml(tieuDe)}</p>
     <p class="sp-empty__text">${escapeHtml(moTa)}</p>
-    ${nut ? `<button type="button" class="btn btn--primary" ${nut.thuocTinh}>${escapeHtml(nut.nhan)}</button>` : ""}
+    ${nut ? (nut.href ? `<a class="btn btn--primary" href="${escapeHtml(nut.href)}">${escapeHtml(nut.nhan)}</a>` : `<button type="button" class="btn btn--primary" ${nut.thuocTinh}>${escapeHtml(nut.nhan)}</button>`) : ""}
   </div>`;
 }

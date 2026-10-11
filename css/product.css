@@ -98,40 +98,6 @@
   color: var(--color-danger);
 }
 
-.kh-skeleton-detail__img {
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius);
-}
-
-.kh-skeleton-detail__title {
-  width: 78%;
-  height: 38px;
-  margin-bottom: 18px;
-}
-
-.kh-skeleton-detail__price {
-  width: 34%;
-  height: 26px;
-  margin-bottom: 18px;
-}
-
-.kh-skeleton-detail__line {
-  height: 14px;
-  margin-bottom: 10px;
-}
-
-.kh-skeleton-detail__line--short {
-  width: 55%;
-}
-
-.kh-skeleton-detail__btn {
-  width: 220px;
-  max-width: 100%;
-  height: 42px;
-  margin-top: var(--spacing-lg);
-  border-radius: var(--radius-sm);
-}
-
 .kh-skeleton-cart__img {
   width: 72px;
   height: 72px;
@@ -171,40 +137,7 @@
   border-radius: var(--radius-sm);
 }
 
-/* ---- Chi tiết sản phẩm (product-detail.html) ---- */
-.kh-detail {
-  display: grid;
-  grid-template-columns: minmax(0, 420px) 1fr;
-  gap: var(--spacing-xl);
-}
-
-@media (max-width: 720px) {
-  .kh-detail {
-    grid-template-columns: 1fr;
-  }
-}
-
-.kh-detail__img {
-  border-radius: var(--radius);
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  background: var(--color-bg);
-}
-
-.kh-detail__desc {
-  max-width: 62ch;
-  color: var(--color-text-muted);
-}
-
-.kh-detail__price {
-  font-family: var(--font-family-mono);
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  color: var(--color-primary);
-  margin: var(--spacing-sm) 0;
-}
-
+/* ---- Bộ tăng giảm số lượng (giỏ hàng) ---- */
 .kh-qty-stepper {
   display: inline-flex;
   align-items: center;
@@ -245,26 +178,6 @@
   border-left: 1px solid var(--color-border);
   border-right: 1px solid var(--color-border);
   font-family: var(--font-family-mono);
-}
-
-/* ---- Đánh giá ---- */
-.kh-review {
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--color-border);
-}
-
-.kh-review:last-child {
-  border-bottom: none;
-}
-
-.kh-review__stars {
-  color: var(--color-warning);
-  letter-spacing: 2px;
-  font-size: var(--text-sm);
-}
-
-.kh-review-form {
-  margin-top: var(--spacing-lg);
 }
 
 /* ---- Giỏ hàng (cart.html) ---- */
@@ -562,16 +475,8 @@
   font-size: var(--text-sm);
 }
 
-/* ---- Dàn cảnh chi tiết sản phẩm: ảnh rồi tới thông tin (skeleton có class .skeleton nên bị loại) ---- */
+/* ---- Dàn cảnh giỏ hàng: phần tóm tắt vào sau danh sách ---- */
 @media (prefers-reduced-motion: no-preference) {
-  .kh-detail:not(.skeleton)>* {
-    animation: rise-in var(--dur-slow) var(--ease-out) backwards;
-  }
-
-  .kh-detail:not(.skeleton)> :nth-child(2) {
-    animation-delay: var(--stagger);
-  }
-
   .kh-cart-layout:not(.skeleton)>.kh-summary {
     animation: rise-in var(--dur-slow) var(--ease-out) calc(var(--stagger) * 2) backwards;
   }
